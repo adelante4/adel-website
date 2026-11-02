@@ -1,6 +1,8 @@
 name = "adel-now-playing"
 main = "src/index.js"
 compatibility_date = "2026-11-01"
+workers_dev = true
+preview_urls = false
 
 [vars]
 # Sites allowed to call this Worker. Add a custom domain here if you get one.
