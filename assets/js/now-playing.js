@@ -60,3 +60,21 @@ if (el && NOW_PLAYING_URL) {
   setInterval(load, POLL_MS);
   document.addEventListener("visibilitychange", load);
 }
+
+// With a mouse, the tonearm swings toward the pointer while it is over the turntable.
+if (el && window.matchMedia("(hover: hover)").matches) {
+  const arm = el.querySelector(".arm");
+  const PIVOT = { x: 318, y: 96 };
+  const REST = (Math.atan2(8, -128) * 180) / Math.PI; // angle of the arm when it rests on the record
+  el.addEventListener("mousemove", (e) => {
+    if (!el.classList.contains("playing")) return;
+    const r = el.getBoundingClientRect();
+    const k = r.width / 360;
+    const x = (e.clientX - r.left) / k, y = (e.clientY - r.top) / k;
+    let a = (Math.atan2(y - PIVOT.y, x - PIVOT.x) * 180) / Math.PI - REST;
+    if (a > 180) a -= 360;
+    if (a < -180) a += 360;
+    arm.style.transform = `rotate(${Math.max(-18, Math.min(34, a)).toFixed(1)}deg)`;
+  });
+  el.addEventListener("mouseleave", () => { arm.style.transform = ""; });
+}

@@ -49,6 +49,20 @@
 .deck.playing .deck-arm .arm { transform-origin: 318px 96px; transform: rotate(35deg); transition: transform 0.9s cubic-bezier(0.3, 0.7, 0.2, 1); }
 .deck.playing .deck-arm .arm { transform: rotate(0deg); }
 
+/* The turntable links to the listening page. These cues show that. */
+.deck { cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='22' height='22'><rect x='2' y='2' width='14' height='14' fill='%23ff3b1f' stroke='%23111' stroke-width='2'/></svg>") 9 9, pointer; }
+.deck-ring2 { position: absolute; inset: 0; width: 100%; height: 100%; animation: spin 14s linear infinite reverse; }
+.deck-ring2 text { fill: var(--accent); font-family: var(--font); font-weight: 700; letter-spacing: 0.2px; }
+.deck:hover .deck-ring2 text { fill: var(--bg); }
+.deck-go { fill: var(--accent); font-family: var(--font); font-weight: 700; opacity: 0; transition: opacity 0.4s; }
+.deck:hover .deck-go, .deck:focus-visible .deck-go { opacity: 1; }
+.deck.playing:hover .deck-disc { animation-duration: 4s; }
+@keyframes settle { 0%, 55% { transform: rotate(14deg); } 100% { transform: rotate(0deg); } }
+@keyframes nudge { 0%, 88%, 100% { transform: rotate(0deg); } 94% { transform: rotate(7deg); } }
+.deck.playing .deck-arm .arm { animation: settle 2.6s ease-out both, nudge 9s 6s infinite; }
+.deck.playing:hover .deck-arm .arm { animation: none; transition-duration: 0.12s; transition-timing-function: linear; }
+@media (prefers-reduced-motion: reduce) { .deck-ring2, .deck.playing .deck-arm .arm { animation: none !important; } }
+
 @media (max-width: 640px) {
   .deck { scale: 0.62; transform-origin: right bottom; }
   .stones { position: static; height: auto; display: flex; flex-direction: column; align-items: center; gap: 28px; padding: 96px 24px 24px; }
