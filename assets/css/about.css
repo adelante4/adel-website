@@ -9,7 +9,10 @@
   width: clamp(240px, 38vw, 470px); height: clamp(240px, 38vw, 470px);
   transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+.disc { display: block; border-radius: 50%; cursor: pointer; }
 .sleeve-wrap:hover .disc { transform: translateX(9%); }
+.sleeve-wrap .disc:hover, .sleeve-wrap .disc:focus-visible { transform: translateX(14%); }
+.disc:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
 .spin {
   position: absolute; inset: 0; border-radius: 50%;
   background: repeating-radial-gradient(circle, #0d0d0d 0 3px, #2a2a2a 3px 4px);
