@@ -89,8 +89,9 @@ export default {
       }
 
       return json(result ?? { enabled: false }, 200, cors);
-    } catch {
-      return json({ error: "unavailable" }, 502, { ...cors, "Cache-Control": "no-store" });
+    } catch (err) {
+      // The detail is only a status line like "token request failed: 400", never a secret.
+      return json({ error: "unavailable", detail: String(err?.message ?? err) }, 502, { ...cors, "Cache-Control": "no-store" });
     }
   },
 };

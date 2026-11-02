@@ -45,7 +45,7 @@ if (el && NOW_PLAYING_URL) {
     if (document.hidden) return;
     try {
       const res = await fetch(NOW_PLAYING_URL);
-      if (!res.ok) throw new Error(String(res.status));
+      if (!res.ok) throw new Error(`Worker answered ${res.status}`);
       const d = await res.json();
       if (d.enabled === false || !d.title) {
         el.hidden = true;
@@ -53,8 +53,9 @@ if (el && NOW_PLAYING_URL) {
       } else {
         render(d);
       }
-    } catch {
+    } catch (err) {
       // keep whatever is shown; try again on the next tick
+      console.warn("now playing unavailable:", err);
     }
   };
 
