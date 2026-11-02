@@ -34,8 +34,7 @@ if (el && NOW_PLAYING_URL) {
     textPath.textContent = ringText(label, d.title, d.artist);
     text.setAttribute("textLength", CIRC.toFixed(1));
     text.setAttribute("lengthAdjust", "spacing");
-    el.setAttribute("aria-label", `${label}: ${d.title} by ${d.artist}. Opens Spotify.`);
-    if (d.url) el.href = d.url; else el.removeAttribute("href");
+    el.setAttribute("aria-label", `${label}: ${d.title} by ${d.artist}. Opens my listening page.`);
     el.classList.toggle("playing", Boolean(d.isPlaying));
     el.hidden = false;
   };

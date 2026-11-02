@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Listening | Adel Mostafavi</title>
+<meta name="description" content="What Adel plays on Spotify: now playing, recent tracks, listening hours, top artists, tracks and genres.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="stylesheet" href="assets/css/listening.css">
+</head>
+<body>
+<div class="moire soft" aria-hidden="true"><i></i><i></i></div>
+<div class="page listen-page">
+  <a class="name-tab" href="index.html">Adel Mostafavi</a>
+  <main class="chip listen">
+    <p class="back"><a href="index.html">&larr; Home</a></p>
+    <h1>Listening</h1>
+    <p class="meta">What I play on Spotify. It updates every 30 seconds.</p>
+    <p id="status" class="status" role="status">Loading.</p>
+
+    <section id="now" class="block" hidden aria-labelledby="now-h">
+      <h2 id="now-h">Now playing</h2>
+      <div class="player">
+        <div class="deck2">
+          <span class="rec" id="rec"><img id="cover" alt="" width="80" height="80"><i></i></span>
+          <svg class="arm2" viewBox="0 0 300 240" aria-hidden="true">
+            <g id="arm" class="armg">
+              <line x1="0" y1="0" x2="160" y2="0" stroke="#111" stroke-width="8" stroke-linecap="square"/>
+              <line x1="0" y1="0" x2="160" y2="0" stroke="#f3f3f1" stroke-width="3" stroke-linecap="square"/>
+              <rect x="154" y="-6" width="12" height="12" fill="#ff3b1f"/>
+            </g>
+            <circle cx="270" cy="40" r="14" fill="#2a2a2a" stroke="#f3f3f1" stroke-width="2"/>
+            <circle cx="270" cy="40" r="4" fill="#f3f3f1"/>
+          </svg>
+        </div>
+        <div class="info">
+          <p class="song" id="song"></p>
+          <p class="who" id="who"></p>
+          <div class="bar" id="barwrap" hidden><span id="bar"></span></div>
+          <p class="times" id="times" hidden><span id="t0">0:00</span><span id="t1">0:00</span></p>
+          <a class="btn" id="open" href="#" target="_blank" rel="noopener">Open in Spotify</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="recent" class="block" hidden aria-labelledby="recent-h">
+      <h2 id="recent-h">Recently played</h2>
+      <ul class="rows" id="recent-list"></ul>
+      <button class="btn" id="more" type="button" hidden>Show all</button>
+    </section>
+
+    <section id="hours" class="block" hidden aria-labelledby="hours-h">
+      <h2 id="hours-h">When I listen</h2>
+      <p class="note" id="hours-note"></p>
+      <div class="hours" id="hours-chart"></div>
+      <div class="hour-labels" aria-hidden="true"><span>0</span><span>6</span><span>12</span><span>18</span><span>23</span></div>
+    </section>
+
+    <section id="top" class="block" hidden aria-labelledby="top-h">
+      <h2 id="top-h">Top music</h2>
+      <div class="ranges" role="group" aria-label="Time range">
+        <button class="btn" type="button" data-range="short_term" aria-pressed="false">Last 4 weeks</button>
+        <button class="btn" type="button" data-range="medium_term" aria-pressed="true">Last 6 months</button>
+        <button class="btn" type="button" data-range="long_term" aria-pressed="false">All time</button>
+      </div>
+      <h3>Artists</h3>
+      <ol class="rows ranked" id="top-artists"></ol>
+      <h3>Tracks</h3>
+      <ol class="rows ranked" id="top-tracks"></ol>
+      <h3>Genres</h3>
+      <p class="note">Counted from the genres of my top artists.</p>
+      <ul class="genres" id="top-genres"></ul>
+    </section>
+  </main>
+</div>
+<script type="module" src="assets/js/listening.js"></script>
+</body>
+</html>

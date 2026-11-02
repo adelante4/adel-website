@@ -14,7 +14,7 @@ if (!id || !secret) {
 }
 
 const redirect = "http://127.0.0.1:8888/callback";
-const scope = "user-read-currently-playing user-read-recently-played";
+const scope = "user-read-currently-playing user-read-recently-played user-top-read";
 const state = crypto.randomUUID();
 
 const authUrl =

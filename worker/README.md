@@ -29,6 +29,15 @@ Spotify keys never reach the browser or this repo.
 4. **Connect the site.** Put `https://adel-now-playing.<you>.workers.dev/now-playing` in
    `assets/js/config.js` and push.
 
+## Listening page
+
+The Worker has a second route, `GET /listening`. It returns the current track (with progress and cover),
+the last 50 plays, and top artists and tracks for three time ranges. The page `listening.html` uses it.
+
+Top lists need the `user-top-read` permission. If you set up before this route existed, run steps 2 and 3
+again: run the login script, approve, then `npx wrangler secret put SPOTIFY_REFRESH_TOKEN` with the new
+token and `npx wrangler deploy`. Until you do, the page works and hides the Top music section.
+
 ## Hide it
 
 Set `ENABLED = "false"` in `wrangler.toml` and run `npx wrangler deploy`. The widget disappears.
