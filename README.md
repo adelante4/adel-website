@@ -4,10 +4,10 @@ Personal site. Plain HTML, CSS and a little JavaScript. No build step.
 
 ## Pages
 
-- `index.html`: home, floating sections (About me, Notes, Art)
+- `index.html`: home, floating sections (About me, Notes)
 - `notes.html`: posts as tracks on a spinning vinyl, three per record
 - `post.html?slug=...`: a single note
-- `about.html`, `art.html`
+- `about.html`
 
 ## Add a note
 

@@ -8,17 +8,3 @@
 .article img, .article pre { max-width: 100%; }
 .article pre { overflow-x: auto; padding: 16px; background: #e6e6e2; font-size: 13px; }
 @media (max-width: 640px) { .article-page { padding: 72px 16px 40px 56px; } .article { padding: 20px; } }
-
-/* About page */
-.about { display: flex; flex-direction: column; gap: 28px; padding: 40px; }
-.about h1 { margin: 0; }
-.about .back { margin: 0; }
-.about .lead { display: flex; flex-direction: column; gap: 16px; font-size: 17px; text-wrap: pretty; }
-.about .lead p { margin: 0; }
-.facts { margin: 0; display: grid; grid-template-columns: minmax(0, 120px) minmax(0, 1fr); gap: 20px; border-top: 1px solid var(--ink); padding-top: 24px; font-size: 14px; line-height: 1.7; }
-.facts dt { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; padding-top: 3px; }
-.facts dd { margin: 0; }
-.facts .links { display: flex; flex-wrap: wrap; gap: 6px 16px; }
-.facts .links a { text-underline-offset: 3px; }
-.facts .links a:hover { color: var(--accent); }
-@media (max-width: 640px) { .about { padding: 24px; } .facts { grid-template-columns: 1fr; gap: 6px; } .facts dd { margin-bottom: 14px; } }

@@ -1,0 +1,51 @@
+.about-page {
+  display: flex; align-items: center; justify-content: center;
+  padding: 72px 24px 72px 80px; overflow: hidden;
+}
+.sleeve-wrap { position: relative; width: min(100%, 640px); margin-right: min(14vw, 170px); }
+
+.disc {
+  position: absolute; right: -34%; top: 0; bottom: 0; margin: auto 0;
+  width: clamp(240px, 38vw, 470px); height: clamp(240px, 38vw, 470px);
+  transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.sleeve-wrap:hover .disc { transform: translateX(9%); }
+.spin {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: repeating-radial-gradient(circle, #0d0d0d 0 3px, #2a2a2a 3px 4px);
+  display: flex; align-items: center; justify-content: center;
+  animation: spin 12s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.label { width: 34%; aspect-ratio: 1; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; }
+.label i { width: 6%; min-width: 6px; aspect-ratio: 1; border-radius: 50%; background: var(--bg); }
+
+.sleeve {
+  position: relative; background: var(--bg); border: 2px solid var(--ink);
+  padding: 36px; display: flex; flex-direction: column; gap: 26px;
+  font-size: 14px; line-height: 1.7;
+}
+.sleeve .back { font-size: 13px; text-decoration: underline; text-underline-offset: 3px; align-self: flex-start; }
+.sleeve .back:hover { color: var(--accent); }
+.sleeve h1 { margin: 0; font-size: 26px; }
+.lead { display: flex; flex-direction: column; gap: 16px; font-size: 16px; text-wrap: pretty; }
+.lead p { margin: 0; }
+.facts {
+  margin: 0; display: grid; grid-template-columns: minmax(0, 110px) minmax(0, 1fr);
+  column-gap: 20px; row-gap: 18px; border-top: 1px solid var(--ink); padding-top: 22px;
+}
+.facts dt { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; padding-top: 3px; }
+.facts dd { margin: 0; }
+.facts .links { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.facts .links a { text-decoration: underline; text-underline-offset: 3px; }
+.facts .links a:hover { color: var(--accent); }
+
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } .disc { transition: none; } }
+@media (max-width: 640px) {
+  .about-page { padding: 72px 16px 40px 56px; }
+  .sleeve-wrap { margin-right: 0; }
+  .disc { right: -10%; width: 220px; height: 220px; }
+  .sleeve { padding: 24px; }
+  .facts { grid-template-columns: 1fr; row-gap: 6px; }
+  .facts dd { margin-bottom: 14px; }
+}
