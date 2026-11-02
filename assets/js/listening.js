@@ -132,6 +132,7 @@ function renderTop() {
   const count = new Map();
   for (const a of top.artists[r] ?? []) for (const g of a.genres ?? []) count.set(g, (count.get(g) ?? 0) + 1);
   const sorted = [...count].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 8);
+  $("genres-block").hidden = sorted.length === 0; // Spotify sometimes returns no genres
   const max = sorted[0]?.[1] ?? 1;
   for (const [g, n] of sorted) {
     const li = el("li");

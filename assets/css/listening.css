@@ -70,3 +70,5 @@
   .listen { padding: 20px; }
   .deck2 { transform-origin: left top; }
 }
+
+#genres-block[hidden] { display: none; }
