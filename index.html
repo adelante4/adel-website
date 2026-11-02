@@ -15,19 +15,25 @@
   <a class="name-tab" href="index.html">Adel Mostafavi</a>
   <a class="chip-link" href="https://github.com/adelante4">GitHub</a>
 
+  <a id="now-playing" class="deck" href="#" target="_blank" rel="noopener" hidden>
+    <span class="ripples" aria-hidden="true"><i></i><i></i><i></i></span>
+    <span class="deck-disc" aria-hidden="true">
+      <svg class="deck-ring" viewBox="0 0 200 200">
+        <defs><path id="np-path" d="M100 12 a88 88 0 1 1 0 176 a88 88 0 1 1 0 -176"/></defs>
+        <text id="np-text" font-size="11"><textPath id="np-textpath" href="#np-path"></textPath></text>
+      </svg>
+      <span class="deck-label"><i></i></span>
+    </span>
+    <svg class="deck-arm" viewBox="0 0 260 240" aria-hidden="true">
+      <g class="arm"><line x1="240" y1="30" x2="147" y2="100" stroke="#111" stroke-width="4" stroke-linecap="round"/><circle cx="147" cy="100" r="6" fill="var(--accent)"/></g>
+      <circle cx="240" cy="30" r="15" fill="#111"/><circle cx="240" cy="30" r="5" fill="#f3f3f1"/>
+    </svg>
+  </a>
+
   <main class="stones">
     <a class="stone s1" href="about.html"><strong>About me</strong><span>Who I am and what I build</span></a>
     <a class="stone s2" href="notes.html"><strong>Notes</strong><span>Deep dives, on vinyl</span></a>
   </main>
-
-  <a id="now-playing" class="chip now" href="#" target="_blank" rel="noopener" hidden>
-    <span class="now-label">
-      <span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>
-      <span id="np-label">Now playing</span>
-    </span>
-    <span class="now-title" id="np-title"></span>
-    <span class="now-artist" id="np-artist"></span>
-  </a>
 
   <p class="chip intro">Data scientist and guitarist in Munich. Notes on machine learning and other systems, in no particular order.</p>
 </div>

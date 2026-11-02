@@ -20,24 +20,48 @@
 
 .intro { position: absolute; left: 96px; bottom: 32px; margin: 0; max-width: 300px; }
 
-/* Now playing chip, bottom right */
-.now { position: absolute; right: 24px; bottom: 32px; width: min(300px, calc(100% - 48px)); display: flex; flex-direction: column; gap: 4px; }
-.now[hidden] { display: none; }
-.now:hover .now-title { color: var(--accent); }
-.now-label { display: flex; align-items: center; gap: 10px; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; }
-.now-title { font-weight: 700; overflow-wrap: anywhere; }
-.now-artist { font-size: 12px; overflow-wrap: anywhere; }
-.eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
-.eq i { display: block; width: 3px; height: 3px; background: var(--ink); }
-.now.playing .eq i { animation: eq 0.9s ease-in-out infinite alternate; }
-.now.playing .eq i:nth-child(2) { animation-delay: -0.3s; }
-.now.playing .eq i:nth-child(3) { animation-delay: -0.6s; }
-@keyframes eq { from { height: 3px; } to { height: 12px; } }
+/* Now playing: a third floating record. Ripples spread across the page while music plays. */
+.page { overflow: hidden; }
+.stones { pointer-events: none; }
+.stone { pointer-events: auto; }
+
+.deck { position: absolute; left: 66%; top: 55%; width: 260px; height: 240px; animation: bob 11s ease-in-out -2s infinite; transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.deck[hidden] { display: none; }
+.deck:hover, .deck:focus-visible { transform: scale(1.08) rotate(-3deg); }
+
+.deck-disc {
+  position: absolute; left: 0; top: 40px; width: 200px; height: 200px; border-radius: 50%;
+  background: repeating-radial-gradient(circle, #0d0d0d 0 3px, #2a2a2a 3px 4px);
+  display: flex; align-items: center; justify-content: center;
+}
+.deck.playing .deck-disc { animation: spin 10s linear infinite; }
+.deck-ring { position: absolute; inset: 0; width: 100%; height: 100%; }
+.deck-ring text { fill: var(--bg); font-family: var(--font); letter-spacing: 0.3px; }
+.deck:hover .deck-ring text { fill: var(--accent); }
+.deck-label { width: 36%; aspect-ratio: 1; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; }
+.deck-label i { width: 7px; height: 7px; border-radius: 50%; background: var(--bg); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.deck-arm { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.deck-arm .arm { transform-origin: 240px 30px; transform: rotate(-60deg); transition: transform 0.9s cubic-bezier(0.3, 0.7, 0.2, 1); }
+.deck.playing .deck-arm .arm { transform: rotate(0deg); }
+
+.ripples { position: absolute; left: 100px; top: 140px; width: 0; height: 0; pointer-events: none; }
+.ripples i { position: absolute; left: -100px; top: -100px; width: 200px; height: 200px; border-radius: 50%; border: 3px solid var(--accent); opacity: 0; }
+.deck.playing .ripples i { animation: ripple 7s ease-out infinite; }
+.ripples i:nth-child(2) { animation-delay: -2.3s; }
+.ripples i:nth-child(3) { animation-delay: -4.6s; }
+@keyframes ripple {
+  0%   { width: 200px;  height: 200px;  left: -100px; top: -100px; opacity: 0.8; }
+  100% { width: 1800px; height: 1800px; left: -900px; top: -900px; opacity: 0; }
+}
+.is-playing .moire i:last-child { animation-duration: 16s; }
 
 @media (max-width: 640px) {
-  .now { position: static; margin: 0 24px 16px 72px; width: auto; }
-  .stones { position: static; height: auto; display: flex; flex-direction: column; align-items: center; gap: 28px; padding: 96px 24px 24px; }
+  .deck { display: block; position: relative; left: auto; top: auto; margin: 96px auto 0; animation: none; }
+  .ripples i { display: none; }
+  .stones { position: static; height: auto; display: flex; flex-direction: column; align-items: center; gap: 28px; padding: 24px; }
   .stone { position: static; width: 200px; animation: none; }
   .intro { position: static; margin: 24px 24px 32px 72px; }
 }
-@media (prefers-reduced-motion: reduce) { .stone, .eq i { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .stone, .deck, .deck-disc, .ripples i { animation: none !important; } }
