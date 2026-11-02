@@ -53,12 +53,6 @@
 .ranked .row { grid-template-columns: 24px 40px minmax(0, 1fr); }
 .ranked .row .rank { text-align: right; }
 
-/* Hours */
-.hours { display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 3px; align-items: end; height: 110px; border-bottom: 1.5px solid var(--ink); }
-.hours i { display: block; background: var(--ink); min-height: 2px; }
-.hours i.peak { background: var(--accent); }
-.hour-labels { display: flex; justify-content: space-between; font-size: 11px; color: #5a5a55; padding-top: 4px; }
-
 /* Top */
 .ranges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
 .ranges .btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); }

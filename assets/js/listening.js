@@ -110,27 +110,6 @@ function renderRecent() {
   more.textContent = state.showAll ? "Show fewer" : `Show all ${items.length}`;
 }
 
-function renderHours() {
-  const items = state.data.recent;
-  $("hours").hidden = items.length < 5;
-  if (items.length < 5) return;
-  const counts = Array(24).fill(0);
-  for (const t of items) {
-    const h = Number(new Date(t.playedAt).toLocaleString("en-GB", { timeZone: TZ, hour: "numeric", hourCycle: "h23" }));
-    if (h >= 0 && h < 24) counts[h]++;
-  }
-  const max = Math.max(...counts);
-  const chart = $("hours-chart");
-  chart.replaceChildren();
-  counts.forEach((c, h) => {
-    const b = el("i", c === max ? "peak" : "");
-    b.style.height = `${Math.max(2, (c / max) * 100)}%`;
-    b.title = `${String(h).padStart(2, "0")}:00, ${c} play${c === 1 ? "" : "s"}`;
-    chart.append(b);
-  });
-  $("hours-note").textContent = `Plays per hour of the day, from my last ${items.length} plays. Times are in Munich.`;
-}
-
 function renderTop() {
   const top = state.data.top;
   $("top").hidden = !top;
@@ -167,7 +146,7 @@ function renderTop() {
 
 function render() {
   $("status").textContent = "";
-  renderNow(); renderRecent(); renderHours(); renderTop();
+  renderNow(); renderRecent(); renderTop();
 }
 
 async function load() {
