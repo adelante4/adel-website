@@ -22,6 +22,9 @@ Spotify keys never reach the browser or this repo.
    npx wrangler secret put SPOTIFY_REFRESH_TOKEN
    npx wrangler deploy
    ```
+   Type each command exactly as shown. The name (`SPOTIFY_CLIENT_ID` and so on) is part of the command;
+   wrangler then asks `Enter a secret value:` and you paste the value there. Never put the value in the
+   command itself. Check with `npx wrangler secret list`: it must show exactly those three names.
    Wrangler prints the Worker URL, like `https://adel-now-playing.<you>.workers.dev`.
 4. **Connect the site.** Put `https://adel-now-playing.<you>.workers.dev/now-playing` in
    `assets/js/config.js` and push.
