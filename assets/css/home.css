@@ -20,9 +20,24 @@
 
 .intro { position: absolute; left: 96px; bottom: 32px; margin: 0; max-width: 300px; }
 
+/* Now playing chip, bottom right */
+.now { position: absolute; right: 24px; bottom: 32px; width: min(300px, calc(100% - 48px)); display: flex; flex-direction: column; gap: 4px; }
+.now[hidden] { display: none; }
+.now:hover .now-title { color: var(--accent); }
+.now-label { display: flex; align-items: center; gap: 10px; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; }
+.now-title { font-weight: 700; overflow-wrap: anywhere; }
+.now-artist { font-size: 12px; overflow-wrap: anywhere; }
+.eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
+.eq i { display: block; width: 3px; height: 3px; background: var(--ink); }
+.now.playing .eq i { animation: eq 0.9s ease-in-out infinite alternate; }
+.now.playing .eq i:nth-child(2) { animation-delay: -0.3s; }
+.now.playing .eq i:nth-child(3) { animation-delay: -0.6s; }
+@keyframes eq { from { height: 3px; } to { height: 12px; } }
+
 @media (max-width: 640px) {
+  .now { position: static; margin: 0 24px 16px 72px; width: auto; }
   .stones { position: static; height: auto; display: flex; flex-direction: column; align-items: center; gap: 28px; padding: 96px 24px 24px; }
   .stone { position: static; width: 200px; animation: none; }
   .intro { position: static; margin: 24px 24px 32px 72px; }
 }
-@media (prefers-reduced-motion: reduce) { .stone { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .stone, .eq i { animation: none !important; } }

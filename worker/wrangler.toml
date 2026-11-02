@@ -1,0 +1,9 @@
+name = "adel-now-playing"
+main = "src/index.js"
+compatibility_date = "2026-11-01"
+
+[vars]
+# Sites allowed to call this Worker. Add a custom domain here if you get one.
+ALLOWED_ORIGINS = "https://adelante4.github.io,http://localhost:8000"
+# Set to "false" and redeploy to hide the now-playing widget.
+ENABLED = "true"

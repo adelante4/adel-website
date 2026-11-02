@@ -1,0 +1,37 @@
+# Now playing Worker
+
+A tiny Cloudflare Worker. The site calls `GET /now-playing`; the Worker asks Spotify what I am
+playing (or the last track if nothing is playing) and returns `{ isPlaying, title, artist, url }`.
+Spotify keys never reach the browser or this repo.
+
+## Set up (once)
+
+1. **Spotify app.** https://developer.spotify.com/dashboard, create an app. Add the redirect URI
+   `http://127.0.0.1:8888/callback`. Copy the client ID and client secret.
+2. **Refresh token.** From this `worker/` folder:
+   ```
+   SPOTIFY_CLIENT_ID=... SPOTIFY_CLIENT_SECRET=... node scripts/spotify-login.mjs
+   ```
+   Open the printed URL, approve, and copy the refresh token it prints.
+3. **Deploy.**
+   ```
+   npm install
+   npx wrangler login
+   npx wrangler secret put SPOTIFY_CLIENT_ID
+   npx wrangler secret put SPOTIFY_CLIENT_SECRET
+   npx wrangler secret put SPOTIFY_REFRESH_TOKEN
+   npx wrangler deploy
+   ```
+   Wrangler prints the Worker URL, like `https://adel-now-playing.<you>.workers.dev`.
+4. **Connect the site.** Put `https://adel-now-playing.<you>.workers.dev/now-playing` in
+   `assets/js/config.js` and push.
+
+## Hide it
+
+Set `ENABLED = "false"` in `wrangler.toml` and run `npx wrangler deploy`. The widget disappears.
+
+## Test
+
+```
+npm test
+```

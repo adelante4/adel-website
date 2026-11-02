@@ -9,6 +9,11 @@ Personal site. Plain HTML, CSS and a little JavaScript. No build step.
 - `post.html?slug=...`: a single note
 - `about.html`
 
+## Now playing
+
+The home page shows what I am playing on Spotify through a small Cloudflare Worker in `worker/`.
+Setup steps are in `worker/README.md`. Until `assets/js/config.js` has the Worker URL, the chip stays hidden.
+
 ## Add a note
 
 1. Add an entry to `assets/js/posts.js` (newest first).
