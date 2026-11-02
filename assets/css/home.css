@@ -1,0 +1,29 @@
+.stones { position: absolute; left: 0; right: 0; top: 80px; height: 640px; }
+
+.stone {
+  position: absolute;
+  aspect-ratio: 1; border-radius: 50%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; text-align: center; padding: 20px;
+  line-height: 1.3;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.stone strong { font-size: 24px; }
+.stone span { font-size: 12px; }
+.stone:hover, .stone:focus-visible { transform: scale(1.14) rotate(-4deg); }
+
+.s1 { left: 18%; top: 18%; width: clamp(140px, 22vw, 250px); background: var(--ink); color: var(--bg); animation: bob 9s ease-in-out infinite; }
+.s1 strong { font-size: 26px; }
+.s2 { left: 52%; top: 4%;  width: clamp(110px, 16vw, 180px); background: var(--accent); animation: bob 12s ease-in-out -4s infinite; }
+.s3 { left: 66%; top: 46%; width: clamp(120px, 19vw, 210px); background: var(--bg); border: 2px solid var(--ink); animation: bob 10s ease-in-out -7s infinite; }
+
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+
+.intro { position: absolute; left: 96px; bottom: 32px; margin: 0; max-width: 300px; }
+
+@media (max-width: 640px) {
+  .stones { position: static; height: auto; display: flex; flex-direction: column; align-items: center; gap: 28px; padding: 96px 24px 24px; }
+  .stone { position: static; width: 200px; animation: none; }
+  .intro { position: static; margin: 24px 24px 32px 72px; }
+}
+@media (prefers-reduced-motion: reduce) { .stone { animation: none !important; } }

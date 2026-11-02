@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Note | Adel Mostafavi</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="stylesheet" href="assets/css/article.css">
+</head>
+<body>
+<div class="moire soft" aria-hidden="true"><i></i><i></i></div>
+<div class="page article-page">
+  <a class="name-tab" href="index.html">Adel Mostafavi</a>
+  <article class="chip article">
+    <p class="back"><a href="notes.html">&larr; Notes</a></p>
+    <h1 id="title">Note</h1>
+    <p class="meta" id="date"></p>
+    <div id="body"></div>
+  </article>
+</div>
+<script type="module">
+  import { posts } from "./assets/js/posts.js";
+  const slug = new URLSearchParams(location.search).get("slug");
+  const post = posts.find((p) => p.slug === slug);
+  const title = document.getElementById("title");
+  const date = document.getElementById("date");
+  const body = document.getElementById("body");
+
+  if (!post) {
+    title.textContent = "Not found";
+    body.textContent = "There is no note with that name.";
+  } else {
+    document.title = `${post.title} | Adel Mostafavi`;
+    title.textContent = post.title;
+    date.textContent = post.date;
+    // Post content lives in posts/<slug>.html as an HTML fragment.
+    fetch(`posts/${encodeURIComponent(post.slug)}.html`)
+      .then((r) => (r.ok ? r.text() : Promise.reject()))
+      .then((html) => { body.innerHTML = html; })
+      .catch(() => { body.textContent = "This note is not written yet."; });
+  }
+</script>
+</body>
+</html>

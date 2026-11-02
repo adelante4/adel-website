@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notes | Adel Mostafavi</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="assets/css/site.css">
+<link rel="stylesheet" href="assets/css/vinyl.css">
+</head>
+<body>
+<div class="moire soft" aria-hidden="true"><i></i><i></i></div>
+<div class="page notes-page">
+  <a class="name-tab" href="index.html">Adel Mostafavi</a>
+
+  <div class="stage" id="stage">
+    <div class="swap" id="swap">
+      <div class="spin">
+        <div class="grooves" aria-hidden="true"></div>
+        <svg viewBox="0 0 900 900" role="group" aria-label="Vinyl record. Each ring is a post.">
+          <defs>
+            <path id="t0" d="M450 110 a340 340 0 1 1 0 680 a340 340 0 1 1 0 -680"/>
+            <path id="t1" d="M450 188 a262 262 0 1 1 0 524 a262 262 0 1 1 0 -524"/>
+            <path id="t2" d="M450 266 a184 184 0 1 1 0 368 a184 184 0 1 1 0 -368"/>
+          </defs>
+          <g fill="none" stroke="#0d0d0d">
+            <circle cx="450" cy="450" r="390.5" stroke-width="39"/>
+            <circle cx="450" cy="450" r="301" stroke-width="16"/>
+            <circle cx="450" cy="450" r="223" stroke-width="16"/>
+            <circle cx="450" cy="450" r="126" stroke-width="52"/>
+          </g>
+          <circle cx="450" cy="450" r="409.5" fill="none" stroke="#3a3a3a"/>
+          <g id="tracks"></g>
+          <circle cx="450" cy="450" r="100" fill="var(--accent)"/>
+          <text x="450" y="438" text-anchor="middle" font-size="17" font-weight="700" fill="#111">NOTES</text>
+          <text x="450" y="468" text-anchor="middle" font-size="14" fill="#111" id="label-no">No. 1</text>
+          <circle cx="450" cy="450" r="7" fill="#f3f3f1"/>
+        </svg>
+      </div>
+    </div>
+
+    <svg class="overlay" viewBox="0 0 900 900" aria-hidden="true">
+      <path d="M450 450 L590.2 64.6 A410 410 0 0 1 785.8 214.7 Z" fill="#fff" opacity=".06"/>
+      <path d="M450 450 L309.8 835.4 A410 410 0 0 1 114.2 685.3 Z" fill="#fff" opacity=".06"/>
+      <circle cx="860" cy="90" r="30" fill="#111"/>
+      <g id="arm">
+        <line x1="830" y1="90" x2="1280" y2="90" stroke="#111" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="822" cy="90" r="17" fill="#111"/>
+        <rect x="1262" y="82" width="38" height="16" rx="3" fill="var(--accent)"/>
+      </g>
+      <circle cx="860" cy="90" r="10" fill="#f3f3f1"/>
+    </svg>
+  </div>
+
+  <aside class="chip panel">
+    <h1>Notes</h1>
+    <p>Each ring is a post. Hover to lower the needle, click to read. Change the vinyl for older posts.</p>
+    <div class="controls">
+      <button class="btn" id="prev" type="button">Prev vinyl</button>
+      <span id="count" aria-live="polite">1 / 1</span>
+      <button class="btn" id="next" type="button">Next vinyl</button>
+    </div>
+  </aside>
+</div>
+<script type="module" src="assets/js/vinyl.js"></script>
+</body>
+</html>

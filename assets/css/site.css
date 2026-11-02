@@ -1,0 +1,71 @@
+:root {
+  --bg: #f3f3f1;
+  --ink: #111;
+  --accent: #ff3b1f;
+  --font: "Space Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--bg);
+  font-family: var(--font);
+  min-height: 100vh;
+}
+a { color: var(--ink); text-decoration: none; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+/* Moire background: two sets of concentric rings, one drifting */
+.moire { position: fixed; inset: 0; overflow: hidden; z-index: 0; }
+.moire i { position: absolute; display: block; }
+.moire i:first-child {
+  inset: 0;
+  background: repeating-radial-gradient(circle at 28% 42%, var(--ink) 0 1.2px, transparent 1.2px 13px);
+}
+.moire i:last-child {
+  inset: -20%;
+  background: repeating-radial-gradient(circle at 50% 50%, var(--ink) 0 1.2px, transparent 1.2px 13px);
+  animation: sway 38s ease-in-out infinite alternate;
+}
+.moire.soft { opacity: 0.55; }
+@keyframes sway {
+  0%   { transform: translate(-7%, 5%); }
+  100% { transform: translate(9%, -6%); }
+}
+
+.page { position: relative; z-index: 1; min-height: 100vh; }
+
+/* Small vertical name tab, top left */
+.name-tab {
+  position: absolute; left: 24px; top: 24px; z-index: 2;
+  writing-mode: vertical-rl; transform: rotate(180deg);
+  background: var(--bg); padding: 14px 8px;
+  font-size: 13px; letter-spacing: 0.12em;
+}
+.chip {
+  background: var(--bg);
+  padding: 16px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.chip-link {
+  position: absolute; right: 24px; top: 24px; z-index: 2;
+  background: var(--bg); padding: 10px 14px; font-size: 13px;
+}
+.chip-link:hover, .name-tab:hover { color: var(--accent); }
+
+.btn {
+  min-height: 44px; padding: 10px 16px;
+  border: 1.5px solid var(--ink); background: var(--bg); color: var(--ink);
+  font: inherit; font-size: 13px; cursor: pointer;
+}
+.btn:hover:not(:disabled) { background: var(--accent); }
+.btn:disabled { opacity: 0.4; cursor: default; }
+
+@media (prefers-reduced-motion: reduce) {
+  .moire i:last-child { animation: none; }
+}
+
+body { overflow-x: clip; }

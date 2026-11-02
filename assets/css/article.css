@@ -1,0 +1,10 @@
+.article-page { display: flex; justify-content: center; padding: 72px 24px 72px 80px; }
+.article { width: min(100%, 680px); padding: 32px; font-size: 15px; line-height: 1.8; }
+.article h1 { margin: 16px 0 4px; font-size: 28px; line-height: 1.25; }
+.article .meta { margin: 0 0 24px; font-size: 12px; opacity: 0.75; }
+.article .back { margin: 0; font-size: 13px; }
+.article .back a:hover { color: var(--accent); }
+.article a { text-decoration: underline; }
+.article img, .article pre { max-width: 100%; }
+.article pre { overflow-x: auto; padding: 16px; background: #e6e6e2; font-size: 13px; }
+@media (max-width: 640px) { .article-page { padding: 72px 16px 40px 56px; } .article { padding: 20px; } }
