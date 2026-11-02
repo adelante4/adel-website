@@ -37,7 +37,6 @@ if (el && NOW_PLAYING_URL) {
     el.setAttribute("aria-label", `${label}: ${d.title} by ${d.artist}. Opens Spotify.`);
     if (d.url) el.href = d.url; else el.removeAttribute("href");
     el.classList.toggle("playing", Boolean(d.isPlaying));
-    document.body.classList.toggle("is-playing", Boolean(d.isPlaying));
     el.hidden = false;
   };
 
@@ -49,7 +48,6 @@ if (el && NOW_PLAYING_URL) {
       const d = await res.json();
       if (d.enabled === false || !d.title) {
         el.hidden = true;
-        document.body.classList.remove("is-playing");
       } else {
         render(d);
       }

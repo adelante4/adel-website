@@ -16,7 +16,17 @@
   <a class="chip-link" href="https://github.com/adelante4">GitHub</a>
 
   <a id="now-playing" class="deck" href="#" target="_blank" rel="noopener" hidden>
-    <span class="ripples" aria-hidden="true"><i></i><i></i><i></i></span>
+    <svg class="deck-body" viewBox="0 0 360 280" aria-hidden="true">
+      <polygon points="0,60 300,60 360,120 360,280 0,280" fill="#111"/>
+      <circle cx="125" cy="140" r="118" fill="#1c1c1c" stroke="#3a3a3a" stroke-width="1.5"/>
+      <path d="M0 280 L0 246 A34 34 0 0 1 34 280 Z" fill="var(--accent)"/>
+      <rect class="led" x="256" y="150" width="14" height="14"/>
+      <polygon points="330,150 344,150 337,164" fill="#3a3a3a"/>
+      <circle cx="300" cy="212" r="34" fill="#2a2a2a" stroke="#3a3a3a" stroke-width="1.5"/>
+      <line class="knob-tick" x1="300" y1="212" x2="300" y2="186" stroke="#f3f3f1" stroke-width="3"/>
+      <rect x="254" y="258" width="46" height="3" fill="#3a3a3a"/>
+      <rect x="312" y="258" width="34" height="3" fill="#3a3a3a"/>
+    </svg>
     <span class="deck-disc" aria-hidden="true">
       <svg class="deck-ring" viewBox="0 0 200 200">
         <defs><path id="np-path" d="M100 12 a88 88 0 1 1 0 176 a88 88 0 1 1 0 -176"/></defs>
@@ -24,9 +34,14 @@
       </svg>
       <span class="deck-label"><i></i></span>
     </span>
-    <svg class="deck-arm" viewBox="0 0 260 240" aria-hidden="true">
-      <g class="arm"><line x1="240" y1="30" x2="147" y2="100" stroke="#111" stroke-width="4" stroke-linecap="round"/><circle cx="147" cy="100" r="6" fill="var(--accent)"/></g>
-      <circle cx="240" cy="30" r="15" fill="#111"/><circle cx="240" cy="30" r="5" fill="#f3f3f1"/>
+    <svg class="deck-arm" viewBox="0 0 360 280" aria-hidden="true">
+      <g class="arm">
+        <path d="M318 96 L260 72 L190 104" fill="none" stroke="#111" stroke-width="8" stroke-linejoin="miter" stroke-linecap="square"/>
+        <path d="M318 96 L260 72 L190 104" fill="none" stroke="#f3f3f1" stroke-width="3" stroke-linejoin="miter" stroke-linecap="square"/>
+        <rect x="184" y="98" width="12" height="12" fill="var(--accent)"/>
+      </g>
+      <circle cx="318" cy="96" r="16" fill="#2a2a2a" stroke="#f3f3f1" stroke-width="2"/>
+      <circle cx="318" cy="96" r="5" fill="#f3f3f1"/>
     </svg>
   </a>
 

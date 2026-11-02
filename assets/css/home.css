@@ -20,17 +20,19 @@
 
 .intro { position: absolute; left: 96px; bottom: 32px; margin: 0; max-width: 300px; }
 
-/* Now playing: a third floating record. Ripples spread across the page while music plays. */
+/* Now playing: a small turntable fixed to the bottom right. */
 .page { overflow: hidden; }
 .stones { pointer-events: none; }
 .stone { pointer-events: auto; }
 
-.deck { position: absolute; left: 66%; top: 55%; width: 260px; height: 240px; animation: bob 11s ease-in-out -2s infinite; transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.deck { position: fixed; right: 24px; bottom: 24px; z-index: 3; display: block; width: 360px; height: 280px; transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
 .deck[hidden] { display: none; }
-.deck:hover, .deck:focus-visible { transform: scale(1.08) rotate(-3deg); }
+.deck:hover, .deck:focus-visible { transform: translateY(-4px); }
+.deck-body, .deck-arm { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.deck-arm { pointer-events: none; }
 
 .deck-disc {
-  position: absolute; left: 0; top: 40px; width: 200px; height: 200px; border-radius: 50%;
+  position: absolute; left: 15px; top: 30px; width: 220px; height: 220px; border-radius: 50%;
   background: repeating-radial-gradient(circle, #0d0d0d 0 3px, #2a2a2a 3px 4px);
   display: flex; align-items: center; justify-content: center;
 }
@@ -42,26 +44,17 @@
 .deck-label i { width: 7px; height: 7px; border-radius: 50%; background: var(--bg); }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.deck-arm { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
-.deck-arm .arm { transform-origin: 240px 30px; transform: rotate(-60deg); transition: transform 0.9s cubic-bezier(0.3, 0.7, 0.2, 1); }
+.led { fill: #3a3a3a; transition: fill 0.4s; }
+.deck.playing .led { fill: var(--accent); }
+.knob-tick { transform-origin: 300px 212px; transform: rotate(-70deg); transition: transform 0.8s cubic-bezier(0.3, 0.7, 0.2, 1); }
+.deck.playing .knob-tick { transform: rotate(60deg); }
+.deck-arm .arm { transform-origin: 318px 96px; transform: rotate(35deg); transition: transform 0.9s cubic-bezier(0.3, 0.7, 0.2, 1); }
 .deck.playing .deck-arm .arm { transform: rotate(0deg); }
 
-.ripples { position: absolute; left: 100px; top: 140px; width: 0; height: 0; pointer-events: none; }
-.ripples i { position: absolute; left: -100px; top: -100px; width: 200px; height: 200px; border-radius: 50%; border: 3px solid var(--accent); opacity: 0; }
-.deck.playing .ripples i { animation: ripple 7s ease-out infinite; }
-.ripples i:nth-child(2) { animation-delay: -2.3s; }
-.ripples i:nth-child(3) { animation-delay: -4.6s; }
-@keyframes ripple {
-  0%   { width: 200px;  height: 200px;  left: -100px; top: -100px; opacity: 0.8; }
-  100% { width: 1800px; height: 1800px; left: -900px; top: -900px; opacity: 0; }
-}
-.is-playing .moire i:last-child { animation-duration: 16s; }
-
 @media (max-width: 640px) {
-  .deck { display: block; position: relative; left: auto; top: auto; margin: 96px auto 0; animation: none; }
-  .ripples i { display: none; }
+  .deck { position: relative; right: auto; bottom: auto; margin: 96px auto 0; }
   .stones { position: static; height: auto; display: flex; flex-direction: column; align-items: center; gap: 28px; padding: 24px; }
   .stone { position: static; width: 200px; animation: none; }
   .intro { position: static; margin: 24px 24px 32px 72px; }
 }
-@media (prefers-reduced-motion: reduce) { .stone, .deck, .deck-disc, .ripples i { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .stone, .deck-disc { animation: none !important; } .deck, .knob-tick, .deck-arm .arm { transition: none; } }
