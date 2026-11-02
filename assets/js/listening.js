@@ -117,11 +117,11 @@ function renderTop() {
   const r = state.range;
   document.querySelectorAll("[data-range]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.range === r)));
 
-  const artists = $("top-artists"), tracks = $("top-tracks"), genres = $("top-genres");
-  artists.replaceChildren(); tracks.replaceChildren(); genres.replaceChildren();
+  const artists = $("top-artists"), tracks = $("top-tracks");
+  artists.replaceChildren(); tracks.replaceChildren();
   (top.artists[r] ?? []).forEach((a, i) => {
     const li = el("li", "row artist");
-    li.append(el("span", "rank", String(i + 1)), thumb(a.image, "artist"), titleBlock(a.name, (a.genres ?? []).slice(0, 2).join(", "), a.url));
+    li.append(el("span", "rank", String(i + 1)), thumb(a.image, "artist"), titleBlock(a.name, "", a.url));
     artists.append(li);
   });
   (top.tracks[r] ?? []).forEach((t, i) => {
@@ -129,20 +129,6 @@ function renderTop() {
     li.append(el("span", "rank", String(i + 1)), thumb(t.image), titleBlock(t.title, t.artist, t.url));
     tracks.append(li);
   });
-  const count = new Map();
-  for (const a of top.artists[r] ?? []) for (const g of a.genres ?? []) count.set(g, (count.get(g) ?? 0) + 1);
-  const sorted = [...count].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 8);
-  $("genres-block").hidden = sorted.length === 0; // Spotify sometimes returns no genres
-  const max = sorted[0]?.[1] ?? 1;
-  for (const [g, n] of sorted) {
-    const li = el("li");
-    const bar = el("span", "gb");
-    bar.style.width = `${(n / max) * 100}%`;
-    const wrap = el("span");
-    wrap.append(bar);
-    li.append(el("span", "g", g), wrap, el("span", "n", String(n)));
-    genres.append(li);
-  }
 }
 
 function render() {
