@@ -39,9 +39,6 @@
 }
 .facts dt { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; padding-top: 3px; }
 .facts dd { margin: 0; }
-.facts .links { display: flex; flex-wrap: wrap; gap: 6px 16px; }
-.facts .links a { text-decoration: underline; text-underline-offset: 3px; }
-.facts .links a:hover { color: var(--accent); }
 
 @media (prefers-reduced-motion: reduce) { .spin { animation: none; } .disc { transition: none; } }
 @media (max-width: 640px) {
