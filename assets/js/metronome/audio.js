@@ -25,9 +25,33 @@ const SOUNDS = {
   },
 };
 
+// Recorded hits (Versilian Community Sample Library, CC0). Each voice has three files.
+const SAMPLE_VOICES = ["woodblock", "claves", "log", "frame", "brake"];
+const FILE = { woodblock: "wood", claves: "claves", log: "log", frame: "frame", brake: "brake" };
+const KINDS = ["accent", "beat", "sub"];
+const SAMPLE_DIR = new URL("../../audio/clicks/", import.meta.url);
+
 export function createAudio() {
   let ctx = null;
   let master = null;
+  /** voice -> kind -> AudioBuffer, or a promise while loading */
+  const buffers = new Map();
+
+  function load(voice) {
+    if (buffers.has(voice)) return buffers.get(voice);
+    const done = Promise.all(
+      KINDS.map(async (k) => {
+        const res = await fetch(new URL(`${FILE[voice]}-${k}.wav`, SAMPLE_DIR));
+        if (!res.ok) throw new Error("sample missing");
+        return ctx.decodeAudioData(await res.arrayBuffer());
+      }),
+    ).then(
+      (list) => buffers.set(voice, Object.fromEntries(KINDS.map((k, i) => [k, list[i]]))),
+      () => buffers.set(voice, null), // fall back to the synthesized click
+    );
+    buffers.set(voice, done);
+    return done;
+  }
 
   function ensure() {
     if (ctx) return ctx;
@@ -57,6 +81,12 @@ export function createAudio() {
       if (ctx.state !== "running") await ctx.resume();
       return ctx;
     },
+    /** Start loading a voice's recordings. Safe to call often. Synth voices need nothing. */
+    preload(sound) {
+      if (!SAMPLE_VOICES.includes(sound)) return Promise.resolve();
+      ensure();
+      return load(sound);
+    },
     /** Seconds between a sound being scheduled and reaching the speakers, as the browser reports it. */
     outputLatency() {
       return ctx ? (ctx.outputLatency || 0) + (ctx.baseLatency || 0) : 0;
@@ -78,6 +108,21 @@ export function createAudio() {
     },
     /** Schedule one click at an audio-clock time. kind is "accent", "beat" or "sub". */
     click(run, when, kind, gain, sound) {
+      if (SAMPLE_VOICES.includes(sound)) {
+        const set = buffers.get(sound);
+        if (set && !(set instanceof Promise)) {
+          const src = ctx.createBufferSource();
+          const env = ctx.createGain();
+          src.buffer = set[kind] || set.beat;
+          env.gain.value = Math.max(0.0002, gain);
+          src.connect(env);
+          env.connect(run.out);
+          src.start(when);
+          return;
+        }
+        load(sound); // not ready yet: this click is synthesized, the next ones are recorded
+        sound = "tock";
+      }
       const s = SOUNDS[sound] || SOUNDS.tock;
       const f = s.freq[kind] ?? s.freq.beat;
       const decay = s.decay[kind] ?? s.decay.beat;

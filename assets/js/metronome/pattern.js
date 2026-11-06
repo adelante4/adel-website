@@ -31,7 +31,7 @@ const MAX_VELOCITY_SWING = 0.3; // loudness change at full human feel
  * @property {number} density     0 to 1, scales every chance
  * @property {number} seed
  * @property {boolean} freeze     repeat the same random choices every loop
- * @property {"tock"|"wood"|"soft"} sound
+ * @property {"tock"|"wood"|"soft"|"woodblock"|"claves"|"log"|"frame"|"brake"} sound
  */
 
 function beatSelected(clickOn, i) {

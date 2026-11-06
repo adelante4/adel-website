@@ -10,7 +10,7 @@ import { accentsFromGrouping, defaultGrouping } from "./meter.js";
 import { clampBpm } from "./tempo.js";
 
 export const CLICK_ON = ["all", "backbeat", "downbeat", "upbeats"];
-export const SOUNDS = ["tock", "wood", "soft"];
+export const SOUNDS = ["tock", "wood", "soft", "woodblock", "claves", "log", "frame", "brake"];
 const MAX_LINK_LENGTH = 4000;
 
 const isObj = (x) => x !== null && typeof x === "object" && !Array.isArray(x);

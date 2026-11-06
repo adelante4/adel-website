@@ -62,6 +62,8 @@ async function start() {
   if (transport.running) return;
   try {
     await audio.resume();
+    // Recorded voices load first, but a slow connection never blocks the start for long.
+    await Promise.race([audio.preload(state.pattern.sound), new Promise((r) => setTimeout(r, 1200))]);
   } catch (err) {
     notice(err instanceof Error ? err.message : "Could not start audio.");
     return;
@@ -306,8 +308,9 @@ function renderAll() {
     p.clickOn = v;
     commit();
   })(p.clickOn);
-  makeSeg($("sound"), [["tock", "Tock"], ["wood", "Wood"], ["soft", "Soft"]], (v) => {
+  makeSeg($("sound"), [["tock", "Tock"], ["soft", "Soft"], ["woodblock", "Woodblock"], ["claves", "Claves"], ["log", "Log drum"], ["frame", "Frame drum"], ["brake", "Brake drum"]], (v) => {
     p.sound = v;
+    if (audio.ctx) audio.preload(v);
     commit();
   })(p.sound);
 

@@ -1,0 +1,3 @@
+Click recordings: trimmed and level-matched excerpts of the Versilian Community Sample Library (VCSL),
+released under CC0 1.0 (public domain). https://github.com/sgossner/VCSL
+Voices: Woodblock, Claves 1, Log drum (slit drum, high), Frame drum (small), Brake drum 1 (yarn mallet).

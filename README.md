@@ -29,6 +29,8 @@ Every three posts make a new vinyl.
 npm test
 ```
 
+The recorded click voices in `assets/audio/clicks/` come from the CC0 Versilian Community Sample Library. See the licence note in that folder.
+
 ## Run locally
 
 Modules and `fetch` need a server, not `file://`:
