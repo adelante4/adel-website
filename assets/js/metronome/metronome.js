@@ -301,15 +301,15 @@ function renderAll() {
       : "Touch a bar to set how often that beat sounds. Full height always plays.";
 
   makeSeg($("subdiv"), [[1, "Quarters"], [2, "Eighths"], [3, "Triplets"], [4, "16ths"]], (v) => {
-    p.subdivision = v;
+    state.pattern.subdivision = v;
     commit();
   })(p.subdivision);
   makeSeg($("clickon"), [["all", "All"], ["backbeat", "2 & 4"], ["downbeat", "Downbeat"], ["upbeats", "&"]], (v) => {
-    p.clickOn = v;
+    state.pattern.clickOn = v;
     commit();
   })(p.clickOn);
   makeSeg($("sound"), [["tock", "Tock"], ["soft", "Soft"], ["woodblock", "Woodblock"], ["claves", "Claves"], ["log", "Log drum"], ["frame", "Frame drum"], ["brake", "Brake drum"]], (v) => {
-    p.sound = v;
+    state.pattern.sound = v;
     if (audio.ctx) audio.preload(v);
     commit();
   })(p.sound);
@@ -334,7 +334,7 @@ function renderAll() {
     $("ladder-rungs").value = String(r.ladder.rungs);
   }
   makeSeg($("countin"), [[0, "Off"], [1, "1 bar"], [2, "2 bars"]], (v) => {
-    r.countIn = v;
+    state.practice.countIn = v;
     commit("restart");
   })(r.countIn);
 
