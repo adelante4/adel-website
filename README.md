@@ -21,6 +21,14 @@ Setup steps are in `worker/README.md`. Until `assets/js/config.js` has the Worke
 
 Every three posts make a new vinyl.
 
+## Metronome
+
+`metronome.html` is a practice metronome: odd meters, swing, chance, gap trainer, tempo ladder, count-in and share links. It has no build step. The code is plain ES modules in `assets/js/metronome/`. The timing logic (`timeline`, `pattern`, `overlay`, `transport`, `share`) does not touch Web Audio, so it runs under Node.
+
+```
+npm test
+```
+
 ## Run locally
 
 Modules and `fetch` need a server, not `file://`:

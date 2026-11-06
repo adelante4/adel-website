@@ -15,6 +15,8 @@
 .s1 { left: 18%; top: 18%; width: clamp(140px, 22vw, 250px); background: var(--ink); color: var(--bg); animation: bob 9s ease-in-out infinite; }
 .s1 strong { font-size: 26px; }
 .s2 { left: 56%; top: 26%; width: clamp(110px, 16vw, 180px); background: var(--accent); animation: bob 12s ease-in-out -4s infinite; }
+.s3 { left: 34%; top: 66%; width: clamp(100px, 13vw, 150px); background: var(--bg); border: 2px solid var(--ink); animation: bob 10s ease-in-out -7s infinite; }
+.s3 strong { font-size: 18px; }
 
 @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
 

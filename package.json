@@ -1,0 +1,9 @@
+{
+  "name": "adel-website",
+  "private": true,
+  "type": "module",
+  "description": "Personal site. No build step. This file exists only so Node runs the tests as ES modules.",
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\""
+  }
+}

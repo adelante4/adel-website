@@ -1,0 +1,98 @@
+/* Metronome page. Uses the shared tokens from site.css. */
+
+.metro-page {
+  display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center;
+  gap: 32px; padding: 56px 32px 64px 80px;
+}
+
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ---- Tempo column ---- */
+.dial-col { flex: 0 1 360px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+
+.dial {
+  position: relative; width: min(78vw, 320px); aspect-ratio: 1; border-radius: 50%;
+  background: var(--ink); color: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+}
+.dial .pulse {
+  position: absolute; top: 9%; left: 50%; width: 13%; aspect-ratio: 1; margin-left: -6.5%;
+  border-radius: 50%; background: var(--accent);
+  transform: scale(calc(0.45 + var(--p, 0) * 0.75)); opacity: calc(0.25 + var(--p, 0) * 0.75);
+}
+.dial .bpm { font-size: clamp(64px, 18vw, 92px); font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
+.dial .unit { font-size: 12px; letter-spacing: 0.3em; }
+.dial .word { margin-top: 8px; font-size: 13px; color: var(--accent); }
+
+.status { margin: 0; width: 100%; text-align: center; min-height: 3em; }
+
+.transport { display: flex; gap: 8px; width: 100%; }
+.transport .btn { flex: 1 1 0; font-weight: 700; }
+.transport .go { flex: 2 1 0; }
+.transport .go[aria-pressed="true"] { background: var(--accent); }
+
+.slider-chip { width: 100%; display: block; padding: 14px 16px; }
+.hint { margin: 0; width: 100%; font-size: 12px; }
+
+/* ---- Panels ---- */
+.panels { flex: 1 1 460px; max-width: 640px; display: flex; flex-direction: column; gap: 24px; }
+.panel { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+.panel h2 { margin: 0; font-size: 18px; letter-spacing: 0.04em; }
+.field { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.label { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
+.label b { text-transform: none; letter-spacing: 0; margin-left: 8px; color: var(--accent); }
+.note { margin: 0; font-size: 12px; line-height: 1.6; max-width: 56ch; }
+.field[hidden] { display: none; }
+
+.segs { display: flex; flex-wrap: wrap; }
+.seg {
+  min-height: 40px; padding: 8px 14px; margin: 0 -1.5px -1.5px 0;
+  border: 1.5px solid var(--ink); background: var(--bg); color: var(--ink);
+  font: inherit; font-size: 13px; cursor: pointer;
+}
+.seg:hover { background: var(--accent); }
+.seg[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.seg[aria-pressed="true"]:hover { background: var(--ink); }
+
+.btn.small { min-height: 40px; }
+.btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
+select {
+  font: inherit; font-size: 13px; padding: 6px 8px; min-height: 36px;
+  border: 1.5px solid var(--ink); background: var(--bg); color: var(--ink);
+}
+.inline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; }
+
+/* ---- Beat bars ---- */
+.beats { display: flex; gap: 6px; width: 100%; touch-action: none; user-select: none; -webkit-user-select: none; padding-top: 4px; }
+.col { flex: 1 1 0; max-width: 64px; min-width: 16px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.col.bar-end { margin-right: 14px; }
+.col .n { font-size: 12px; }
+.bar {
+  position: relative; width: 100%; height: 120px; display: flex; align-items: flex-end;
+  border: 1.5px solid var(--ink); background: var(--bg); cursor: pointer;
+}
+.bar[data-level="0"] { border-style: dashed; }
+.bar i { display: block; width: 100%; background: var(--ink); }
+.bar[data-level="2"] i { background: var(--accent); }
+.bar:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+.col.on .bar { outline: 3px solid var(--accent); outline-offset: 2px; }
+.col.on .n { color: var(--accent); font-weight: 700; }
+
+/* ---- Share ---- */
+.share-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.share-url {
+  width: 100%; font: inherit; font-size: 12px; padding: 10px;
+  border: 1.5px solid var(--ink); background: var(--bg); color: var(--ink);
+}
+#notice { min-height: 1.6em; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dial .pulse { transform: none; }
+}
+@media (max-width: 640px) {
+  .metro-page { padding: 72px 16px 40px 56px; gap: 24px; }
+  .panel { padding: 16px; }
+  .bar { height: 96px; }
+}

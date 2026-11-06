@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Metronome | Adel Mostafavi</title>
+<meta name="description" content="A practice metronome with odd meters, swing, chance, gap trainer and tempo ladder. Runs in the browser.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
+<link rel="stylesheet" href="assets/css/site.css?v=20261106">
+<link rel="stylesheet" href="assets/css/metronome.css?v=20261106">
+</head>
+<body>
+<div class="moire soft" aria-hidden="true"><i></i><i></i></div>
+<div class="page metro-page">
+  <a class="name-tab" href="index.html">Adel Mostafavi</a>
+
+  <section class="dial-col" aria-label="Tempo">
+    <div class="dial" id="dial">
+      <span class="pulse" aria-hidden="true"></span>
+      <output class="bpm" id="bpm" aria-live="off">80</output>
+      <span class="unit">BPM</span>
+      <span class="word" id="tempo-word">Andante</span>
+    </div>
+    <p class="chip status" id="status" aria-live="polite">Ready</p>
+    <div class="transport">
+      <button class="btn go" id="start" type="button" aria-pressed="false">Start</button>
+      <button class="btn" id="tap" type="button">Tap</button>
+      <button class="btn" id="bpm-down" type="button" aria-label="Slower">&minus;</button>
+      <button class="btn" id="bpm-up" type="button" aria-label="Faster">+</button>
+    </div>
+    <label class="chip slider-chip">
+      <span class="sr">Tempo</span>
+      <input id="bpm-slider" type="range" min="20" max="240" step="1" value="80">
+    </label>
+    <p class="chip hint">Space starts and stops. T taps the tempo.</p>
+  </section>
+
+  <div class="panels">
+    <section class="chip panel" aria-labelledby="h-pulse">
+      <h2 id="h-pulse">Pulse</h2>
+      <div class="field">
+        <span class="label">Time signature</span>
+        <div class="segs" id="meter" role="group" aria-label="Time signature"></div>
+      </div>
+      <div class="field" id="grouping-field">
+        <span class="label">Grouping</span>
+        <div class="segs" id="grouping" role="group" aria-label="Grouping"></div>
+      </div>
+      <div class="field">
+        <span class="label">Bars</span>
+        <div class="segs" id="bars" role="group" aria-label="Pattern length in bars"></div>
+      </div>
+      <div class="field">
+        <span class="label">Beat bars</span>
+        <div class="segs" id="mode" role="group" aria-label="What the beat bars set"></div>
+        <p class="note" id="mode-note"></p>
+        <div class="beats" id="beats"></div>
+      </div>
+    </section>
+
+    <section class="chip panel" aria-labelledby="h-feel">
+      <h2 id="h-feel">Feel</h2>
+      <div class="field">
+        <span class="label">Clicks per beat</span>
+        <div class="segs" id="subdiv" role="group" aria-label="Clicks per beat"></div>
+      </div>
+      <div class="field">
+        <span class="label">Click on</span>
+        <div class="segs" id="clickon" role="group" aria-label="Which beats click"></div>
+        <p class="note">2 &amp; 4 is the backbeat, where a drummer's snare lands. Downbeat gives one click a bar, so you carry the rest. &amp; clicks only the upbeats, so you hold the pulse while the click lands between your beats.</p>
+      </div>
+      <div class="field">
+        <label class="label" for="swing">Swing <b id="swing-val">straight</b></label>
+        <input id="swing" type="range" min="0.5" max="0.8" step="0.005" value="0.5">
+        <p class="note">Needs two or four clicks per beat to be heard.</p>
+      </div>
+      <div class="field">
+        <label class="label" for="humanize">Human feel <b id="humanize-val">exact</b></label>
+        <input id="humanize" type="range" min="0" max="1" step="0.05" value="0">
+        <p class="note">Off by default. Leave it off while you check your time. It nudges each click off the grid on purpose.</p>
+      </div>
+      <div class="field">
+        <label class="label" for="density">Chance <b id="density-val">100%</b></label>
+        <input id="density" type="range" min="0" max="1" step="0.05" value="1">
+        <button class="btn small" id="freeze" type="button" aria-pressed="false">Freeze the dice</button>
+        <p class="note">Scales every beat's chance, so clicks drop out at random and you have to listen. Freeze repeats the same choices each bar.</p>
+      </div>
+      <div class="field">
+        <span class="label">Click sound</span>
+        <div class="segs" id="sound" role="group" aria-label="Click sound"></div>
+      </div>
+    </section>
+
+    <section class="chip panel" aria-labelledby="h-practice">
+      <h2 id="h-practice">Practice</h2>
+      <div class="field">
+        <button class="btn small" id="gap-toggle" type="button" aria-pressed="false">Gap trainer</button>
+        <div class="inline">
+          Play
+          <select id="gap-audible" aria-label="Bars audible"></select>
+          bars, then
+          <select id="gap-silent" aria-label="Bars silent"></select>
+          silent.
+        </div>
+        <p class="note">Two on, two off is the classic. It is the only way to find out whether the time is yours.</p>
+      </div>
+      <div class="field">
+        <button class="btn small" id="ladder-toggle" type="button" aria-pressed="false">Tempo ladder</button>
+        <div class="inline">
+          Add
+          <select id="ladder-step" aria-label="BPM added per step"></select>
+          BPM every
+          <select id="ladder-every" aria-label="Bars per step"></select>
+          bars,
+          <select id="ladder-rungs" aria-label="Number of steps"></select>
+          steps.
+        </div>
+      </div>
+      <div class="field">
+        <span class="label">Count-in</span>
+        <div class="segs" id="countin" role="group" aria-label="Count-in bars"></div>
+        <p class="note">Bars of click first. The gap trainer and the ladder start after it.</p>
+      </div>
+    </section>
+
+    <section class="chip panel" aria-labelledby="h-share">
+      <h2 id="h-share">Save and share</h2>
+      <p class="note">Your setup is saved on this device. The link holds exactly what you are hearing.</p>
+      <div class="share-row">
+        <button class="btn" id="share-copy" type="button">Copy link</button>
+        <button class="btn" id="reset" type="button">Reset</button>
+      </div>
+      <input class="share-url" id="share-url" type="text" readonly aria-label="Setup link" placeholder="Press Copy link">
+      <p class="note" id="notice" role="status" aria-live="polite"></p>
+    </section>
+  </div>
+</div>
+<script type="module" src="assets/js/metronome/metronome.js?v=20261106"></script>
+</body>
+</html>
