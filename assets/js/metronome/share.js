@@ -6,8 +6,8 @@
 //
 // Links store only what differs from the defaults, so they stay short, and a link made
 // today keeps its meaning if a new setting is added later.
-import { accentsFromGrouping, defaultGrouping } from "./meter.js";
-import { clampBpm } from "./tempo.js";
+import { accentsFromGrouping, defaultGrouping } from "./meter.js?v=20261106b";
+import { clampBpm } from "./tempo.js?v=20261106b";
 
 export const CLICK_ON = ["all", "backbeat", "downbeat", "upbeats"];
 export const SOUNDS = ["tock", "wood", "soft", "woodblock", "claves", "log", "frame", "brake"];

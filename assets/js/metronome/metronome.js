@@ -4,12 +4,12 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js";
-import { createTransport } from "./transport.js";
-import { barPlays } from "./overlay.js";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js";
+import { createAudio } from "./audio.js?v=20261106b";
+import { createTransport } from "./transport.js?v=20261106b";
+import { barPlays } from "./overlay.js?v=20261106b";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261106b";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261106b";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261106b";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
