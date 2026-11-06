@@ -7,7 +7,7 @@
 <meta name="description" content="A practice metronome with odd meters, swing, chance, gap trainer and tempo ladder. Runs in the browser.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
 <link rel="stylesheet" href="assets/css/site.css?v=20261106">
-<link rel="stylesheet" href="assets/css/metronome.css?v=20261106c">
+<link rel="stylesheet" href="assets/css/metronome.css?v=20261106d">
 </head>
 <body>
 <div class="moire soft" aria-hidden="true"><i></i><i></i></div>
@@ -111,6 +111,10 @@
         <p class="note">Faint hiss and crackle under everything.</p>
       </div>
       <div class="field">
+        <button class="btn small" id="automute-toggle" type="button" aria-pressed="true">Click steps aside for the groove</button>
+        <p class="note">On: the click is silent while the drums play, and comes back in the count-in and in the bars where trade fours drops the drums. Off: the click always plays, at the level below.</p>
+      </div>
+      <div class="field">
         <label class="label" for="mix-click">Click <b id="mix-click-val"></b></label>
         <input id="mix-click" type="range" min="0" max="1" step="0.05" value="1">
         <label class="label" for="mix-chords">Chords <b id="mix-chords-val"></b></label>
@@ -203,6 +207,6 @@
     </section>
   </div>
 </div>
-<script type="module" src="assets/js/metronome/metronome.js?v=20261106c"></script>
+<script type="module" src="assets/js/metronome/metronome.js?v=20261106d"></script>
 </body>
 </html>

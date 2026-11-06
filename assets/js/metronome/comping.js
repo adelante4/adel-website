@@ -3,9 +3,9 @@
 // generateHarmony(harmony, pattern, practice, fromBeat, toBeat) returns the events whose
 // position falls in [fromBeat, toBeat). Like the click generator it works in beats and is
 // repeatable: the same range gives the same events, and splitting a range changes nothing.
-import { slotRng } from "./prng.js?v=20261106c";
-import { barPlays } from "./overlay.js?v=20261106c";
-import { voiceChords, bassNote } from "./chords.js?v=20261106c";
+import { slotRng } from "./prng.js?v=20261106d";
+import { barPlays } from "./overlay.js?v=20261106d";
+import { voiceChords, bassNote } from "./chords.js?v=20261106d";
 
 export const COMP_STYLES = ["sustain", "on1", "charleston", "push", "twofeel", "mixed"];
 const MIXED_POOL = ["on1", "charleston", "push", "twofeel"];

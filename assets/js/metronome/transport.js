@@ -6,11 +6,11 @@
 //
 // A smooth tempo change (retempo) moves the anchor to the first beat not yet handed out,
 // so the beat that was already queued keeps its time and the next one follows at the new tempo.
-import { compileTimeline, timeAtBeat, beatAtTime, bpmAtBeat } from "./timeline.js?v=20261106c";
-import { generateEvents } from "./pattern.js?v=20261106c";
-import { ladderMap } from "./overlay.js?v=20261106c";
-import { generateHarmony } from "./comping.js?v=20261106c";
-import { generateGroove } from "./groove.js?v=20261106c";
+import { compileTimeline, timeAtBeat, beatAtTime, bpmAtBeat } from "./timeline.js?v=20261106d";
+import { generateEvents } from "./pattern.js?v=20261106d";
+import { ladderMap } from "./overlay.js?v=20261106d";
+import { generateHarmony } from "./comping.js?v=20261106d";
+import { generateGroove, grooveSounds } from "./groove.js?v=20261106d";
 
 /** @param {() => {pattern: import("./pattern.js").Pattern, practice: import("./overlay.js").Practice}} getConfig */
 export function createTransport(getConfig) {
@@ -53,9 +53,14 @@ export function createTransport(getConfig) {
       if (!anchor) return none;
       const horizon = beatAtCtx(nowCtx + lookahead);
       if (horizon <= cursor) return none;
-      const { pattern, practice, harmony, groove } = getConfig();
+      const { pattern, practice, harmony, groove, mix } = getConfig();
       const at = (e) => ({ ...e, time: ctxTimeOfBeat(e.beat) });
-      const clicks = generateEvents(pattern, practice, cursor, horizon).map(at);
+      // While the drums play, the click steps aside. It returns in count-in bars and in the
+      // bars where trade fours takes the drums out.
+      const quiet = mix?.autoMute ? (bar) => grooveSounds(groove, pattern, practice, bar) : () => false;
+      const clicks = generateEvents(pattern, practice, cursor, horizon)
+        .filter((e) => !quiet(e.bar))
+        .map(at);
       const chords = harmony?.on
         ? generateHarmony(harmony, pattern, practice, cursor, horizon).map((e) => ({
             ...at(e),

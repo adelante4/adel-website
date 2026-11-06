@@ -7,8 +7,8 @@
 // Patterns are lists of entries. An entry has a grid step, a voice, a gain, and an optional
 // chance (for ghost notes). Chances come from a seeded generator keyed by bar, step and voice,
 // so a ghost note that plays in bar 3 plays in bar 3 every time.
-import { slotRng } from "./prng.js?v=20261106c";
-import { barPlays } from "./overlay.js?v=20261106c";
+import { slotRng } from "./prng.js?v=20261106d";
+import { barPlays } from "./overlay.js?v=20261106d";
 
 export const GROOVE_STYLES = ["off", "lofi", "jazz", "boombap", "bossa", "brushes"];
 export const GROOVE_NAMES = {
@@ -88,6 +88,10 @@ export function stepBeat(style, step, bpm) {
 
 /** Whether a groove can play in this meter. Only 4/4 so far. */
 export const grooveFits = (pattern) => pattern.beats === 4 && pattern.den === 4;
+
+/** Whether the drums are sounding in a given bar. */
+export const grooveSounds = (groove, pattern, practice, bar) =>
+  Boolean(groove) && STYLE[groove.style] !== undefined && grooveFits(pattern) && barPlays(practice, bar).groove;
 
 /**
  * @param {{style:string}} groove

@@ -4,15 +4,15 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261106c";
-import { createTransport } from "./transport.js?v=20261106c";
-import { barPlays } from "./overlay.js?v=20261106c";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261106c";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261106c";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261106c";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261106c";
-import { COMP_STYLES } from "./comping.js?v=20261106c";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261106c";
+import { createAudio } from "./audio.js?v=20261106d";
+import { createTransport } from "./transport.js?v=20261106d";
+import { barPlays } from "./overlay.js?v=20261106d";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261106d";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261106d";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261106d";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261106d";
+import { COMP_STYLES } from "./comping.js?v=20261106d";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261106d";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -432,6 +432,7 @@ function renderHarmony() {
     ? "The drums are synthesized, so they follow any tempo without stretching."
     : "Grooves play in 4/4 for now. Choose 4/4 under Pulse to hear them.";
   $("dust-toggle").setAttribute("aria-pressed", String(state.groove.dust));
+  $("automute-toggle").setAttribute("aria-pressed", String(state.mix.autoMute));
   for (const k of ["click", "chords", "groove"]) {
     $(`mix-${k}`).value = String(state.mix[k]);
     $(`mix-${k}-val`).textContent = pct(state.mix[k]);
@@ -671,6 +672,10 @@ $("key-fourth").addEventListener("click", () => transposeForm(5));
 // Groove and mix
 $("dust-toggle").addEventListener("click", () => {
   state.groove.dust = !state.groove.dust;
+  commit();
+});
+$("automute-toggle").addEventListener("click", () => {
+  state.mix.autoMute = !state.mix.autoMute;
   commit();
 });
 for (const k of ["click", "chords", "groove"]) {

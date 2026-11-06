@@ -2,9 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { parseChord, cleanChord, transposeChord, formatChord, chordPitchClasses, voiceChord, voiceChords, bassNote, PRESETS, QUALITIES } from "../assets/js/metronome/chords.js";
 import { styleHits, flattenForm, generateHarmony } from "../assets/js/metronome/comping.js";
-import { generateGroove, stepBeat, GROOVE_STYLES, grooveFits } from "../assets/js/metronome/groove.js";
+import { createTransport } from "../assets/js/metronome/transport.js";
+import { generateGroove, stepBeat, GROOVE_STYLES, grooveFits, grooveSounds } from "../assets/js/metronome/groove.js";
 import { barPlays } from "../assets/js/metronome/overlay.js";
-import { defaultState, normalizeState, encodeShare, decodeShare } from "../assets/js/metronome/share.js";
+import { defaultState, normalizePattern, normalizeState, encodeShare, decodeShare } from "../assets/js/metronome/share.js";
 
 const pattern = { bpm: 90, beats: 4, den: 4, seed: 1, humanize: 0 };
 const practice = (o = {}) => ({ gap: null, trade: 0, countIn: 0, ladder: null, ...o });
@@ -175,11 +176,13 @@ test("share: harmony, groove and mix round trip; defaults stay out of the link",
   const s = defaultState();
   s.harmony = { on: true, form: [["Dm7", "G7"], ["Cmaj7"]], comp: "twofeel", bass: false };
   s.groove = { style: "jazz", dust: true };
-  s.mix = { click: 0.3, chords: 0.5, groove: 0.9 };
+  s.mix = { click: 0.3, chords: 0.5, groove: 0.9, autoMute: true };
   const back = decodeShare(encodeShare(s));
   assert.deepEqual(back.harmony, s.harmony);
   assert.deepEqual(back.groove, s.groove);
   assert.deepEqual(back.mix, s.mix);
+  s.mix.autoMute = false;
+  assert.equal(decodeShare(encodeShare(s)).mix.autoMute, false);
   assert.equal(encodeShare(defaultState()), encodeShare(normalizeState({})));
   const t = encodeShare(defaultState()).replace(/-/g, "+").replace(/_/g, "/");
   const d = JSON.parse(atob(t + "=".repeat((4 - (t.length % 4)) % 4)));
@@ -200,7 +203,7 @@ test("share: hostile harmony input is repaired", () => {
   }
   assert.equal(bad.harmony.comp, "charleston");
   assert.deepEqual(bad.groove, { style: "off", dust: false });
-  assert.deepEqual(bad.mix, { click: 1, chords: 0, groove: 0.8 });
+  assert.deepEqual(bad.mix, { click: 1, chords: 0, groove: 0.8, autoMute: true });
   assert.equal(({}).polluted, undefined);
 });
 
@@ -210,4 +213,21 @@ test("share: an old link without the new fields still loads", () => {
   assert.equal(s.pattern.bpm, 100);
   assert.equal(s.harmony.on, false);
   assert.equal(s.groove.style, "off");
+});
+
+test("click steps aside while the groove plays, and returns in count-in and trade bars", () => {
+  const cfg = (o = {}) => ({ pattern: o.pattern ?? defaultState().pattern, practice: practice(o.practice), harmony: H({ on: false }), groove: o.groove ?? { style: "lofi", dust: false }, mix: { click: 1, chords: 0.7, groove: 0.8, autoMute: o.autoMute ?? true } });
+  const clickBars = (c, bars) => {
+    const tr = createTransport(() => c);
+    tr.start(0, 0);
+    const got = tr.pullAll(0, bars * 60 / c.pattern.bpm * 4 - 0.001).clicks;
+    return [...new Set(got.map((e) => e.bar))];
+  };
+  assert.deepEqual(clickBars(cfg(), 4), [], "groove on: no clicks");
+  assert.deepEqual(clickBars(cfg({ autoMute: false }), 2), [0, 1], "switch off: clicks stay");
+  assert.deepEqual(clickBars(cfg({ groove: { style: "off", dust: false } }), 2), [0, 1], "no groove: clicks stay");
+  assert.deepEqual(clickBars(cfg({ practice: { countIn: 2 } }), 4), [0, 1], "count-in bars click");
+  assert.deepEqual(clickBars(cfg({ practice: { trade: 4 } }), 8), [4, 5, 6, 7], "trade bars click");
+  assert.deepEqual(clickBars(cfg({ pattern: normalizePattern({ beats: 7, den: 8 }) }), 2), [0, 1], "odd meter has no groove, so clicks stay");
+  assert.equal(grooveSounds({ style: "off" }, pattern, practice(), 0), false);
 });

@@ -26,7 +26,7 @@ const SOUNDS = {
 };
 
 // Recorded hits (Versilian Community Sample Library, CC0). Each voice has three files.
-import { rhodes, bass, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261106c";
+import { rhodes, bass, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261106d";
 
 const SAMPLE_VOICES = ["woodblock", "claves", "log", "frame", "brake"];
 const FILE = { woodblock: "wood", claves: "claves", log: "log", frame: "frame", brake: "brake" };

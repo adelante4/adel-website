@@ -6,11 +6,11 @@
 //
 // Links store only what differs from the defaults, so they stay short, and a link made
 // today keeps its meaning if a new setting is added later.
-import { accentsFromGrouping, defaultGrouping } from "./meter.js?v=20261106c";
-import { clampBpm } from "./tempo.js?v=20261106c";
-import { cleanChord } from "./chords.js?v=20261106c";
-import { COMP_STYLES } from "./comping.js?v=20261106c";
-import { GROOVE_STYLES } from "./groove.js?v=20261106c";
+import { accentsFromGrouping, defaultGrouping } from "./meter.js?v=20261106d";
+import { clampBpm } from "./tempo.js?v=20261106d";
+import { cleanChord } from "./chords.js?v=20261106d";
+import { COMP_STYLES } from "./comping.js?v=20261106d";
+import { GROOVE_STYLES } from "./groove.js?v=20261106d";
 
 export const CLICK_ON = ["all", "backbeat", "downbeat", "upbeats"];
 export const SOUNDS = ["tock", "wood", "soft", "woodblock", "claves", "log", "frame", "brake"];
@@ -60,7 +60,7 @@ export function defaultState() {
       bass: true,
     },
     groove: { style: "off", dust: false },
-    mix: { click: 1, chords: 0.7, groove: 0.8 },
+    mix: { click: 1, chords: 0.7, groove: 0.8, autoMute: true },
   };
 }
 
@@ -89,7 +89,12 @@ export function normalizeMix(raw) {
   const d = defaultState().mix;
   const r = isObj(raw) ? raw : {};
   const level = (x, def) => Math.round(num(x, 0, 1, def) * 100) / 100;
-  return { click: level(r.click, d.click), chords: level(r.chords, d.chords), groove: level(r.groove, d.groove) };
+  return {
+    click: level(r.click, d.click),
+    chords: level(r.chords, d.chords),
+    groove: level(r.groove, d.groove),
+    autoMute: r.autoMute !== false,
+  };
 }
 
 export function normalizePattern(raw) {
