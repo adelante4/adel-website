@@ -96,6 +96,14 @@ select {
 .form + .inline { margin-top: 4px; }
 .field label.label + input[type="range"] { margin-bottom: 8px; }
 
+/* ---- Band layers ---- */
+.layer { border: 1.5px solid var(--ink); padding: 16px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.layer-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; }
+.layer-head h3 { margin: 0; font-size: 15px; letter-spacing: 0.04em; }
+.layer .segs { width: 100%; }
+.layer .label { margin-top: 2px; }
+.layer input[type="range"] { margin-bottom: 4px; }
+
 /* ---- Share ---- */
 .share-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .share-url {

@@ -1,0 +1,51 @@
+{
+ "id": "fmpiano",
+ "name": "FM piano",
+ "kind": "keys",
+ "sampleRate": 32000,
+ "release": 0.35,
+ "license": "CC0 1.0",
+ "credit": "VCSL, TX81Z patches",
+ "notes": [
+  {
+   "midi": 40.022,
+   "file": "n40.wav"
+  },
+  {
+   "midi": 44.013,
+   "file": "n44.wav"
+  },
+  {
+   "midi": 48.013,
+   "file": "n48.wav"
+  },
+  {
+   "midi": 56.009,
+   "file": "n56.wav"
+  },
+  {
+   "midi": 60.008,
+   "file": "n60.wav"
+  },
+  {
+   "midi": 64.011,
+   "file": "n64.wav"
+  },
+  {
+   "midi": 68.006,
+   "file": "n68.wav"
+  },
+  {
+   "midi": 76.008,
+   "file": "n76.wav"
+  },
+  {
+   "midi": 80.004,
+   "file": "n80.wav"
+  },
+  {
+   "midi": 84.006,
+   "file": "n84.wav"
+  }
+ ]
+}

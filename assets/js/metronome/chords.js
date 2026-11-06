@@ -155,3 +155,13 @@ export const PRESETS = [
     form: [["Bbmaj7", "G7"], ["Cm7", "F7"], ["Dm7", "G7"], ["Cm7", "F7"], ["Fm7", "Bb7"], ["Ebmaj7", "Edim7"], ["Dm7", "G7"], ["Cm7", "F7"]],
   },
 ];
+
+/** The guide tones a bass line leans on, in semitones above the root. */
+export function chordTones(text) {
+  const c = parseChord(text) ?? { root: 0, quality: "maj7" };
+  const q = QUALITY.get(c.quality);
+  const third = q.tones[0];
+  const flat5 = c.quality === "m7b5" || c.quality === "dim7";
+  const seventh = { maj7: 11, "6": 9, m6: 9, dim7: 9, maj: null, m: null }[c.quality];
+  return { root: c.root, third, fifth: flat5 ? 6 : 7, seventh: seventh === undefined ? 10 : seventh };
+}

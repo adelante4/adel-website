@@ -2,7 +2,7 @@
 //
 // Every function takes the audio context, a destination node, and a start time, builds a few
 // short-lived nodes, and lets them clean up after themselves. Nothing here keeps state.
-import { midiToHz } from "./chords.js?v=20261106d";
+import { midiToHz } from "./chords.js?v=20261106g";
 
 /** One second of white noise, shared by all drum voices. */
 export function makeNoise(ctx, seconds = 2) {
@@ -79,7 +79,7 @@ export function rhodes(ctx, dest, when, midis, seconds, gain) {
     const t = when + i * 0.006;
     const f = midiToHz(m);
     const vel = Math.min(1, gain);
-    const peak = (0.26 * vel) / Math.sqrt(n) / (1 + Math.max(0, m - 64) * 0.012);
+    const peak = (0.42 * vel) / Math.sqrt(n) / (1 + Math.max(0, m - 64) * 0.012);
     const out = ctx.createGain();
     const release = Math.min(0.5, Math.max(0.18, seconds * 0.25));
     const end = t + Math.max(0.12, seconds);
@@ -278,4 +278,117 @@ export function drum(ctx, dest, noise, when, voice, gain, style = "") {
     default:
       break;
   }
+}
+
+/** Bass synths. `kind`: "round" (soft triangle), "moog" (saw into a closing filter), "sub" (long sine). */
+export function bassSynth(ctx, dest, when, midi, seconds, gain, kind = "round") {
+  if (kind === "round") return bass(ctx, dest, when, midi, seconds, gain);
+  const f = midiToHz(midi);
+  const hold = Math.max(0.15, seconds);
+  const g = ctx.createGain();
+  if (kind === "sub") {
+    const o = ctx.createOscillator();
+    o.type = "sine";
+    o.frequency.setValueAtTime(f * 1.5, when);
+    o.frequency.exponentialRampToValueAtTime(f, when + 0.04);
+    const shaper = ctx.createWaveShaper();
+    const curve = new Float32Array(257);
+    for (let i = 0; i < 257; i++) curve[i] = Math.tanh(((i - 128) / 128) * 2.2);
+    shaper.curve = curve;
+    g.gain.setValueAtTime(0.0001, when);
+    g.gain.exponentialRampToValueAtTime(0.42 * gain, when + 0.01);
+    g.gain.setValueAtTime(0.38 * gain, when + hold * 0.7);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + hold + 0.25);
+    o.connect(shaper);
+    shaper.connect(g);
+    g.connect(dest);
+    o.start(when);
+    o.stop(when + hold + 0.3);
+    return;
+  }
+  const saw = ctx.createOscillator();
+  const sq = ctx.createOscillator();
+  const lp = ctx.createBiquadFilter();
+  saw.type = "sawtooth";
+  sq.type = "square";
+  saw.frequency.value = f;
+  sq.frequency.value = f / 2;
+  lp.type = "lowpass";
+  lp.Q.value = 7;
+  lp.frequency.setValueAtTime(Math.min(3000, f * 14), when);
+  lp.frequency.exponentialRampToValueAtTime(Math.max(120, f * 1.6), when + 0.28);
+  const sqg = ctx.createGain();
+  sqg.gain.value = 0.5;
+  g.gain.setValueAtTime(0.0001, when);
+  g.gain.exponentialRampToValueAtTime(0.38 * gain, when + 0.008);
+  g.gain.exponentialRampToValueAtTime(0.22 * gain, when + 0.5);
+  g.gain.setValueAtTime(0.2 * gain, when + hold);
+  g.gain.exponentialRampToValueAtTime(0.0001, when + hold + 0.12);
+  saw.connect(lp);
+  sq.connect(sqg);
+  sqg.connect(lp);
+  lp.connect(g);
+  g.connect(dest);
+  saw.start(when);
+  sq.start(when);
+  saw.stop(when + hold + 0.2);
+  sq.stop(when + hold + 0.2);
+}
+
+/** Drawbar organ: a few sines with a soft click at the start. */
+export function organ(ctx, dest, when, midis, seconds, gain) {
+  const n = midis.length;
+  const end = when + Math.max(0.15, seconds);
+  midis.forEach((m, i) => {
+    const t = when + i * 0.004;
+    const f = midiToHz(m);
+    const out = ctx.createGain();
+    const peak = (0.22 * gain) / Math.sqrt(n);
+    out.gain.setValueAtTime(0.0001, t);
+    out.gain.exponentialRampToValueAtTime(peak, t + 0.012);
+    out.gain.setValueAtTime(peak, end);
+    out.gain.exponentialRampToValueAtTime(0.0001, end + 0.12);
+    out.connect(dest);
+    [[1, 1], [2, 0.7], [3, 0.35], [4, 0.2], [0.5, 0.45]].forEach(([mult, amp]) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = "sine";
+      o.frequency.value = f * mult;
+      g.gain.value = amp * 0.4;
+      o.connect(g);
+      g.connect(out);
+      o.start(t);
+      o.stop(end + 0.2);
+    });
+  });
+}
+
+/** A slow pad: detuned saws through a low-pass. */
+export function pad(ctx, dest, when, midis, seconds, gain) {
+  const n = midis.length;
+  const end = when + Math.max(0.4, seconds);
+  midis.forEach((m) => {
+    const f = midiToHz(m);
+    const out = ctx.createGain();
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = Math.min(2200, f * 5);
+    lp.Q.value = 0.8;
+    const peak = (0.16 * gain) / Math.sqrt(n);
+    out.gain.setValueAtTime(0.0001, when);
+    out.gain.exponentialRampToValueAtTime(peak, when + 0.18);
+    out.gain.setValueAtTime(peak, end);
+    out.gain.exponentialRampToValueAtTime(0.0001, end + 0.7);
+    lp.connect(out);
+    out.connect(dest);
+    for (const d of [-9, 0, 9]) {
+      const o = ctx.createOscillator();
+      o.type = "sawtooth";
+      o.frequency.value = f;
+      o.detune.value = d;
+      o.connect(lp);
+      o.start(when);
+      o.stop(end + 0.8);
+    }
+  });
 }

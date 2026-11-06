@@ -26,8 +26,11 @@ const SOUNDS = {
 };
 
 // Recorded hits (Versilian Community Sample Library, CC0). Each voice has three files.
-import { rhodes, bass, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261106d";
+import { rhodes, bass, bassSynth, organ, pad, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261106g";
+import { createSampler } from "./sampler.js?v=20261106g";
 
+const SYNTH_KEYS = new Set(["rhodes", "organ", "pad"]);
+const SYNTH_BASS = new Set(["round", "moog", "sub"]);
 const SAMPLE_VOICES = ["woodblock", "claves", "log", "frame", "brake"];
 const FILE = { woodblock: "wood", claves: "claves", log: "log", frame: "frame", brake: "brake" };
 const KINDS = ["accent", "beat", "sub"];
@@ -39,6 +42,7 @@ export function createAudio() {
   let reverbIn = null;
   let noise = null;
   let dustBuf = null;
+  let sampler = null;
   /** voice -> kind -> AudioBuffer, or a promise while loading */
   const buffers = new Map();
 
@@ -64,14 +68,22 @@ export function createAudio() {
     if (!AC) throw new Error("This browser has no Web Audio.");
     ctx = new AC({ latencyHint: "interactive" });
     master = ctx.createGain();
-    master.gain.value = 0.9;
+    master.gain.value = 0.8;
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -14;
     comp.ratio.value = 4;
     comp.attack.value = 0.003;
     comp.release.value = 0.15;
+    // A fast limiter after the compressor keeps a full band from clipping.
+    const limiter = ctx.createDynamicsCompressor();
+    limiter.threshold.value = -3;
+    limiter.knee.value = 0;
+    limiter.ratio.value = 20;
+    limiter.attack.value = 0.001;
+    limiter.release.value = 0.08;
     master.connect(comp);
-    comp.connect(ctx.destination);
+    comp.connect(limiter);
+    limiter.connect(ctx.destination);
     // A small room shared by the piano and the drums.
     reverbIn = ctx.createGain();
     const room = ctx.createConvolver();
@@ -82,6 +94,7 @@ export function createAudio() {
     room.connect(roomOut);
     roomOut.connect(master);
     noise = makeNoise(ctx);
+    sampler = createSampler(ctx);
     return ctx;
   }
 
@@ -110,7 +123,7 @@ export function createAudio() {
      * The buses for one run: click, chords and groove each have their own level, so Stop can
      * silence everything already queued and the mix can change while playing.
      */
-    createRun(mix = { click: 1, chords: 0.7, groove: 0.8 }) {
+    createRun(mix = { click: 1, chords: 0.7, bass: 0.6, groove: 0.5 }) {
       ensure();
       const run = ctx.createGain();
       run.connect(master);
@@ -127,6 +140,8 @@ export function createAudio() {
       chordSend.gain.value = 0.22;
       chordTone.connect(chordSend);
       chordSend.connect(reverbIn);
+      const bassBus = ctx.createGain();
+      bassBus.connect(run);
       const grooveBus = ctx.createGain();
       grooveBus.connect(run);
       const grooveSend = ctx.createGain();
@@ -137,6 +152,7 @@ export function createAudio() {
       const setMix = (m) => {
         clickBus.gain.value = m.click;
         chordBus.gain.value = m.chords;
+        bassBus.gain.value = m.bass ?? 0.6;
         grooveBus.gain.value = m.groove;
         if (dust) dust.gain.value = 0.5 * m.groove;
       };
@@ -144,6 +160,7 @@ export function createAudio() {
       return {
         out: clickBus,
         chords: chordBus,
+        bass: bassBus,
         groove: grooveBus,
         setMix,
         /** Vinyl dust under the groove. */
@@ -187,14 +204,36 @@ export function createAudio() {
         },
       };
     },
-    chord(run, when, notes, seconds, gain) {
+    /** Start loading recordings. Safe to call often; synth voices need nothing. */
+    preloadBand({ keys, bass: bassId, kit } = {}) {
+      ensure();
+      const jobs = [];
+      if (keys && !SYNTH_KEYS.has(keys)) jobs.push(sampler.loadInstrument(keys));
+      if (bassId && !SYNTH_BASS.has(bassId)) jobs.push(sampler.loadInstrument(bassId));
+      if (kit && kit !== "synth") jobs.push(sampler.loadKit(kit));
+      return Promise.all(jobs);
+    },
+    chord(run, when, notes, seconds, gain, id = "rhodes") {
+      if (id === "organ") return organ(ctx, run.chords, when, notes, seconds, gain);
+      if (id === "pad") return pad(ctx, run.chords, when, notes, seconds, gain);
+      if (id !== "rhodes") {
+        // A recorded instrument plays each note on its own; the strum is a few milliseconds.
+        let ok = true;
+        notes.forEach((m, i) => {
+          ok = sampler.note(id, run.chords, when + i * 0.006, m, seconds, (gain * 0.9) / Math.sqrt(notes.length) * 0.65) && ok;
+        });
+        if (ok) return;
+      }
       rhodes(ctx, run.chords, when, notes, seconds, gain);
     },
-    bass(run, when, midi, seconds, gain) {
-      bass(ctx, run.chords, when, midi, seconds, gain);
+    bass(run, when, midi, seconds, gain, id = "round") {
+      if (SYNTH_BASS.has(id)) return bassSynth(ctx, run.bass, when, midi, seconds, gain, id);
+      if (sampler.note(id, run.bass, when, midi, seconds, gain * 1.1)) return;
+      bassSynth(ctx, run.bass, when, midi, seconds, gain, "round");
     },
-    drum(run, when, voice, gain, style) {
-      drum(ctx, run.groove, noise, when, voice, gain, style);
+    drum(run, when, voice, gain, style, kit = "synth") {
+      if (kit !== "synth" && sampler.drum(kit, run.groove, when, voice, gain)) return;
+      drum(ctx, run.groove, noise, when, voice, gain, kit === "synth" ? style : "");
     },
     /** Schedule one click at an audio-clock time. kind is "accent", "beat" or "sub". */
     click(run, when, kind, gain, sound) {

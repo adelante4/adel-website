@@ -1,13 +1,13 @@
-// Turns a chord form into piano hits and bass notes.
+// Turns a chord form into keyboard hits.
 //
 // generateHarmony(harmony, pattern, practice, fromBeat, toBeat) returns the events whose
 // position falls in [fromBeat, toBeat). Like the click generator it works in beats and is
 // repeatable: the same range gives the same events, and splitting a range changes nothing.
-import { slotRng } from "./prng.js?v=20261106d";
-import { barPlays } from "./overlay.js?v=20261106d";
-import { voiceChords, bassNote } from "./chords.js?v=20261106d";
+import { slotRng } from "./prng.js?v=20261106g";
+import { barPlays } from "./overlay.js?v=20261106g";
+import { voiceChords } from "./chords.js?v=20261106g";
 
-export const COMP_STYLES = ["sustain", "on1", "charleston", "push", "twofeel", "mixed"];
+export const COMP_STYLES = ["sustain", "on1", "charleston", "push", "twofeel", "arp", "mixed"];
 const MIXED_POOL = ["on1", "charleston", "push", "twofeel"];
 const MAX_NUDGE_BEATS = 0.04;
 
@@ -27,6 +27,12 @@ export function styleHits(style, span) {
       return long
         ? [{ at: -0.5, dur: 1.5, vel: 0.95 }, { at: 2, dur: Math.min(1, span - 2), vel: 0.7 }]
         : [{ at: -0.5, dur: span + 0.5, vel: 0.9 }];
+    case "arp": {
+      // Eighth notes running up and down through the chord, one note at a time.
+      const run = [0, 1, 2, 3, 2, 1];
+      const n = Math.max(1, Math.floor(span * 2));
+      return Array.from({ length: n }, (_, i) => ({ at: i * 0.5, dur: 0.9, vel: i % 2 ? 0.55 : 0.75, note: run[i % run.length] }));
+    }
     case "twofeel":
       return long
         ? [{ at: 0, dur: 1.9, vel: 1 }, { at: 2, dur: Math.min(1.9, span - 2), vel: 0.8 }]
@@ -64,8 +70,8 @@ function voicingsFor(slots) {
 }
 
 /**
- * @param {{form:string[][], comp:string, bass:boolean}} harmony
- * @returns {{beat:number, kind:"chord"|"bass", notes:number[], dur:number, gain:number, bar:number, bar_in_form:number, slot:number}[]}
+ * @param {{form:string[][], comp:string}} harmony
+ * @returns {{beat:number, kind:"chord", notes:number[], dur:number, gain:number, bar:number, bar_in_form:number, slot:number}[]}
  */
 export function generateHarmony(harmony, pattern, practice, fromBeat, toBeat) {
   const out = [];
@@ -84,12 +90,6 @@ export function generateHarmony(harmony, pattern, practice, fromBeat, toBeat) {
       harmony.comp === "mixed" ? MIXED_POOL[Math.floor(slotRng(pattern.seed, bar, 90, 0)() * MIXED_POOL.length)] : harmony.comp;
     for (const [s, idx] of byBar[fb]) {
       const base = bar * beats + s.start;
-      if (harmony.bass) {
-        const pos = base;
-        if (pos >= fromBeat && pos < toBeat) {
-          out.push({ beat: pos, kind: "bass", notes: [bassNote(s.chord)], dur: Math.min(s.span, 2), gain: 0.9, bar, bar_in_form: fb, slot: idx });
-        }
-      }
       styleHits(style, s.span).forEach((h, n) => {
         const rng = slotRng(pattern.seed, bar, idx, n + 40);
         const nudge = rng();
@@ -98,7 +98,7 @@ export function generateHarmony(harmony, pattern, practice, fromBeat, toBeat) {
         let gain = h.vel * (0.92 + loud * 0.16);
         if (pattern.humanize > 0) pos += (nudge - 0.5) * 2 * pattern.humanize * MAX_NUDGE_BEATS;
         if (pos < 0 || pos < fromBeat || pos >= toBeat) return;
-        out.push({ beat: pos, kind: "chord", notes: voices[idx], dur: h.dur, gain: Math.min(1, gain), bar, bar_in_form: fb, slot: idx });
+        out.push({ beat: pos, kind: "chord", notes: h.note === undefined ? voices[idx] : [voices[idx][h.note % voices[idx].length]], dur: h.dur, gain: Math.min(1, gain), bar, bar_in_form: fb, slot: idx });
       });
     }
   }

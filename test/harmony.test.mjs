@@ -4,12 +4,14 @@ import { parseChord, cleanChord, transposeChord, formatChord, chordPitchClasses,
 import { styleHits, flattenForm, generateHarmony } from "../assets/js/metronome/comping.js";
 import { createTransport } from "../assets/js/metronome/transport.js";
 import { generateGroove, stepBeat, GROOVE_STYLES, grooveFits, grooveSounds } from "../assets/js/metronome/groove.js";
+import { generateBass, BASS_STYLES } from "../assets/js/metronome/bassline.js";
+import { STANDARDS } from "../assets/js/metronome/standards.js";
 import { barPlays } from "../assets/js/metronome/overlay.js";
 import { defaultState, normalizePattern, normalizeState, encodeShare, decodeShare } from "../assets/js/metronome/share.js";
 
 const pattern = { bpm: 90, beats: 4, den: 4, seed: 1, humanize: 0 };
 const practice = (o = {}) => ({ gap: null, trade: 0, countIn: 0, ladder: null, ...o });
-const H = (o = {}) => ({ on: true, form: [["Cmaj7"], ["Am7"], ["Dm7"], ["G7"]], comp: "charleston", bass: true, ...o });
+const H = (o = {}) => ({ on: true, form: [["Cmaj7"], ["Am7"], ["Dm7"], ["G7"]], comp: "charleston", sound: "rhodes", ...o });
 
 test("chord names parse, normalise and transpose", () => {
   assert.deepEqual(parseChord("Cmaj7"), { root: 0, quality: "maj7" });
@@ -66,7 +68,7 @@ test("bass note is the root in the second octave", () => {
 
 test("presets are valid", () => {
   for (const p of PRESETS) {
-    assert.ok(p.form.length >= 2 && p.form.length <= 16);
+    assert.ok(p.form.length >= 2 && p.form.length <= 48);
     for (const bar of p.form) {
       assert.ok(bar.length === 1 || bar.length === 2);
       for (const c of bar) assert.equal(cleanChord(c, "X"), c, `${p.name}: ${c}`);
@@ -90,17 +92,15 @@ test("a split bar divides the bar and sums to its length", () => {
   assert.equal(odd[0].span + odd[1].span, 7);
 });
 
-test("harmony: charleston hits, bass on the chord start, nothing during the count-in", () => {
+test("harmony: charleston hits, nothing during the count-in", () => {
   const ev = generateHarmony(H(), pattern, practice(), 0, 8);
-  const chords = ev.filter((e) => e.kind === "chord");
-  assert.deepEqual(chords.map((e) => e.beat), [0, 1.5, 4, 5.5]);
-  assert.deepEqual(ev.filter((e) => e.kind === "bass").map((e) => e.beat), [0, 4]);
+  assert.deepEqual(ev.map((e) => e.beat), [0, 1.5, 4, 5.5]);
   const counted = generateHarmony(H(), pattern, practice({ countIn: 1 }), 0, 8);
   assert.ok(counted.every((e) => e.beat >= 4));
 });
 
 test("harmony: the form loops and the push anticipates the next bar", () => {
-  const ev = generateHarmony(H({ comp: "push", bass: false }), pattern, practice(), 0, 20);
+  const ev = generateHarmony(H({ comp: "push" }), pattern, practice(), 0, 20);
   const beats = ev.map((e) => e.beat);
   assert.ok(beats.includes(3.5) && beats.includes(7.5)); // pushes into bars 2 and 3
   assert.ok(beats.includes(15.5)); // pushes into bar 4, which is the first chord again
@@ -118,7 +118,7 @@ test("harmony: splitting a range gives the same events as one range", () => {
 
 test("harmony: the gap trainer silences chords in the silent bars", () => {
   const p = practice({ gap: { audible: 1, silent: 1 } });
-  const ev = generateHarmony(H({ comp: "on1", bass: false }), pattern, p, 0, 16);
+  const ev = generateHarmony(H({ comp: "on1" }), pattern, p, 0, 16);
   assert.deepEqual(ev.map((e) => e.beat), [0, 8]);
 });
 
@@ -135,9 +135,10 @@ test("groove: off and odd meters give nothing", () => {
 
 test("groove: every style plays kick or ride on the downbeat region and stays inside the bar", () => {
   for (const style of GROOVE_STYLES.filter((s) => s !== "off")) {
-    const ev = generateGroove({ style }, pattern, practice(), 0, 4);
-    assert.ok(ev.length >= 8, style);
-    assert.ok(ev.every((e) => e.beat >= 0 && e.beat < 4 && e.gain > 0 && e.gain <= 1), style);
+    const p = style === "waltz" ? { ...pattern, beats: 3 } : pattern;
+    const ev = generateGroove({ style }, p, practice(), 0, p.beats);
+    assert.ok(ev.length >= 5, style);
+    assert.ok(ev.every((e) => e.beat >= 0 && e.beat < p.beats && e.gain > 0 && e.gain <= 1), style);
   }
 });
 
@@ -174,13 +175,15 @@ test("groove: trade fours, gap trainer and count-in", () => {
 
 test("share: harmony, groove and mix round trip; defaults stay out of the link", () => {
   const s = defaultState();
-  s.harmony = { on: true, form: [["Dm7", "G7"], ["Cmaj7"]], comp: "twofeel", bass: false };
-  s.groove = { style: "jazz", dust: true };
-  s.mix = { click: 0.3, chords: 0.5, groove: 0.9, autoMute: true };
+  s.harmony = { on: true, form: [["Dm7", "G7"], ["Cmaj7"]], comp: "arp", sound: "vibes" };
+  s.groove = { style: "jazz", kit: "rusty", dust: true };
+  s.bass = { on: true, style: "bossa", sound: "swagbass" };
+  s.mix = { click: 0.3, chords: 0.5, bass: 0.6, groove: 0.9, autoMute: true };
   const back = decodeShare(encodeShare(s));
   assert.deepEqual(back.harmony, s.harmony);
   assert.deepEqual(back.groove, s.groove);
   assert.deepEqual(back.mix, s.mix);
+  assert.deepEqual(back.bass, s.bass);
   s.mix.autoMute = false;
   assert.equal(decodeShare(encodeShare(s)).mix.autoMute, false);
   assert.equal(encodeShare(defaultState()), encodeShare(normalizeState({})));
@@ -191,19 +194,22 @@ test("share: harmony, groove and mix round trip; defaults stay out of the link",
 
 test("share: hostile harmony input is repaired", () => {
   const bad = normalizeState({
-    harmony: { on: "yes", form: [["Zzz9", 5], null, [], {}, ["__proto__", "Cmaj7", "Dm7"], ...Array(40).fill(["Am7"])], comp: "<script>", bass: 3 },
-    groove: { style: "../../etc" },
-    mix: { click: 99, chords: -4, groove: "x" },
+    harmony: { on: "yes", form: [["Zzz9", 5], null, [], {}, ["__proto__", "Cmaj7", "Dm7"], ...Array(40).fill(["Am7"])], comp: "<script>", sound: "../x" },
+    groove: { style: "../../etc", kit: "<img>" },
+    bass: { on: 1, style: "x", sound: {} },
+    mix: { click: 99, chords: -4, groove: "x", bass: NaN },
   });
   assert.equal(bad.harmony.on, false);
-  assert.ok(bad.harmony.form.length <= 16);
+  assert.ok(bad.harmony.form.length <= 48);
   for (const bar of bad.harmony.form) {
     assert.ok(bar.length >= 1 && bar.length <= 2);
     for (const c of bar) assert.ok(parseChord(c));
   }
   assert.equal(bad.harmony.comp, "charleston");
-  assert.deepEqual(bad.groove, { style: "off", dust: false });
-  assert.deepEqual(bad.mix, { click: 1, chords: 0, groove: 0.8, autoMute: true });
+  assert.deepEqual(bad.groove, { style: "off", kit: "synth", dust: false });
+  assert.deepEqual(bad.bass, { on: false, style: "walking", sound: "growlybass" });
+  assert.equal(bad.harmony.sound, "rhodes");
+  assert.deepEqual(bad.mix, { click: 1, chords: 0, bass: 0.6, groove: 0.5, autoMute: true });
   assert.equal(({}).polluted, undefined);
 });
 
@@ -216,7 +222,7 @@ test("share: an old link without the new fields still loads", () => {
 });
 
 test("click steps aside while the groove plays, and returns in count-in and trade bars", () => {
-  const cfg = (o = {}) => ({ pattern: o.pattern ?? defaultState().pattern, practice: practice(o.practice), harmony: H({ on: false }), groove: o.groove ?? { style: "lofi", dust: false }, mix: { click: 1, chords: 0.7, groove: 0.8, autoMute: o.autoMute ?? true } });
+  const cfg = (o = {}) => ({ pattern: o.pattern ?? defaultState().pattern, practice: practice(o.practice), harmony: H({ on: false }), groove: o.groove ?? { style: "lofi", dust: false }, mix: { click: 1, chords: 0.7, bass: 0.6, groove: 0.5, autoMute: o.autoMute ?? true } });
   const clickBars = (c, bars) => {
     const tr = createTransport(() => c);
     tr.start(0, 0);
@@ -230,4 +236,82 @@ test("click steps aside while the groove plays, and returns in count-in and trad
   assert.deepEqual(clickBars(cfg({ practice: { trade: 4 } }), 8), [4, 5, 6, 7], "trade bars click");
   assert.deepEqual(clickBars(cfg({ pattern: normalizePattern({ beats: 7, den: 8 }) }), 2), [0, 1], "odd meter has no groove, so clicks stay");
   assert.equal(grooveSounds({ style: "off" }, pattern, practice(), 0), false);
+});
+
+test("legacy links: chords on used to mean a root note on each change", () => {
+  const old = btoa(JSON.stringify({ v: 1, h: { on: true } })).replace(/=+$/, "");
+  assert.deepEqual(decodeShare(old).bass, { on: true, style: "roots", sound: "round" });
+  const off = btoa(JSON.stringify({ v: 1, h: { on: true, bass: false } })).replace(/=+$/, "");
+  assert.equal(decodeShare(off).bass.on, false);
+});
+
+test("bass: roots sit in the low window and land on the chord start", () => {
+  const form = { form: [["Cmaj7"], ["Am7"], ["Dm7"], ["G7"]] };
+  const ev = generateBass({ style: "roots" }, form, pattern, practice(), 0, 16);
+  assert.deepEqual(ev.map((e) => e.beat), [0, 4, 8, 12]);
+  assert.deepEqual(ev.map((e) => e.midi % 12), [0, 9, 2, 7]);
+  assert.ok(ev.every((e) => e.midi >= 28 && e.midi <= 39));
+});
+
+test("bass: walking has four notes a bar, starts on the root and approaches the next root", () => {
+  const form = { form: [["Dm7"], ["G7"], ["Cmaj7"], ["Cmaj7"]] };
+  const ev = generateBass({ style: "walking" }, form, pattern, practice(), 0, 16);
+  const bar0 = ev.filter((e) => e.bar === 0);
+  assert.deepEqual(bar0.map((e) => e.beat), [0, 1, 2, 3]);
+  assert.equal(bar0[0].midi % 12, 2); // D
+  const next = ev.find((e) => e.bar === 1 && e.beat === 4).midi;
+  assert.equal(Math.abs(bar0[3].midi - next), 1); // a half step into G
+  assert.ok(ev.every((e) => e.midi >= 26 && e.midi <= 52));
+});
+
+test("bass: every style gives notes in range, repeatable, split-safe", () => {
+  const form = { form: [["Cm7", "F7"], ["Bbmaj7"], ["Am7b5", "D7alt"], ["Gm6"]] };
+  for (const style of BASS_STYLES) {
+    const whole = generateBass({ style }, form, pattern, practice(), 0, 32);
+    assert.ok(whole.length >= 8, style);
+    assert.ok(whole.every((e) => e.midi >= 26 && e.midi <= 52 && e.gain > 0 && e.gain <= 1 && e.dur > 0), style);
+    const parts = [0, 5.5, 13, 32].flatMap((a, i, arr) => (i ? generateBass({ style }, form, pattern, practice(), arr[i - 1], a) : []));
+    assert.deepEqual(parts, whole, style);
+  }
+});
+
+test("bass: silent in the count-in and the gap trainer's silent bars, steady during trade fours", () => {
+  const form = { form: [["Cmaj7"]] };
+  const beatsOf = (p) => generateBass({ style: "roots" }, form, pattern, practice(p), 0, 15.9).map((e) => e.beat);
+  assert.deepEqual(beatsOf({ countIn: 1 }), [4, 8, 12]);
+  assert.deepEqual(beatsOf({ gap: { audible: 1, silent: 1 } }), [0, 8]);
+  assert.deepEqual(beatsOf({ trade: 4 }), [0, 4, 8, 12]);
+});
+
+test("catalogs: sound ids are unique and every recorded one has a manifest", async () => {
+  const { KEYS, BASSES, KITS } = await import("../assets/js/metronome/instruments.js");
+  const fs = await import("node:fs");
+  for (const list of [KEYS, BASSES, KITS]) {
+    assert.equal(new Set(list.map((x) => x.id)).size, list.length);
+    for (const x of list) {
+      if (x.synth) continue;
+      const dir = list === KITS ? "kits" : "inst";
+      const man = JSON.parse(fs.readFileSync(new URL(`../assets/audio/${dir}/${x.id}/manifest.json`, import.meta.url)));
+      assert.equal(man.id, x.id);
+      const files = man.notes ? man.notes.map((n) => n.file) : Object.values(man.voices).flatMap((v) => v.hits.map((h) => h.file));
+      for (const f of files) assert.ok(fs.existsSync(new URL(`../assets/audio/${dir}/${x.id}/${f}`, import.meta.url)), `${x.id}/${f}`);
+    }
+  }
+});
+
+test("standards: valid chords, one or two per bar, ids unique, and they fit a share link", () => {
+  assert.equal(new Set(STANDARDS.map((x) => x.id)).size, STANDARDS.length);
+  const expected = { "blue-bossa": 16, "so-what": 32, ipanema: 32, "all-things": 36, "fly-me": 16, "giant-steps": 16, cantaloupe: 16, "rhythm-full": 32, "blues-alice": 12, "minor-blues": 12 };
+  for (const t of STANDARDS) {
+    assert.equal(t.form.length, expected[t.id], `${t.id} has ${t.form.length} bars`);
+    for (const bar of t.form) {
+      assert.ok(bar.length === 1 || bar.length === 2, t.id);
+      for (const c of bar) assert.notEqual(cleanChord(c, "X"), "X", `${t.id}: ${c}`);
+    }
+    const s = defaultState();
+    s.harmony = { on: true, form: t.form, comp: "charleston", sound: "rhodes" };
+    const link = encodeShare(s);
+    assert.ok(link.length < 3000, `${t.id} link is ${link.length}`);
+    assert.equal(decodeShare(link).harmony.form.length, t.form.length, t.id);
+  }
 });

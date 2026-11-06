@@ -1,0 +1,43 @@
+{
+ "id": "upright",
+ "name": "Upright piano",
+ "kind": "keys",
+ "sampleRate": 32000,
+ "release": 0.4,
+ "license": "CC0 1.0",
+ "credit": "VCSL, Yamaha upright (VSCO 2 CE)",
+ "notes": [
+  {
+   "midi": 43.009,
+   "file": "n43.wav"
+  },
+  {
+   "midi": 48.007,
+   "file": "n48.wav"
+  },
+  {
+   "midi": 55.042,
+   "file": "n55.wav"
+  },
+  {
+   "midi": 60.001,
+   "file": "n60.wav"
+  },
+  {
+   "midi": 67.075,
+   "file": "n67.wav"
+  },
+  {
+   "midi": 72.028,
+   "file": "n72.wav"
+  },
+  {
+   "midi": 79.003,
+   "file": "n79.wav"
+  },
+  {
+   "midi": 84.004,
+   "file": "n84.wav"
+  }
+ ]
+}
