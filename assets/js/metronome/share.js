@@ -6,8 +6,11 @@
 //
 // Links store only what differs from the defaults, so they stay short, and a link made
 // today keeps its meaning if a new setting is added later.
-import { accentsFromGrouping, defaultGrouping } from "./meter.js?v=20261106b";
-import { clampBpm } from "./tempo.js?v=20261106b";
+import { accentsFromGrouping, defaultGrouping } from "./meter.js?v=20261106c";
+import { clampBpm } from "./tempo.js?v=20261106c";
+import { cleanChord } from "./chords.js?v=20261106c";
+import { COMP_STYLES } from "./comping.js?v=20261106c";
+import { GROOVE_STYLES } from "./groove.js?v=20261106c";
 
 export const CLICK_ON = ["all", "backbeat", "downbeat", "upbeats"];
 export const SOUNDS = ["tock", "wood", "soft", "woodblock", "claves", "log", "frame", "brake"];
@@ -50,7 +53,43 @@ export function defaultState() {
       sound: "tock",
     },
     practice: { gap: null, trade: 0, countIn: 0, ladder: null },
+    harmony: {
+      on: false,
+      form: [["Cmaj7"], ["Am7"], ["Dm7"], ["G7"]],
+      comp: "charleston",
+      bass: true,
+    },
+    groove: { style: "off", dust: false },
+    mix: { click: 1, chords: 0.7, groove: 0.8 },
   };
+}
+
+const MAX_FORM_BARS = 16;
+
+export function normalizeHarmony(raw) {
+  const d = defaultState().harmony;
+  const r = isObj(raw) ? raw : {};
+  let form = d.form;
+  if (Array.isArray(r.form) && r.form.length > 0) {
+    form = r.form.slice(0, MAX_FORM_BARS).map((bar) => {
+      const list = Array.isArray(bar) ? bar : [bar];
+      return list.slice(0, 2).map((c) => cleanChord(c));
+    });
+    form = form.map((bar) => (bar.length ? bar : ["Cmaj7"]));
+  }
+  return { on: r.on === true, form, comp: pick(r.comp, COMP_STYLES, d.comp), bass: r.bass !== false };
+}
+
+export function normalizeGroove(raw) {
+  const r = isObj(raw) ? raw : {};
+  return { style: pick(r.style, GROOVE_STYLES, "off"), dust: r.dust === true };
+}
+
+export function normalizeMix(raw) {
+  const d = defaultState().mix;
+  const r = isObj(raw) ? raw : {};
+  const level = (x, def) => Math.round(num(x, 0, 1, def) * 100) / 100;
+  return { click: level(r.click, d.click), chords: level(r.chords, d.chords), groove: level(r.groove, d.groove) };
 }
 
 export function normalizePattern(raw) {
@@ -109,7 +148,13 @@ export function normalizePractice(raw) {
 
 export function normalizeState(raw) {
   const r = isObj(raw) ? raw : {};
-  return { pattern: normalizePattern(r.pattern), practice: normalizePractice(r.practice) };
+  return {
+    pattern: normalizePattern(r.pattern),
+    practice: normalizePractice(r.practice),
+    harmony: normalizeHarmony(r.harmony),
+    groove: normalizeGroove(r.groove),
+    mix: normalizeMix(r.mix),
+  };
 }
 
 const sameArray = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
@@ -131,9 +176,20 @@ export function encodeShare(state) {
   for (const k of Object.keys(d.practice)) {
     if (JSON.stringify(s.practice[k]) !== JSON.stringify(d.practice[k])) r[k] = s.practice[k];
   }
+  const diff = (a, b) => {
+    const o = {};
+    for (const k of Object.keys(b)) if (JSON.stringify(a[k]) !== JSON.stringify(b[k])) o[k] = a[k];
+    return o;
+  };
+  const h = diff(s.harmony, d.harmony);
+  const g = diff(s.groove, d.groove);
+  const m = diff(s.mix, d.mix);
   const out = { v: 1 };
   if (Object.keys(p).length) out.p = p;
   if (Object.keys(r).length) out.r = r;
+  if (Object.keys(h).length) out.h = h;
+  if (Object.keys(g).length) out.g = g;
+  if (Object.keys(m).length) out.m = m;
   const bytes = new TextEncoder().encode(JSON.stringify(out));
   let bin = "";
   for (const b of bytes) bin += String.fromCharCode(b);
@@ -153,6 +209,9 @@ export function decodeShare(text) {
     return normalizeState({
       pattern: { ...d.pattern, levels: undefined, chances: undefined, ...(isObj(obj.p) ? obj.p : {}) },
       practice: { ...d.practice, ...(isObj(obj.r) ? obj.r : {}) },
+      harmony: { ...d.harmony, ...(isObj(obj.h) ? obj.h : {}) },
+      groove: { ...d.groove, ...(isObj(obj.g) ? obj.g : {}) },
+      mix: { ...d.mix, ...(isObj(obj.m) ? obj.m : {}) },
     });
   } catch {
     return null;

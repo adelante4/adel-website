@@ -26,6 +26,8 @@ const SOUNDS = {
 };
 
 // Recorded hits (Versilian Community Sample Library, CC0). Each voice has three files.
+import { rhodes, bass, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261106c";
+
 const SAMPLE_VOICES = ["woodblock", "claves", "log", "frame", "brake"];
 const FILE = { woodblock: "wood", claves: "claves", log: "log", frame: "frame", brake: "brake" };
 const KINDS = ["accent", "beat", "sub"];
@@ -34,6 +36,9 @@ const SAMPLE_DIR = new URL("../../audio/clicks/", import.meta.url);
 export function createAudio() {
   let ctx = null;
   let master = null;
+  let reverbIn = null;
+  let noise = null;
+  let dustBuf = null;
   /** voice -> kind -> AudioBuffer, or a promise while loading */
   const buffers = new Map();
 
@@ -67,6 +72,16 @@ export function createAudio() {
     comp.release.value = 0.15;
     master.connect(comp);
     comp.connect(ctx.destination);
+    // A small room shared by the piano and the drums.
+    reverbIn = ctx.createGain();
+    const room = ctx.createConvolver();
+    room.buffer = makeImpulse(ctx);
+    const roomOut = ctx.createGain();
+    roomOut.gain.value = 0.55;
+    reverbIn.connect(room);
+    room.connect(roomOut);
+    roomOut.connect(master);
+    noise = makeNoise(ctx);
     return ctx;
   }
 
@@ -91,20 +106,95 @@ export function createAudio() {
     outputLatency() {
       return ctx ? (ctx.outputLatency || 0) + (ctx.baseLatency || 0) : 0;
     },
-    /** A gain node for one run. Call .stop() to silence what is already queued. */
-    createRun() {
+    /**
+     * The buses for one run: click, chords and groove each have their own level, so Stop can
+     * silence everything already queued and the mix can change while playing.
+     */
+    createRun(mix = { click: 1, chords: 0.7, groove: 0.8 }) {
       ensure();
-      const gain = ctx.createGain();
-      gain.connect(master);
+      const run = ctx.createGain();
+      run.connect(master);
+      const clickBus = ctx.createGain();
+      clickBus.connect(run);
+      // Piano: a soft low-pass tames the FM brightness before it reaches the mix.
+      const chordBus = ctx.createGain();
+      const chordTone = ctx.createBiquadFilter();
+      chordTone.type = "lowpass";
+      chordTone.frequency.value = 4200;
+      chordBus.connect(chordTone);
+      chordTone.connect(run);
+      const chordSend = ctx.createGain();
+      chordSend.gain.value = 0.22;
+      chordTone.connect(chordSend);
+      chordSend.connect(reverbIn);
+      const grooveBus = ctx.createGain();
+      grooveBus.connect(run);
+      const grooveSend = ctx.createGain();
+      grooveSend.gain.value = 0.12;
+      grooveBus.connect(grooveSend);
+      grooveSend.connect(reverbIn);
+      let dust = null;
+      const setMix = (m) => {
+        clickBus.gain.value = m.click;
+        chordBus.gain.value = m.chords;
+        grooveBus.gain.value = m.groove;
+        if (dust) dust.gain.value = 0.5 * m.groove;
+      };
+      setMix(mix);
       return {
-        out: gain,
+        out: clickBus,
+        chords: chordBus,
+        groove: grooveBus,
+        setMix,
+        /** Vinyl dust under the groove. */
+        setDust(on, level = 0.8) {
+          if (on && !dust) {
+            dustBuf = dustBuf || makeDust(ctx);
+            const src = ctx.createBufferSource();
+            src.buffer = dustBuf;
+            src.loop = true;
+            const hp = ctx.createBiquadFilter();
+            hp.type = "highpass";
+            hp.frequency.value = 600;
+            dust = ctx.createGain();
+            dust.gain.value = 0.5 * level;
+            src.connect(hp);
+            hp.connect(dust);
+            dust.connect(run);
+            src.start();
+            dust.src = src;
+          } else if (!on && dust) {
+            const d = dust;
+            dust = null;
+            d.gain.setTargetAtTime(0, ctx.currentTime, 0.05);
+            setTimeout(() => {
+              d.src.stop();
+              d.disconnect();
+            }, 400);
+          }
+        },
         stop() {
           const t = ctx.currentTime;
-          gain.gain.cancelScheduledValues(t);
-          gain.gain.setValueAtTime(0, t);
-          setTimeout(() => gain.disconnect(), 120);
+          run.gain.cancelScheduledValues(t);
+          run.gain.setValueAtTime(0, t);
+          this.setDust(false);
+          setTimeout(() => run.disconnect(), 400);
+        },
+        /** Let what is already sounding finish, then free the nodes. */
+        end(ms = 3000) {
+          this.setDust(false);
+          setTimeout(() => run.disconnect(), ms);
         },
       };
+    },
+    chord(run, when, notes, seconds, gain) {
+      rhodes(ctx, run.chords, when, notes, seconds, gain);
+    },
+    bass(run, when, midi, seconds, gain) {
+      bass(ctx, run.chords, when, midi, seconds, gain);
+    },
+    drum(run, when, voice, gain, style) {
+      drum(ctx, run.groove, noise, when, voice, gain, style);
     },
     /** Schedule one click at an audio-clock time. kind is "accent", "beat" or "sub". */
     click(run, when, kind, gain, sound) {

@@ -3,7 +3,7 @@
 // A rule never touches the pattern. It only says, for a given bar number, whether the
 // click and the drum groove play. That keeps every mode small and easy to test, and
 // lets new modes be added without changing how clicks are generated.
-import { clampBpm } from "./tempo.js?v=20261106b";
+import { clampBpm } from "./tempo.js?v=20261106c";
 
 /**
  * @typedef {Object} Practice
@@ -13,21 +13,23 @@ import { clampBpm } from "./tempo.js?v=20261106b";
  * @property {{step:number,everyBars:number,rungs:number}|null} ladder  raise the tempo
  */
 
-/** Whether the click and the groove sound in a given bar (bar 0 is the first). */
+/** Whether the click, the drum groove and the chords sound in a given bar (bar 0 is the first). */
 export function barPlays(practice, bar) {
   const pb = bar - practice.countIn;
-  if (pb < 0) return { click: true, groove: false };
+  if (pb < 0) return { click: true, groove: false, harmony: false };
   let click = true;
   let groove = true;
+  let harmony = true;
   if (practice.gap) {
     const { audible, silent } = practice.gap;
     if (pb % (audible + silent) >= audible) {
       click = false;
       groove = false;
+      harmony = false;
     }
   }
   if (practice.trade > 0 && pb % (2 * practice.trade) >= practice.trade) groove = false;
-  return { click, groove };
+  return { click, groove, harmony };
 }
 
 /** Tempo map for a ladder: start tempo, then +step every N bars, after any count-in. */

@@ -107,8 +107,8 @@ test("trade: the groove drops out, the click stays", () => {
 
 test("count-in is click only, and the cycles start after it", () => {
   const practice = { gap: { audible: 1, silent: 1 }, trade: 0, countIn: 2, ladder: null };
-  assert.deepEqual(barPlays(practice, 0), { click: true, groove: false });
-  assert.deepEqual(barPlays(practice, 1), { click: true, groove: false });
+  assert.deepEqual(barPlays(practice, 0), { click: true, groove: false, harmony: false });
+  assert.deepEqual(barPlays(practice, 1), { click: true, groove: false, harmony: false });
   assert.equal(barPlays(practice, 2).click, true);
   assert.equal(barPlays(practice, 3).click, false);
   assert.equal(barPlays(practice, 4).click, true);

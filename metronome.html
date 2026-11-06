@@ -7,7 +7,7 @@
 <meta name="description" content="A practice metronome with odd meters, swing, chance, gap trainer and tempo ladder. Runs in the browser.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
 <link rel="stylesheet" href="assets/css/site.css?v=20261106">
-<link rel="stylesheet" href="assets/css/metronome.css?v=20261106b">
+<link rel="stylesheet" href="assets/css/metronome.css?v=20261106c">
 </head>
 <body>
 <div class="moire soft" aria-hidden="true"><i></i><i></i></div>
@@ -55,6 +55,69 @@
         <div class="segs" id="mode" role="group" aria-label="What the beat bars set"></div>
         <p class="note" id="mode-note"></p>
         <div class="beats" id="beats"></div>
+      </div>
+    </section>
+
+    <section class="chip panel" aria-labelledby="h-harmony">
+      <h2 id="h-harmony">Chords</h2>
+      <div class="field">
+        <button class="btn small" id="harmony-toggle" type="button" aria-pressed="false">Play chords</button>
+        <p class="note">An electric piano plays your progression and loops it. Pick a chord below to change it. Splitting a bar gives two chords, two beats each.</p>
+      </div>
+      <div class="field">
+        <label class="label" for="preset">Progression</label>
+        <select id="preset" aria-label="Load a progression"></select>
+        <div class="inline">
+          <span class="label">Key</span>
+          <button class="btn small" id="key-down" type="button" aria-label="Down a semitone">&minus;1</button>
+          <button class="btn small" id="key-up" type="button" aria-label="Up a semitone">+1</button>
+          <button class="btn small" id="key-fourth" type="button">Up a 4th</button>
+        </div>
+      </div>
+      <div class="field">
+        <span class="label">Form</span>
+        <div class="form" id="form" role="group" aria-label="Chord form"></div>
+        <div class="inline">
+          <select id="chord-root" aria-label="Root"></select>
+          <select id="chord-quality" aria-label="Chord type"></select>
+          <button class="btn small" id="chord-hear" type="button">Hear it</button>
+        </div>
+        <div class="inline">
+          <button class="btn small" id="bar-split" type="button">Split bar</button>
+          <button class="btn small" id="bar-add" type="button">Add bar</button>
+          <button class="btn small" id="bar-remove" type="button">Remove bar</button>
+        </div>
+      </div>
+      <div class="field">
+        <span class="label">Comping</span>
+        <div class="segs" id="comp" role="group" aria-label="Comping rhythm"></div>
+        <p class="note" id="comp-note"></p>
+      </div>
+      <div class="field">
+        <button class="btn small" id="bass-toggle" type="button" aria-pressed="true">Bass note</button>
+        <p class="note">The root of each chord, low, on the chord change.</p>
+      </div>
+    </section>
+
+    <section class="chip panel" aria-labelledby="h-groove">
+      <h2 id="h-groove">Groove</h2>
+      <div class="field">
+        <span class="label">Drums</span>
+        <div class="segs" id="groove" role="group" aria-label="Drum groove"></div>
+        <p class="note" id="groove-note">The drums are synthesized, so they follow any tempo without stretching.</p>
+      </div>
+      <div class="field">
+        <button class="btn small" id="dust-toggle" type="button" aria-pressed="false">Vinyl dust</button>
+        <p class="note">Faint hiss and crackle under everything.</p>
+      </div>
+      <div class="field">
+        <label class="label" for="mix-click">Click <b id="mix-click-val"></b></label>
+        <input id="mix-click" type="range" min="0" max="1" step="0.05" value="1">
+        <label class="label" for="mix-chords">Chords <b id="mix-chords-val"></b></label>
+        <input id="mix-chords" type="range" min="0" max="1" step="0.05" value="0.7">
+        <label class="label" for="mix-groove">Groove <b id="mix-groove-val"></b></label>
+        <input id="mix-groove" type="range" min="0" max="1" step="0.05" value="0.8">
+        <p class="note">With chords or a groove on, turn the click down, or play the click only on 2 &amp; 4.</p>
       </div>
     </section>
 
@@ -117,6 +180,11 @@
         </div>
       </div>
       <div class="field">
+        <span class="label">Trade fours</span>
+        <div class="segs" id="trade" role="group" aria-label="Groove trades every N bars"></div>
+        <p class="note">The groove plays four or eight bars, then drops out for the same length while the click and chords carry on. You play the gap.</p>
+      </div>
+      <div class="field">
         <span class="label">Count-in</span>
         <div class="segs" id="countin" role="group" aria-label="Count-in bars"></div>
         <p class="note">Bars of click first. The gap trainer and the ladder start after it.</p>
@@ -135,6 +203,6 @@
     </section>
   </div>
 </div>
-<script type="module" src="assets/js/metronome/metronome.js?v=20261106b"></script>
+<script type="module" src="assets/js/metronome/metronome.js?v=20261106c"></script>
 </body>
 </html>

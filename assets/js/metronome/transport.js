@@ -6,9 +6,11 @@
 //
 // A smooth tempo change (retempo) moves the anchor to the first beat not yet handed out,
 // so the beat that was already queued keeps its time and the next one follows at the new tempo.
-import { compileTimeline, timeAtBeat, beatAtTime, bpmAtBeat } from "./timeline.js?v=20261106b";
-import { generateEvents } from "./pattern.js?v=20261106b";
-import { ladderMap } from "./overlay.js?v=20261106b";
+import { compileTimeline, timeAtBeat, beatAtTime, bpmAtBeat } from "./timeline.js?v=20261106c";
+import { generateEvents } from "./pattern.js?v=20261106c";
+import { ladderMap } from "./overlay.js?v=20261106c";
+import { generateHarmony } from "./comping.js?v=20261106c";
+import { generateGroove } from "./groove.js?v=20261106c";
 
 /** @param {() => {pattern: import("./pattern.js").Pattern, practice: import("./overlay.js").Practice}} getConfig */
 export function createTransport(getConfig) {
@@ -45,15 +47,28 @@ export function createTransport(getConfig) {
       build();
       anchor = { ctxTime: t, beat: cursor };
     },
-    /** Clicks due before nowCtx + lookahead that have not been handed out yet. */
-    pull(nowCtx, lookahead) {
-      if (!anchor) return [];
+    /** Everything due before nowCtx + lookahead that has not been handed out yet. */
+    pullAll(nowCtx, lookahead) {
+      const none = { clicks: [], chords: [], drums: [] };
+      if (!anchor) return none;
       const horizon = beatAtCtx(nowCtx + lookahead);
-      if (horizon <= cursor) return [];
-      const { pattern, practice } = getConfig();
-      const events = generateEvents(pattern, practice, cursor, horizon);
+      if (horizon <= cursor) return none;
+      const { pattern, practice, harmony, groove } = getConfig();
+      const at = (e) => ({ ...e, time: ctxTimeOfBeat(e.beat) });
+      const clicks = generateEvents(pattern, practice, cursor, horizon).map(at);
+      const chords = harmony?.on
+        ? generateHarmony(harmony, pattern, practice, cursor, horizon).map((e) => ({
+            ...at(e),
+            seconds: ctxTimeOfBeat(e.beat + e.dur) - ctxTimeOfBeat(e.beat),
+          }))
+        : [];
+      const drums = groove && groove.style !== "off" ? generateGroove(groove, pattern, practice, cursor, horizon).map(at) : [];
       cursor = horizon;
-      return events.map((e) => ({ ...e, time: ctxTimeOfBeat(e.beat) }));
+      return { clicks, chords, drums };
+    },
+    /** Clicks only. */
+    pull(nowCtx, lookahead) {
+      return this.pullAll(nowCtx, lookahead).clicks;
     },
     /** Playhead in beats at an audio-clock time (negative before the first beat). */
     beatAt(nowCtx) {

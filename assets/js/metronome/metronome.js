@@ -4,12 +4,15 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261106b";
-import { createTransport } from "./transport.js?v=20261106b";
-import { barPlays } from "./overlay.js?v=20261106b";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261106b";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261106b";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261106b";
+import { createAudio } from "./audio.js?v=20261106c";
+import { createTransport } from "./transport.js?v=20261106c";
+import { barPlays } from "./overlay.js?v=20261106c";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261106c";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261106c";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261106c";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261106c";
+import { COMP_STYLES } from "./comping.js?v=20261106c";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261106c";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -51,10 +54,20 @@ function tick() {
   const ctx = audio.ctx;
   if (!ctx || !run) return;
   if (ctx.state === "suspended") ctx.resume().catch(() => {});
-  const events = transport.pull(ctx.currentTime, document.hidden ? LOOKAHEAD_HIDDEN : LOOKAHEAD);
-  for (const e of events) {
-    if (e.time < ctx.currentTime - 0.03) continue; // too late to be useful
-    audio.click(run, Math.max(e.time, ctx.currentTime), e.kind, e.gain, state.pattern.sound);
+  const now = ctx.currentTime;
+  const { clicks, chords, drums } = transport.pullAll(now, document.hidden ? LOOKAHEAD_HIDDEN : LOOKAHEAD);
+  for (const e of clicks) {
+    if (e.time < now - 0.03) continue; // too late to be useful
+    audio.click(run, Math.max(e.time, now), e.kind, e.gain, state.pattern.sound);
+  }
+  for (const e of chords) {
+    if (e.time < now - 0.03) continue;
+    if (e.kind === "bass") audio.bass(run, Math.max(e.time, now), e.notes[0], e.seconds, e.gain);
+    else audio.chord(run, Math.max(e.time, now), e.notes, e.seconds, e.gain);
+  }
+  for (const e of drums) {
+    if (e.time < now - 0.03) continue;
+    audio.drum(run, Math.max(e.time, now), e.voice, e.gain, state.groove.style);
   }
 }
 
@@ -68,7 +81,8 @@ async function start() {
     notice(err instanceof Error ? err.message : "Could not start audio.");
     return;
   }
-  run = audio.createRun();
+  run = audio.createRun(state.mix);
+  run.setDust(state.groove.dust, state.mix.groove);
   transport.start(audio.ctx.currentTime, 0.08);
   timer = setInterval(tick, 25);
   tick();
@@ -113,6 +127,10 @@ function commit(kind = "live") {
   state = normalizeState(state);
   save();
   renderAll();
+  if (run) {
+    run.setMix(state.mix);
+    run.setDust(state.groove.dust, state.mix.groove);
+  }
   if (!transport.running) return;
   if (kind === "tempo") transport.retempo();
   else if (kind === "restart") restart();
@@ -222,6 +240,7 @@ const humanWord = (h) => (h === 0 ? "exact" : pct(h));
 
 // ---- drawing ----
 const els = {
+  form: $("form"),
   beats: $("beats"),
   dial: $("dial"),
 };
@@ -333,12 +352,115 @@ function renderAll() {
     $("ladder-every").value = String(r.ladder.everyBars);
     $("ladder-rungs").value = String(r.ladder.rungs);
   }
+  makeSeg($("trade"), [[0, "Off"], [4, "Every 4 bars"], [8, "Every 8 bars"]], (v) => {
+    state.practice.trade = v;
+    commit();
+  })(r.trade);
   makeSeg($("countin"), [[0, "Off"], [1, "1 bar"], [2, "2 bars"]], (v) => {
     state.practice.countIn = v;
     commit("restart");
   })(r.countIn);
 
   renderBars();
+  renderHarmony();
+}
+
+// ---- chords, groove, mix ----
+const COMP_NOTES = {
+  sustain: "One held chord for each chord. A pad.",
+  on1: "A stab on beat 1.",
+  charleston: "Beat 1, then the & of 2. The classic jazz comping rhythm.",
+  push: "Anticipates each chord by an eighth note, then answers on 3.",
+  twofeel: "Beats 1 and 3.",
+  mixed: "A different rhythm each bar. The choice is seeded, so it repeats the same way each time.",
+};
+const sel = { bar: 0, k: 0 }; // the chord being edited (display only, not saved)
+
+function renderHarmony() {
+  const h = state.harmony;
+  $("harmony-toggle").setAttribute("aria-pressed", String(h.on));
+  $("harmony-toggle").textContent = h.on ? "Chords on" : "Play chords";
+  $("bass-toggle").setAttribute("aria-pressed", String(h.bass));
+  makeSeg($("comp"), COMP_STYLES.map((c) => [c, { sustain: "Sustain", on1: "On 1", charleston: "Charleston", push: "Push", twofeel: "Two-feel", mixed: "Mixed" }[c]]), (v) => {
+    state.harmony.comp = v;
+    commit();
+  })(h.comp);
+  $("comp-note").textContent = COMP_NOTES[h.comp];
+
+  sel.bar = Math.min(sel.bar, h.form.length - 1);
+  sel.k = Math.min(sel.k, h.form[sel.bar].length - 1);
+  const key = JSON.stringify([h.form, sel]);
+  if (els.form.dataset.key !== key) {
+    els.form.dataset.key = key;
+    els.form.replaceChildren(
+      ...h.form.map((bar, b) => {
+        const cell = document.createElement("div");
+        cell.className = "cell";
+        const no = document.createElement("span");
+        no.className = "no";
+        no.textContent = `Bar ${b + 1}`;
+        const pair = document.createElement("div");
+        pair.className = "pair";
+        bar.forEach((c, k) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "chord";
+          btn.textContent = c;
+          btn.dataset.bar = String(b);
+          btn.dataset.k = String(k);
+          btn.setAttribute("aria-pressed", String(b === sel.bar && k === sel.k));
+          btn.setAttribute("aria-label", `Bar ${b + 1}${bar.length === 2 ? (k ? ", second half" : ", first half") : ""}: ${c}`);
+          pair.append(btn);
+        });
+        cell.append(no, pair);
+        return cell;
+      }),
+    );
+  }
+  const cur = parseChord(h.form[sel.bar][sel.k]);
+  $("chord-root").value = String(cur.root);
+  $("chord-quality").value = cur.quality;
+  $("bar-split").textContent = h.form[sel.bar].length === 2 ? "Join bar" : "Split bar";
+  $("bar-add").disabled = h.form.length >= 16;
+  $("bar-remove").disabled = h.form.length <= 1;
+
+  makeSeg($("groove"), GROOVE_STYLES.map((g) => [g, GROOVE_NAMES[g]]), (v) => {
+    state.groove.style = v;
+    commit();
+  })(state.groove.style);
+  $("groove-note").textContent = grooveFits(state.pattern)
+    ? "The drums are synthesized, so they follow any tempo without stretching."
+    : "Grooves play in 4/4 for now. Choose 4/4 under Pulse to hear them.";
+  $("dust-toggle").setAttribute("aria-pressed", String(state.groove.dust));
+  for (const k of ["click", "chords", "groove"]) {
+    $(`mix-${k}`).value = String(state.mix[k]);
+    $(`mix-${k}-val`).textContent = pct(state.mix[k]);
+  }
+}
+
+/** Marks the chord that is sounding now. */
+function markChord(bar, inBar) {
+  const h = state.harmony;
+  let want = null;
+  const pb = bar - state.practice.countIn;
+  if (h.on && pb >= 0) {
+    const fb = pb % h.form.length;
+    const k = h.form[fb].length === 2 && inBar >= Math.ceil(state.pattern.beats / 2) ? 1 : 0;
+    want = `${fb}:${k}`;
+  }
+  for (const c of els.form.querySelectorAll(".chord")) c.classList.toggle("on", `${c.dataset.bar}:${c.dataset.k}` === want);
+}
+
+async function audition(text) {
+  if (transport.running) return;
+  try {
+    await audio.resume();
+    const r = audio.createRun({ click: 0, chords: 0.9, groove: 0 });
+    audio.chord(r, audio.ctx.currentTime + 0.02, voiceChord(text), 1.8, 0.9);
+    r.end(4000);
+  } catch {
+    /* no audio: the chord still changes */
+  }
 }
 
 function setPlaying(on) {
@@ -349,6 +471,7 @@ function setPlaying(on) {
 
 function clearPlayhead() {
   els.beats.querySelectorAll(".col.on").forEach((c) => c.classList.remove("on"));
+  els.form.querySelectorAll(".chord.on").forEach((c) => c.classList.remove("on"));
   els.dial.style.setProperty("--p", "0");
 }
 
@@ -366,6 +489,7 @@ function frame() {
     $("bpm").textContent = String(bpm);
     $("tempo-word").textContent = tempoWord(bpm);
     const bar = Math.floor(beat / p.beats);
+    markChord(bar, beat - bar * p.beats);
     const parts = [];
     if (bar < pr.countIn) parts.push(`Count-in, bar ${bar + 1} of ${pr.countIn}`);
     else parts.push(`Bar ${bar - pr.countIn + 1}`);
@@ -469,6 +593,92 @@ els.beats.addEventListener("keydown", (e) => {
   nudgeSlot(slot, dir);
   els.beats.querySelector(`.bar[data-slot="${slot}"]`)?.focus();
 });
+
+// Chords
+fillSelect($("chord-root"), range(0, 11), (i) => ROOTS[i]);
+fillSelect($("chord-quality"), QUALITIES.map((q) => q.id), (id) => QUALITIES.find((q) => q.id === id).label);
+{
+  const preset = $("preset");
+  preset.replaceChildren(
+    Object.assign(document.createElement("option"), { value: "", textContent: "Choose one…" }),
+    ...PRESETS.map((p) => Object.assign(document.createElement("option"), { value: p.id, textContent: p.name })),
+  );
+  preset.addEventListener("change", () => {
+    const p = PRESETS.find((x) => x.id === preset.value);
+    preset.value = "";
+    if (!p) return;
+    state.harmony.form = p.form.map((bar) => [...bar]);
+    sel.bar = 0;
+    sel.k = 0;
+    commit();
+  });
+}
+$("harmony-toggle").addEventListener("click", () => {
+  state.harmony.on = !state.harmony.on;
+  commit();
+});
+$("bass-toggle").addEventListener("click", () => {
+  state.harmony.bass = !state.harmony.bass;
+  commit();
+});
+els.form.addEventListener("click", (e) => {
+  const btn = e.target.closest(".chord");
+  if (!btn) return;
+  sel.bar = Number(btn.dataset.bar);
+  sel.k = Number(btn.dataset.k);
+  renderAll();
+  audition(state.harmony.form[sel.bar][sel.k]);
+});
+const editChord = () => {
+  const text = formatChord({ root: Number($("chord-root").value), quality: $("chord-quality").value });
+  state.harmony.form[sel.bar][sel.k] = text;
+  commit();
+  audition(text);
+};
+$("chord-root").addEventListener("change", editChord);
+$("chord-quality").addEventListener("change", editChord);
+$("chord-hear").addEventListener("click", () => audition(state.harmony.form[sel.bar][sel.k]));
+$("bar-split").addEventListener("click", () => {
+  const bar = state.harmony.form[sel.bar];
+  state.harmony.form[sel.bar] = bar.length === 2 ? [bar[0]] : [bar[0], bar[0]];
+  sel.k = 0;
+  commit();
+});
+$("bar-add").addEventListener("click", () => {
+  const f = state.harmony.form;
+  if (f.length >= 16) return;
+  f.push([...f[f.length - 1]]);
+  sel.bar = f.length - 1;
+  sel.k = 0;
+  commit();
+});
+$("bar-remove").addEventListener("click", () => {
+  const f = state.harmony.form;
+  if (f.length <= 1) return;
+  f.splice(sel.bar, 1);
+  sel.bar = Math.min(sel.bar, f.length - 1);
+  sel.k = 0;
+  commit();
+});
+const transposeForm = (n) => {
+  state.harmony.form = state.harmony.form.map((bar) => bar.map((c) => transposeChord(c, n)));
+  commit();
+};
+$("key-down").addEventListener("click", () => transposeForm(-1));
+$("key-up").addEventListener("click", () => transposeForm(1));
+$("key-fourth").addEventListener("click", () => transposeForm(5));
+
+// Groove and mix
+$("dust-toggle").addEventListener("click", () => {
+  state.groove.dust = !state.groove.dust;
+  commit();
+});
+for (const k of ["click", "chords", "groove"]) {
+  $(`mix-${k}`).addEventListener("input", (e) => {
+    state.mix[k] = Number(e.target.value);
+    commit();
+  });
+}
 
 // Share
 $("share-copy").addEventListener("click", async () => {
