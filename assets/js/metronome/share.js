@@ -6,11 +6,13 @@
 //
 // Links store only what differs from the defaults, so they stay short, and a link made
 // today keeps its meaning if a new setting is added later.
-import { accentsFromGrouping, defaultGrouping } from "./meter.js?v=20261106d";
-import { clampBpm } from "./tempo.js?v=20261106d";
-import { cleanChord } from "./chords.js?v=20261106d";
-import { COMP_STYLES } from "./comping.js?v=20261106d";
-import { GROOVE_STYLES } from "./groove.js?v=20261106d";
+import { accentsFromGrouping, defaultGrouping } from "./meter.js?v=20261106g";
+import { clampBpm } from "./tempo.js?v=20261106g";
+import { cleanChord } from "./chords.js?v=20261106g";
+import { COMP_STYLES } from "./comping.js?v=20261106g";
+import { GROOVE_STYLES } from "./groove.js?v=20261106g";
+import { BASS_STYLES } from "./bassline.js?v=20261106g";
+import { KEYS, BASSES, KITS, ids } from "./instruments.js?v=20261106g";
 
 export const CLICK_ON = ["all", "backbeat", "downbeat", "upbeats"];
 export const SOUNDS = ["tock", "wood", "soft", "woodblock", "claves", "log", "frame", "brake"];
@@ -57,14 +59,15 @@ export function defaultState() {
       on: false,
       form: [["Cmaj7"], ["Am7"], ["Dm7"], ["G7"]],
       comp: "charleston",
-      bass: true,
+      sound: "rhodes",
     },
-    groove: { style: "off", dust: false },
-    mix: { click: 1, chords: 0.7, groove: 0.8, autoMute: true },
+    bass: { on: false, style: "walking", sound: "growlybass" },
+    groove: { style: "off", kit: "synth", dust: false },
+    mix: { click: 1, chords: 0.7, bass: 0.6, groove: 0.5, autoMute: true },
   };
 }
 
-const MAX_FORM_BARS = 16;
+export const MAX_FORM_BARS = 48;
 
 export function normalizeHarmony(raw) {
   const d = defaultState().harmony;
@@ -77,12 +80,18 @@ export function normalizeHarmony(raw) {
     });
     form = form.map((bar) => (bar.length ? bar : ["Cmaj7"]));
   }
-  return { on: r.on === true, form, comp: pick(r.comp, COMP_STYLES, d.comp), bass: r.bass !== false };
+  return { on: r.on === true, form, comp: pick(r.comp, COMP_STYLES, d.comp), sound: pick(r.sound, ids(KEYS), d.sound) };
 }
 
 export function normalizeGroove(raw) {
   const r = isObj(raw) ? raw : {};
-  return { style: pick(r.style, GROOVE_STYLES, "off"), dust: r.dust === true };
+  return { style: pick(r.style, GROOVE_STYLES, "off"), kit: pick(r.kit, ids(KITS), "synth"), dust: r.dust === true };
+}
+
+export function normalizeBass(raw) {
+  const d = defaultState().bass;
+  const r = isObj(raw) ? raw : {};
+  return { on: r.on === true, style: pick(r.style, BASS_STYLES, d.style), sound: pick(r.sound, ids(BASSES), d.sound) };
 }
 
 export function normalizeMix(raw) {
@@ -92,6 +101,7 @@ export function normalizeMix(raw) {
   return {
     click: level(r.click, d.click),
     chords: level(r.chords, d.chords),
+    bass: level(r.bass, d.bass),
     groove: level(r.groove, d.groove),
     autoMute: r.autoMute !== false,
   };
@@ -157,6 +167,7 @@ export function normalizeState(raw) {
     pattern: normalizePattern(r.pattern),
     practice: normalizePractice(r.practice),
     harmony: normalizeHarmony(r.harmony),
+    bass: normalizeBass(r.bass),
     groove: normalizeGroove(r.groove),
     mix: normalizeMix(r.mix),
   };
@@ -188,12 +199,14 @@ export function encodeShare(state) {
   };
   const h = diff(s.harmony, d.harmony);
   const g = diff(s.groove, d.groove);
+  const b = diff(s.bass, d.bass);
   const m = diff(s.mix, d.mix);
   const out = { v: 1 };
   if (Object.keys(p).length) out.p = p;
   if (Object.keys(r).length) out.r = r;
   if (Object.keys(h).length) out.h = h;
   if (Object.keys(g).length) out.g = g;
+  if (Object.keys(b).length) out.b = b;
   if (Object.keys(m).length) out.m = m;
   const bytes = new TextEncoder().encode(JSON.stringify(out));
   let bin = "";
@@ -216,6 +229,8 @@ export function decodeShare(text) {
       practice: { ...d.practice, ...(isObj(obj.r) ? obj.r : {}) },
       harmony: { ...d.harmony, ...(isObj(obj.h) ? obj.h : {}) },
       groove: { ...d.groove, ...(isObj(obj.g) ? obj.g : {}) },
+      // Links made before the bass had its own layer: chords on meant a root note on each change.
+      bass: { ...d.bass, ...(isObj(obj.b) ? obj.b : {}), ...(obj.b === undefined && isObj(obj.h) && obj.h.on === true && obj.h.bass !== false ? { on: true, style: "roots", sound: "round" } : {}) },
       mix: { ...d.mix, ...(isObj(obj.m) ? obj.m : {}) },
     });
   } catch {

@@ -4,15 +4,20 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261106d";
-import { createTransport } from "./transport.js?v=20261106d";
-import { barPlays } from "./overlay.js?v=20261106d";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261106d";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261106d";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261106d";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261106d";
-import { COMP_STYLES } from "./comping.js?v=20261106d";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261106d";
+import { createAudio } from "./audio.js?v=20261106g";
+import { createTransport } from "./transport.js?v=20261106g";
+import { barPlays } from "./overlay.js?v=20261106g";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261106g";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261106g";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261106g";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261106g";
+import { COMP_STYLES } from "./comping.js?v=20261106g";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261106g";
+import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261106g";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261106g";
+import { BAND_STYLES } from "./bands.js?v=20261106g";
+import { STANDARDS } from "./standards.js?v=20261106g";
+import { MAX_FORM_BARS } from "./share.js?v=20261106g";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -55,19 +60,22 @@ function tick() {
   if (!ctx || !run) return;
   if (ctx.state === "suspended") ctx.resume().catch(() => {});
   const now = ctx.currentTime;
-  const { clicks, chords, drums } = transport.pullAll(now, document.hidden ? LOOKAHEAD_HIDDEN : LOOKAHEAD);
+  const { clicks, chords, bass, drums } = transport.pullAll(now, document.hidden ? LOOKAHEAD_HIDDEN : LOOKAHEAD);
   for (const e of clicks) {
     if (e.time < now - 0.03) continue; // too late to be useful
     audio.click(run, Math.max(e.time, now), e.kind, e.gain, state.pattern.sound);
   }
   for (const e of chords) {
     if (e.time < now - 0.03) continue;
-    if (e.kind === "bass") audio.bass(run, Math.max(e.time, now), e.notes[0], e.seconds, e.gain);
-    else audio.chord(run, Math.max(e.time, now), e.notes, e.seconds, e.gain);
+    audio.chord(run, Math.max(e.time, now), e.notes, e.seconds, e.gain, state.harmony.sound);
+  }
+  for (const e of bass) {
+    if (e.time < now - 0.03) continue;
+    audio.bass(run, Math.max(e.time, now), e.midi, e.seconds, e.gain, state.bass.sound);
   }
   for (const e of drums) {
     if (e.time < now - 0.03) continue;
-    audio.drum(run, Math.max(e.time, now), e.voice, e.gain, state.groove.style);
+    audio.drum(run, Math.max(e.time, now), e.voice, e.gain, state.groove.style, state.groove.kit);
   }
 }
 
@@ -76,7 +84,7 @@ async function start() {
   try {
     await audio.resume();
     // Recorded voices load first, but a slow connection never blocks the start for long.
-    await Promise.race([audio.preload(state.pattern.sound), new Promise((r) => setTimeout(r, 1200))]);
+    await Promise.race([Promise.all([audio.preload(state.pattern.sound), warm()]), new Promise((r) => setTimeout(r, 2500))]);
   } catch (err) {
     notice(err instanceof Error ? err.message : "Could not start audio.");
     return;
@@ -127,6 +135,7 @@ function commit(kind = "live") {
   state = normalizeState(state);
   save();
   renderAll();
+  warm();
   if (run) {
     run.setMix(state.mix);
     run.setDust(state.groove.dust, state.mix.groove);
@@ -365,27 +374,96 @@ function renderAll() {
   renderHarmony();
 }
 
-// ---- chords, groove, mix ----
+// ---- band: chords, keys, bass, drums, mix ----
 const COMP_NOTES = {
   sustain: "One held chord for each chord. A pad.",
   on1: "A stab on beat 1.",
   charleston: "Beat 1, then the & of 2. The classic jazz comping rhythm.",
   push: "Anticipates each chord by an eighth note, then answers on 3.",
   twofeel: "Beats 1 and 3.",
+  arp: "Eighth notes running up and down through the chord.",
   mixed: "A different rhythm each bar. The choice is seeded, so it repeats the same way each time.",
+};
+const COMP_LABELS = { sustain: "Sustain", on1: "On 1", charleston: "Charleston", push: "Push", twofeel: "Two-feel", arp: "Arpeggio", mixed: "Mixed" };
+const BASS_NOTES = {
+  roots: "The root, held for the whole chord.",
+  twofeel: "Root on 1, fifth on 3.",
+  walking: "Four notes a bar: the root, chord tones, and a half step into the next chord.",
+  lofi: "The root on 1, with a short octave and fifth pickup.",
+  bossa: "Root and fifth in the bossa pattern.",
+  funk: "Sixteenth-note root, octave and fifth, with ghost notes.",
+  sub: "Long deep notes, with an occasional re-hit.",
 };
 const sel = { bar: 0, k: 0 }; // the chord being edited (display only, not saved)
 
+let warming = 0;
+/** Starts loading the recordings the band needs. Shows a note only if it takes a moment. */
+function warm() {
+  const jobs = audio.preloadBand({
+    keys: state.harmony.on ? state.harmony.sound : null,
+    bass: state.bass.on ? state.bass.sound : null,
+    kit: state.groove.style !== "off" ? state.groove.kit : null,
+  });
+  warming++;
+  const t = setTimeout(() => ($("band-status").textContent = "Loading sounds…"), 250);
+  return jobs.finally(() => {
+    clearTimeout(t);
+    if (--warming === 0) $("band-status").textContent = "";
+  });
+}
+
 function renderHarmony() {
   const h = state.harmony;
-  $("harmony-toggle").setAttribute("aria-pressed", String(h.on));
-  $("harmony-toggle").textContent = h.on ? "Chords on" : "Play chords";
-  $("bass-toggle").setAttribute("aria-pressed", String(h.bass));
-  makeSeg($("comp"), COMP_STYLES.map((c) => [c, { sustain: "Sustain", on1: "On 1", charleston: "Charleston", push: "Push", twofeel: "Two-feel", mixed: "Mixed" }[c]]), (v) => {
+  const b = state.bass;
+  const g = state.groove;
+  const onOff = (id, on) => {
+    $(id).setAttribute("aria-pressed", String(on));
+    $(id).textContent = on ? "On" : "Off";
+  };
+  onOff("harmony-toggle", h.on);
+  onOff("bass-toggle", b.on);
+
+  makeSeg($("keys-sound"), KEYS.map((k) => [k.id, k.name]), (v) => {
+    state.harmony.sound = v;
+    commit();
+  })(h.sound);
+  $("keys-note").textContent = KEYS.find((k) => k.id === h.sound)?.note ?? "";
+  makeSeg($("comp"), COMP_STYLES.map((c) => [c, COMP_LABELS[c]]), (v) => {
     state.harmony.comp = v;
     commit();
   })(h.comp);
   $("comp-note").textContent = COMP_NOTES[h.comp];
+
+  makeSeg($("bass-sound"), BASSES.map((x) => [x.id, x.name]), (v) => {
+    state.bass.sound = v;
+    commit();
+  })(b.sound);
+  $("bass-note").textContent = BASSES.find((x) => x.id === b.sound)?.note ?? "";
+  makeSeg($("bass-style"), BASS_STYLES.map((x) => [x, BASS_STYLE_NAMES[x]]), (v) => {
+    state.bass.style = v;
+    commit();
+  })(b.style);
+  $("bass-style-note").textContent = BASS_NOTES[b.style];
+
+  makeSeg($("groove"), GROOVE_STYLES.map((x) => [x, GROOVE_NAMES[x]]), (v) => {
+    state.groove.style = v;
+    commit();
+  })(g.style);
+  $("groove-note").textContent =
+    g.style === "off" || grooveFits(state.pattern, g.style)
+      ? ""
+      : `${GROOVE_NAMES[g.style]} is written for ${g.style === "waltz" ? "3/4" : "4/4"}. Choose that under Pulse to hear it.`;
+  makeSeg($("kit"), KITS.map((x) => [x.id, x.name]), (v) => {
+    state.groove.kit = v;
+    commit();
+  })(g.kit);
+  $("kit-note").textContent = KITS.find((x) => x.id === g.kit)?.note ?? "";
+  $("dust-toggle").setAttribute("aria-pressed", String(g.dust));
+  $("automute-toggle").setAttribute("aria-pressed", String(state.mix.autoMute));
+  for (const k of ["click", "chords", "bass", "groove"]) {
+    $(`mix-${k}`).value = String(state.mix[k]);
+    $(`mix-${k}-val`).textContent = pct(state.mix[k]);
+  }
 
   sel.bar = Math.min(sel.bar, h.form.length - 1);
   sel.k = Math.min(sel.k, h.form[sel.bar].length - 1);
@@ -393,12 +471,12 @@ function renderHarmony() {
   if (els.form.dataset.key !== key) {
     els.form.dataset.key = key;
     els.form.replaceChildren(
-      ...h.form.map((bar, b) => {
+      ...h.form.map((bar, i) => {
         const cell = document.createElement("div");
         cell.className = "cell";
         const no = document.createElement("span");
         no.className = "no";
-        no.textContent = `Bar ${b + 1}`;
+        no.textContent = `Bar ${i + 1}`;
         const pair = document.createElement("div");
         pair.className = "pair";
         bar.forEach((c, k) => {
@@ -406,10 +484,10 @@ function renderHarmony() {
           btn.type = "button";
           btn.className = "chord";
           btn.textContent = c;
-          btn.dataset.bar = String(b);
+          btn.dataset.bar = String(i);
           btn.dataset.k = String(k);
-          btn.setAttribute("aria-pressed", String(b === sel.bar && k === sel.k));
-          btn.setAttribute("aria-label", `Bar ${b + 1}${bar.length === 2 ? (k ? ", second half" : ", first half") : ""}: ${c}`);
+          btn.setAttribute("aria-pressed", String(i === sel.bar && k === sel.k));
+          btn.setAttribute("aria-label", `Bar ${i + 1}${bar.length === 2 ? (k ? ", second half" : ", first half") : ""}: ${c}`);
           pair.append(btn);
         });
         cell.append(no, pair);
@@ -421,22 +499,8 @@ function renderHarmony() {
   $("chord-root").value = String(cur.root);
   $("chord-quality").value = cur.quality;
   $("bar-split").textContent = h.form[sel.bar].length === 2 ? "Join bar" : "Split bar";
-  $("bar-add").disabled = h.form.length >= 16;
+  $("bar-add").disabled = h.form.length >= MAX_FORM_BARS;
   $("bar-remove").disabled = h.form.length <= 1;
-
-  makeSeg($("groove"), GROOVE_STYLES.map((g) => [g, GROOVE_NAMES[g]]), (v) => {
-    state.groove.style = v;
-    commit();
-  })(state.groove.style);
-  $("groove-note").textContent = grooveFits(state.pattern)
-    ? "The drums are synthesized, so they follow any tempo without stretching."
-    : "Grooves play in 4/4 for now. Choose 4/4 under Pulse to hear them.";
-  $("dust-toggle").setAttribute("aria-pressed", String(state.groove.dust));
-  $("automute-toggle").setAttribute("aria-pressed", String(state.mix.autoMute));
-  for (const k of ["click", "chords", "groove"]) {
-    $(`mix-${k}`).value = String(state.mix[k]);
-    $(`mix-${k}-val`).textContent = pct(state.mix[k]);
-  }
 }
 
 /** Marks the chord that is sounding now. */
@@ -444,7 +508,7 @@ function markChord(bar, inBar) {
   const h = state.harmony;
   let want = null;
   const pb = bar - state.practice.countIn;
-  if (h.on && pb >= 0) {
+  if ((h.on || state.bass.on) && pb >= 0) {
     const fb = pb % h.form.length;
     const k = h.form[fb].length === 2 && inBar >= Math.ceil(state.pattern.beats / 2) ? 1 : 0;
     want = `${fb}:${k}`;
@@ -456,12 +520,37 @@ async function audition(text) {
   if (transport.running) return;
   try {
     await audio.resume();
-    const r = audio.createRun({ click: 0, chords: 0.9, groove: 0 });
-    audio.chord(r, audio.ctx.currentTime + 0.02, voiceChord(text), 1.8, 0.9);
+    const sound = state.harmony.sound;
+    await Promise.race([audio.preloadBand({ keys: sound }), new Promise((r) => setTimeout(r, 1500))]);
+    const r = audio.createRun({ click: 0, chords: 0.9, bass: 0, groove: 0 });
+    audio.chord(r, audio.ctx.currentTime + 0.02, voiceChord(text), 1.8, 0.9, sound);
     r.end(4000);
   } catch {
     /* no audio: the chord still changes */
   }
+}
+
+/** Sets every layer from a band style. */
+function applyBand(id) {
+  const style = BAND_STYLES.find((x) => x.id === id);
+  if (!style) return;
+  const p = state.pattern;
+  const [beats, den] = style.meter;
+  if (p.beats !== beats || p.den !== den) {
+    p.beats = beats;
+    p.den = den;
+    p.levels = defaultLevels(beats, p.bars);
+    p.chances = new Array(beats * p.bars).fill(1);
+  }
+  p.bpm = style.bpm;
+  state.groove = { ...style.groove };
+  state.bass = { on: true, ...style.bass };
+  state.harmony.on = true;
+  state.harmony.sound = style.keys.sound;
+  state.harmony.comp = style.keys.comp;
+  state.mix.autoMute = true;
+  commit("restart");
+  notice(`${style.name}: ${style.bpm} BPM. Change any layer below.`);
 }
 
 function setPlaying(on) {
@@ -599,27 +688,45 @@ els.beats.addEventListener("keydown", (e) => {
 fillSelect($("chord-root"), range(0, 11), (i) => ROOTS[i]);
 fillSelect($("chord-quality"), QUALITIES.map((q) => q.id), (id) => QUALITIES.find((q) => q.id === id).label);
 {
+  const group = (label, list) => {
+    const g = document.createElement("optgroup");
+    g.label = label;
+    g.append(...list.map((p) => Object.assign(document.createElement("option"), { value: p.id, textContent: p.name })));
+    return g;
+  };
   const preset = $("preset");
+  const all = [...PRESETS, ...STANDARDS];
   preset.replaceChildren(
     Object.assign(document.createElement("option"), { value: "", textContent: "Choose one…" }),
-    ...PRESETS.map((p) => Object.assign(document.createElement("option"), { value: p.id, textContent: p.name })),
+    group("Progressions", PRESETS),
+    ...(STANDARDS.length ? [group("Standards", STANDARDS)] : []),
   );
   preset.addEventListener("change", () => {
-    const p = PRESETS.find((x) => x.id === preset.value);
+    const p = all.find((x) => x.id === preset.value);
     preset.value = "";
     if (!p) return;
     state.harmony.form = p.form.map((bar) => [...bar]);
     sel.bar = 0;
     sel.k = 0;
+    $("preset-note").textContent = STANDARDS.includes(p) ? `${p.name}: typical changes, ${p.form.length} bars. Check them against your own chart.` : "";
     commit();
   });
 }
+$("band-style").replaceChildren(
+  Object.assign(document.createElement("option"), { value: "", textContent: "Choose a style…" }),
+  ...BAND_STYLES.map((x) => Object.assign(document.createElement("option"), { value: x.id, textContent: x.name })),
+);
+$("band-style").addEventListener("change", () => {
+  const id = $("band-style").value;
+  $("band-style").value = "";
+  applyBand(id);
+});
 $("harmony-toggle").addEventListener("click", () => {
   state.harmony.on = !state.harmony.on;
   commit();
 });
 $("bass-toggle").addEventListener("click", () => {
-  state.harmony.bass = !state.harmony.bass;
+  state.bass.on = !state.bass.on;
   commit();
 });
 els.form.addEventListener("click", (e) => {
@@ -647,7 +754,7 @@ $("bar-split").addEventListener("click", () => {
 });
 $("bar-add").addEventListener("click", () => {
   const f = state.harmony.form;
-  if (f.length >= 16) return;
+  if (f.length >= MAX_FORM_BARS) return;
   f.push([...f[f.length - 1]]);
   sel.bar = f.length - 1;
   sel.k = 0;
@@ -669,7 +776,7 @@ $("key-down").addEventListener("click", () => transposeForm(-1));
 $("key-up").addEventListener("click", () => transposeForm(1));
 $("key-fourth").addEventListener("click", () => transposeForm(5));
 
-// Groove and mix
+// Drums and mix
 $("dust-toggle").addEventListener("click", () => {
   state.groove.dust = !state.groove.dust;
   commit();
@@ -678,7 +785,7 @@ $("automute-toggle").addEventListener("click", () => {
   state.mix.autoMute = !state.mix.autoMute;
   commit();
 });
-for (const k of ["click", "chords", "groove"]) {
+for (const k of ["click", "chords", "bass", "groove"]) {
   $(`mix-${k}`).addEventListener("input", (e) => {
     state.mix[k] = Number(e.target.value);
     commit();
@@ -731,4 +838,5 @@ document.addEventListener("keydown", (e) => {
 window.addEventListener("pagehide", () => transport.running && stop());
 
 renderAll();
+warm();
 if (linkProblem) notice("That shared link could not be read, so your last setup is shown.");

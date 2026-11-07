@@ -7,7 +7,7 @@
 <meta name="description" content="A practice metronome with odd meters, swing, chance, gap trainer and tempo ladder. Runs in the browser.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
 <link rel="stylesheet" href="assets/css/site.css?v=20261106">
-<link rel="stylesheet" href="assets/css/metronome.css?v=20261106d">
+<link rel="stylesheet" href="assets/css/metronome.css?v=20261106g">
 </head>
 <body>
 <div class="moire soft" aria-hidden="true"><i></i><i></i></div>
@@ -61,12 +61,9 @@
     <section class="chip panel" aria-labelledby="h-harmony">
       <h2 id="h-harmony">Chords</h2>
       <div class="field">
-        <button class="btn small" id="harmony-toggle" type="button" aria-pressed="false">Play chords</button>
-        <p class="note">An electric piano plays your progression and loops it. Pick a chord below to change it. Splitting a bar gives two chords, two beats each.</p>
-      </div>
-      <div class="field">
         <label class="label" for="preset">Progression</label>
         <select id="preset" aria-label="Load a progression"></select>
+        <p class="note" id="preset-note"></p>
         <div class="inline">
           <span class="label">Key</span>
           <button class="btn small" id="key-down" type="button" aria-label="Down a semitone">&minus;1</button>
@@ -77,6 +74,7 @@
       <div class="field">
         <span class="label">Form</span>
         <div class="form" id="form" role="group" aria-label="Chord form"></div>
+        <p class="note">Pick a chord to change it. Splitting a bar gives two chords, two beats each.</p>
         <div class="inline">
           <select id="chord-root" aria-label="Root"></select>
           <select id="chord-quality" aria-label="Chord type"></select>
@@ -88,40 +86,57 @@
           <button class="btn small" id="bar-remove" type="button">Remove bar</button>
         </div>
       </div>
+    </section>
+
+    <section class="chip panel" aria-labelledby="h-band">
+      <h2 id="h-band">Band</h2>
       <div class="field">
+        <label class="label" for="band-style">Style</label>
+        <select id="band-style" aria-label="Set every layer from a style"></select>
+        <p class="note">A style sets the drums, bass, keys and tempo together. Change any layer after.</p>
+        <p class="note" id="band-status" role="status" aria-live="polite"></p>
+      </div>
+
+      <div class="layer">
+        <div class="layer-head"><h3>Keys</h3><button class="btn small" id="harmony-toggle" type="button" aria-pressed="false">Off</button></div>
+        <div class="segs" id="keys-sound" role="group" aria-label="Keys sound"></div>
+        <p class="note" id="keys-note"></p>
         <span class="label">Comping</span>
         <div class="segs" id="comp" role="group" aria-label="Comping rhythm"></div>
         <p class="note" id="comp-note"></p>
       </div>
-      <div class="field">
-        <button class="btn small" id="bass-toggle" type="button" aria-pressed="true">Bass note</button>
-        <p class="note">The root of each chord, low, on the chord change.</p>
-      </div>
-    </section>
 
-    <section class="chip panel" aria-labelledby="h-groove">
-      <h2 id="h-groove">Groove</h2>
-      <div class="field">
-        <span class="label">Drums</span>
+      <div class="layer">
+        <div class="layer-head"><h3>Bass</h3><button class="btn small" id="bass-toggle" type="button" aria-pressed="false">Off</button></div>
+        <div class="segs" id="bass-sound" role="group" aria-label="Bass sound"></div>
+        <p class="note" id="bass-note"></p>
+        <span class="label">Line</span>
+        <div class="segs" id="bass-style" role="group" aria-label="Bass line"></div>
+        <p class="note" id="bass-style-note"></p>
+      </div>
+
+      <div class="layer">
+        <div class="layer-head"><h3>Drums</h3></div>
         <div class="segs" id="groove" role="group" aria-label="Drum groove"></div>
-        <p class="note" id="groove-note">The drums are synthesized, so they follow any tempo without stretching.</p>
-      </div>
-      <div class="field">
+        <p class="note" id="groove-note"></p>
+        <span class="label">Kit</span>
+        <div class="segs" id="kit" role="group" aria-label="Drum kit"></div>
+        <p class="note" id="kit-note"></p>
         <button class="btn small" id="dust-toggle" type="button" aria-pressed="false">Vinyl dust</button>
-        <p class="note">Faint hiss and crackle under everything.</p>
       </div>
-      <div class="field">
-        <button class="btn small" id="automute-toggle" type="button" aria-pressed="true">Click steps aside for the groove</button>
-        <p class="note">On: the click is silent while the drums play, and comes back in the count-in and in the bars where trade fours drops the drums. Off: the click always plays, at the level below.</p>
-      </div>
-      <div class="field">
+
+      <div class="layer">
+        <div class="layer-head"><h3>Mix</h3></div>
+        <button class="btn small" id="automute-toggle" type="button" aria-pressed="true">Click steps aside for the drums</button>
+        <p class="note">On: the click is silent while the drums play. It comes back in the count-in and in the bars where trade fours takes the drums out.</p>
         <label class="label" for="mix-click">Click <b id="mix-click-val"></b></label>
         <input id="mix-click" type="range" min="0" max="1" step="0.05" value="1">
-        <label class="label" for="mix-chords">Chords <b id="mix-chords-val"></b></label>
+        <label class="label" for="mix-chords">Keys <b id="mix-chords-val"></b></label>
         <input id="mix-chords" type="range" min="0" max="1" step="0.05" value="0.7">
-        <label class="label" for="mix-groove">Groove <b id="mix-groove-val"></b></label>
-        <input id="mix-groove" type="range" min="0" max="1" step="0.05" value="0.8">
-        <p class="note">With chords or a groove on, turn the click down, or play the click only on 2 &amp; 4.</p>
+        <label class="label" for="mix-bass">Bass <b id="mix-bass-val"></b></label>
+        <input id="mix-bass" type="range" min="0" max="1" step="0.05" value="0.6">
+        <label class="label" for="mix-groove">Drums <b id="mix-groove-val"></b></label>
+        <input id="mix-groove" type="range" min="0" max="1" step="0.05" value="0.5">
       </div>
     </section>
 
@@ -207,6 +222,6 @@
     </section>
   </div>
 </div>
-<script type="module" src="assets/js/metronome/metronome.js?v=20261106d"></script>
+<script type="module" src="assets/js/metronome/metronome.js?v=20261106g"></script>
 </body>
 </html>

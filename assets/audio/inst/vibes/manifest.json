@@ -1,0 +1,35 @@
+{
+ "id": "vibes",
+ "name": "Vibraphone",
+ "kind": "keys",
+ "sampleRate": 32000,
+ "release": 0.5,
+ "license": "CC0 1.0",
+ "credit": "VCSL, vibraphone soft mallets",
+ "notes": [
+  {
+   "midi": 58.114,
+   "file": "n58.wav"
+  },
+  {
+   "midi": 63.999,
+   "file": "n64.wav"
+  },
+  {
+   "midi": 70.999,
+   "file": "n71.wav"
+  },
+  {
+   "midi": 74.0,
+   "file": "n74.wav"
+  },
+  {
+   "midi": 81.0,
+   "file": "n81.wav"
+  },
+  {
+   "midi": 88.0,
+   "file": "n88.wav"
+  }
+ ]
+}

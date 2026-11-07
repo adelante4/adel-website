@@ -6,11 +6,12 @@
 //
 // A smooth tempo change (retempo) moves the anchor to the first beat not yet handed out,
 // so the beat that was already queued keeps its time and the next one follows at the new tempo.
-import { compileTimeline, timeAtBeat, beatAtTime, bpmAtBeat } from "./timeline.js?v=20261106d";
-import { generateEvents } from "./pattern.js?v=20261106d";
-import { ladderMap } from "./overlay.js?v=20261106d";
-import { generateHarmony } from "./comping.js?v=20261106d";
-import { generateGroove, grooveSounds } from "./groove.js?v=20261106d";
+import { compileTimeline, timeAtBeat, beatAtTime, bpmAtBeat } from "./timeline.js?v=20261106g";
+import { generateEvents } from "./pattern.js?v=20261106g";
+import { ladderMap } from "./overlay.js?v=20261106g";
+import { generateHarmony } from "./comping.js?v=20261106g";
+import { generateGroove, grooveSounds } from "./groove.js?v=20261106g";
+import { generateBass } from "./bassline.js?v=20261106g";
 
 /** @param {() => {pattern: import("./pattern.js").Pattern, practice: import("./overlay.js").Practice}} getConfig */
 export function createTransport(getConfig) {
@@ -49,11 +50,11 @@ export function createTransport(getConfig) {
     },
     /** Everything due before nowCtx + lookahead that has not been handed out yet. */
     pullAll(nowCtx, lookahead) {
-      const none = { clicks: [], chords: [], drums: [] };
+      const none = { clicks: [], chords: [], bass: [], drums: [] };
       if (!anchor) return none;
       const horizon = beatAtCtx(nowCtx + lookahead);
       if (horizon <= cursor) return none;
-      const { pattern, practice, harmony, groove, mix } = getConfig();
+      const { pattern, practice, harmony, groove, bass, mix } = getConfig();
       const at = (e) => ({ ...e, time: ctxTimeOfBeat(e.beat) });
       // While the drums play, the click steps aside. It returns in count-in bars and in the
       // bars where trade fours takes the drums out.
@@ -67,9 +68,15 @@ export function createTransport(getConfig) {
             seconds: ctxTimeOfBeat(e.beat + e.dur) - ctxTimeOfBeat(e.beat),
           }))
         : [];
+      const bassNotes = bass?.on
+        ? generateBass(bass, harmony, pattern, practice, cursor, horizon).map((e) => ({
+            ...at(e),
+            seconds: ctxTimeOfBeat(e.beat + e.dur) - ctxTimeOfBeat(e.beat),
+          }))
+        : [];
       const drums = groove && groove.style !== "off" ? generateGroove(groove, pattern, practice, cursor, horizon).map(at) : [];
       cursor = horizon;
-      return { clicks, chords, drums };
+      return { clicks, chords, bass: bassNotes, drums };
     },
     /** Clicks only. */
     pull(nowCtx, lookahead) {

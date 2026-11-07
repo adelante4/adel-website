@@ -1,0 +1,55 @@
+{
+ "id": "fashionbass",
+ "name": "Round bass",
+ "kind": "bass",
+ "sampleRate": 24000,
+ "release": 0.15,
+ "license": "CC0 1.0",
+ "credit": "Karoryfer Samples, Fashionbass",
+ "notes": [
+  {
+   "midi": 29.22,
+   "file": "n29.wav"
+  },
+  {
+   "midi": 32.128,
+   "file": "n32.wav"
+  },
+  {
+   "midi": 35.133,
+   "file": "n35.wav"
+  },
+  {
+   "midi": 38.162,
+   "file": "n38.wav"
+  },
+  {
+   "midi": 41.12,
+   "file": "n41.wav"
+  },
+  {
+   "midi": 44.06,
+   "file": "n44.wav"
+  },
+  {
+   "midi": 47.065,
+   "file": "n47.wav"
+  },
+  {
+   "midi": 49.99,
+   "file": "n50.wav"
+  },
+  {
+   "midi": 53.051,
+   "file": "n53.wav"
+  },
+  {
+   "midi": 55.986,
+   "file": "n56.wav"
+  },
+  {
+   "midi": 59.025,
+   "file": "n59.wav"
+  }
+ ]
+}

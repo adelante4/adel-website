@@ -1,0 +1,55 @@
+{
+ "id": "swagbass",
+ "name": "Fabric bass",
+ "kind": "bass",
+ "sampleRate": 24000,
+ "release": 0.12,
+ "license": "CC0 1.0",
+ "credit": "Karoryfer Samples, Swagbass",
+ "notes": [
+  {
+   "midi": 27.093,
+   "file": "n27.wav"
+  },
+  {
+   "midi": 31.172,
+   "file": "n31.wav"
+  },
+  {
+   "midi": 33.141,
+   "file": "n33.wav"
+  },
+  {
+   "midi": 36.099,
+   "file": "n36.wav"
+  },
+  {
+   "midi": 39.116,
+   "file": "n39.wav"
+  },
+  {
+   "midi": 42.015,
+   "file": "n42.wav"
+  },
+  {
+   "midi": 45.11,
+   "file": "n45.wav"
+  },
+  {
+   "midi": 48.051,
+   "file": "n48.wav"
+  },
+  {
+   "midi": 51.069,
+   "file": "n51.wav"
+  },
+  {
+   "midi": 54.067,
+   "file": "n54.wav"
+  },
+  {
+   "midi": 57.063,
+   "file": "n57.wav"
+  }
+ ]
+}
