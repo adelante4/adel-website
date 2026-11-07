@@ -1,5 +1,5 @@
 // Writes the "My standards" group (the tunes in Adel's Notion list) into standards.js from an
-// iReal Pro playlist file, so the changes are the ones from his own charts.
+// iReal Pro playlist file (one rhythm-changes tune, I Got Rhythm, stands for the others), so the changes are the ones from his own charts.
 // Usage: node tools/build-my-standards.mjs <file with the irealb:// link>
 import fs from "node:fs";
 import { parseIReal } from "./ireal.mjs";
@@ -9,17 +9,17 @@ const WANT = [
   ["my-never-another-you", /^There Will Never Be Another You$/i],
   ["my-softly", /^Softly, As In A Morning Sunrise$/i],
   ["my-blue-monk", /^Blue Monk$/i],
-  ["my-oleo", /^Oleo$/i],
   ["my-igr", /^I Got Rhythm$/i],
   ["my-stella", /^Stella By Starlight$/i],
   ["my-manha", /^Manha De Carnaval/i],
-  ["my-anthropology", /^Anthropology$/i],
   ["my-wave", /^Wave$/i],
   ["my-autumn-leaves", /^Autumn Leaves$/i],
   ["my-so-what", /^So What$/i],
   ["my-tunisia", /^A Night In Tunisia$/i],
+  ["my-maiden-voyage", /^Maiden Voyage$/i],
+  ["my-days-of-wine", /^Days Of Wine And Roses$/i],
 ];
-const NAMES = { "my-manha": "Manhã de Carnaval", "my-never-another-you": "There Will Never Be Another You", "my-tunisia": "A Night in Tunisia", "my-all-of-me": "All of Me", "my-softly": "Softly, as in a Morning Sunrise", "my-stella": "Stella by Starlight", "my-igr": "I Got Rhythm", "my-so-what": "So What", "my-autumn-leaves": "Autumn Leaves" };
+const NAMES = { "my-days-of-wine": "Days of Wine and Roses", "my-manha": "Manhã de Carnaval", "my-never-another-you": "There Will Never Be Another You", "my-tunisia": "A Night in Tunisia", "my-all-of-me": "All of Me", "my-softly": "Softly, as in a Morning Sunrise", "my-stella": "Stella by Starlight", "my-igr": "I Got Rhythm", "my-so-what": "So What", "my-autumn-leaves": "Autumn Leaves" };
 const { songs } = parseIReal(fs.readFileSync(process.argv[2], "utf8"));
 const rows = WANT.map(([id, re]) => {
   const s = songs.find((x) => re.test(x.title));
