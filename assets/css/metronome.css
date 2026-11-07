@@ -35,8 +35,8 @@
 .hint { margin: 0; width: 100%; font-size: 12px; }
 
 /* ---- Panels ---- */
-.panels { flex: 1 1 460px; max-width: 640px; display: flex; flex-direction: column; gap: 24px; }
-.panel { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+.panels { flex: 1 1 460px; min-width: 0; max-width: 640px; display: flex; flex-direction: column; gap: 24px; }
+.panel { min-width: 0; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
 .panel h2 { margin: 0; font-size: 18px; letter-spacing: 0.04em; }
 .field { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 .label { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; }
@@ -59,6 +59,7 @@
 
 input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 select {
+  max-width: 100%; min-width: 0; text-overflow: ellipsis;
   font: inherit; font-size: 13px; padding: 6px 8px; min-height: 36px;
   border: 1.5px solid var(--ink); background: var(--bg); color: var(--ink);
 }

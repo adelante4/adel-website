@@ -26,8 +26,8 @@ const SOUNDS = {
 };
 
 // Recorded hits (Versilian Community Sample Library, CC0). Each voice has three files.
-import { rhodes, bass, bassSynth, organ, pad, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261106g";
-import { createSampler } from "./sampler.js?v=20261106g";
+import { rhodes, bass, bassSynth, organ, pad, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261107a";
+import { createSampler } from "./sampler.js?v=20261107a";
 
 const SYNTH_KEYS = new Set(["rhodes", "organ", "pad"]);
 const SYNTH_BASS = new Set(["round", "moog", "sub"]);
@@ -60,6 +60,31 @@ export function createAudio() {
     );
     buffers.set(voice, done);
     return done;
+  }
+
+  // iPhones mute Web Audio while the ring switch is on silent. Declaring a "playback" session
+  // (iOS 17+) or playing a silent <audio> element (older iOS) lets the sound through.
+  let keepAlive = null;
+  function unlockSilentSwitch() {
+    try {
+      if (navigator.audioSession) navigator.audioSession.type = "playback";
+    } catch {}
+    try {
+      if (!keepAlive) {
+        const n = 800;
+        const buf = new Uint8Array(44 + n * 2);
+        const v = new DataView(buf.buffer);
+        const w = (o, t) => [...t].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+        w(0, "RIFF"); v.setUint32(4, 36 + n * 2, true); w(8, "WAVEfmt "); v.setUint32(16, 16, true);
+        v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, 8000, true);
+        v.setUint32(28, 16000, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+        w(36, "data"); v.setUint32(40, n * 2, true);
+        keepAlive = new Audio(URL.createObjectURL(new Blob([buf], { type: "audio/wav" })));
+        keepAlive.loop = true;
+        keepAlive.volume = 0.01;
+      }
+      keepAlive.play().catch(() => {});
+    } catch {}
   }
 
   function ensure() {
@@ -106,7 +131,13 @@ export function createAudio() {
     /** Must be called from a click or key press the first time. */
     async resume() {
       ensure();
-      if (ctx.state !== "running") await ctx.resume();
+      unlockSilentSwitch();
+      if (ctx.state !== "running") {
+        // iOS can leave the context "suspended" or "interrupted"; try again before giving up.
+        for (let i = 0; i < 3 && ctx.state !== "running"; i++) {
+          await Promise.race([ctx.resume().catch(() => {}), new Promise((r) => setTimeout(r, 400))]);
+        }
+      }
       return ctx;
     },
     /** Start loading a voice's recordings. Safe to call often. Synth voices need nothing. */

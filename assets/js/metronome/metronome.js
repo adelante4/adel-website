@@ -4,20 +4,20 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261106g";
-import { createTransport } from "./transport.js?v=20261106g";
-import { barPlays } from "./overlay.js?v=20261106g";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261106g";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261106g";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261106g";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261106g";
-import { COMP_STYLES } from "./comping.js?v=20261106g";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261106g";
-import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261106g";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261106g";
-import { BAND_STYLES } from "./bands.js?v=20261106g";
-import { STANDARDS } from "./standards.js?v=20261106g";
-import { MAX_FORM_BARS } from "./share.js?v=20261106g";
+import { createAudio } from "./audio.js?v=20261107a";
+import { createTransport } from "./transport.js?v=20261107a";
+import { barPlays } from "./overlay.js?v=20261107a";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261107a";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261107a";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261107a";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261107a";
+import { COMP_STYLES } from "./comping.js?v=20261107a";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261107a";
+import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261107a";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261107a";
+import { BAND_STYLES } from "./bands.js?v=20261107a";
+import { STANDARDS } from "./standards.js?v=20261107a";
+import { MAX_FORM_BARS } from "./share.js?v=20261107a";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
