@@ -6,13 +6,13 @@
 //
 // Links store only what differs from the defaults, so they stay short, and a link made
 // today keeps its meaning if a new setting is added later.
-import { accentsFromGrouping, defaultGrouping } from "./meter.js?v=20261107j";
-import { clampBpm } from "./tempo.js?v=20261107j";
-import { cleanChord } from "./chords.js?v=20261107j";
-import { COMP_STYLES } from "./comping.js?v=20261107j";
-import { GROOVE_STYLES } from "./groove.js?v=20261107j";
-import { BASS_STYLES } from "./bassline.js?v=20261107j";
-import { KEYS, BASSES, KITS, ids } from "./instruments.js?v=20261107j";
+import { accentsFromGrouping, defaultGrouping } from "./meter.js?v=20261107k";
+import { clampBpm } from "./tempo.js?v=20261107k";
+import { cleanChord } from "./chords.js?v=20261107k";
+import { COMP_STYLES } from "./comping.js?v=20261107k";
+import { GROOVE_STYLES } from "./groove.js?v=20261107k";
+import { BASS_STYLES } from "./bassline.js?v=20261107k";
+import { KEYS, BASSES, KITS, ids } from "./instruments.js?v=20261107k";
 
 export const CLICK_ON = ["all", "backbeat", "downbeat", "upbeats"];
 export const SOUNDS = ["tock", "wood", "soft", "woodblock", "claves", "log", "frame", "brake"];

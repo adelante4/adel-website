@@ -4,21 +4,22 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261107j";
-import { createTransport } from "./transport.js?v=20261107j";
-import { barPlays } from "./overlay.js?v=20261107j";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261107j";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261107j";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261107j";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261107j";
-import { COMP_STYLES } from "./comping.js?v=20261107j";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261107j";
-import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261107j";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261107j";
-import { BAND_STYLES } from "./bands.js?v=20261107j";
-import { TOP_100 } from "./top100.js?v=20261107j";
-import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261107j";
-import { MAX_FORM_BARS } from "./share.js?v=20261107j";
+import { createAudio } from "./audio.js?v=20261107k";
+import { createTransport } from "./transport.js?v=20261107k";
+import { barPlays } from "./overlay.js?v=20261107k";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261107k";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261107k";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261107k";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261107k";
+import { COMP_STYLES } from "./comping.js?v=20261107k";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261107k";
+import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261107k";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261107k";
+import { BAND_STYLES } from "./bands.js?v=20261107k";
+import { initRooms } from "./rooms.js?v=20261107k";
+import { TOP_100 } from "./top100.js?v=20261107k";
+import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261107k";
+import { MAX_FORM_BARS } from "./share.js?v=20261107k";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -253,11 +254,13 @@ const els = {
   form: $("form"),
   beats: $("beats"),
   dial: $("dial"),
+  page: document.querySelector(".metro-page"),
 };
 
 function renderTempo() {
   const bpm = state.pattern.bpm;
   $("bpm").textContent = String(bpm);
+  $("bpm-mini").textContent = String(bpm);
   $("tempo-word").textContent = tempoWord(bpm);
   $("bpm-slider").value = String(Math.min(240, bpm));
 }
@@ -310,6 +313,11 @@ function renderBars() {
 }
 
 function renderAll() {
+  renderEverything();
+  rooms.sync();
+}
+
+function renderEverything() {
   const p = state.pattern;
   const r = state.practice;
   if (!transport.running) renderTempo();
@@ -577,7 +585,7 @@ function setPlaying(on) {
 function clearPlayhead() {
   els.beats.querySelectorAll(".col.on").forEach((c) => c.classList.remove("on"));
   els.form.querySelectorAll(".chord.on").forEach((c) => c.classList.remove("on"));
-  els.dial.style.setProperty("--p", "0");
+  els.page.style.setProperty("--p", "0");
 }
 
 function frame() {
@@ -589,9 +597,10 @@ function frame() {
     const whole = Math.floor(beat);
     const slot = whole % (p.beats * p.bars);
     els.beats.querySelectorAll(".col").forEach((c, j) => c.classList.toggle("on", j === slot));
-    els.dial.style.setProperty("--p", Math.max(0, 1 - (beat - whole) * 3).toFixed(3));
+    els.page.style.setProperty("--p", Math.max(0, 1 - (beat - whole) * 3).toFixed(3));
     const bpm = Math.round(transport.bpmAt(beat));
     $("bpm").textContent = String(bpm);
+    $("bpm-mini").textContent = String(bpm);
     $("tempo-word").textContent = tempoWord(bpm);
     const bar = Math.floor(beat / p.beats);
     markChord(bar, beat - bar * p.beats);
@@ -611,6 +620,8 @@ function notice(text) {
   clearTimeout(notice.t);
   notice.t = setTimeout(() => (el.textContent = ""), 5000);
 }
+
+const rooms = initRooms({ getState: () => state, commit });
 
 // ---- wiring ----
 $("start").addEventListener("click", toggle);
@@ -832,6 +843,7 @@ $("share-copy").addEventListener("click", async () => {
   const url = `${location.origin}${location.pathname}#p=${encodeShare(state)}`;
   const input = $("share-url");
   input.value = url;
+  input.hidden = false;
   try {
     await navigator.clipboard.writeText(url);
     notice("Link copied.");
