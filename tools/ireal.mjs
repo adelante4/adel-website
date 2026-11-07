@@ -1,12 +1,11 @@
-// Reads iReal Pro playlist links (irealb://...) in the browser, so you can load your own charts.
-// Nothing is sent anywhere and no charts ship with the site: you paste a link or choose a file,
-// and the songs are decoded and kept on this device only.
+// Decodes iReal Pro playlist links (irealb://...). This is a build-time tool, not part of the site:
+// `node tools/build-jazz-new-50.mjs <file with the link>` turns a playlist into a data module.
 //
 // The link holds songs separated by "===" and a playlist name last. Each song is
 // title=composer==style=key=transpose=MUSIC=...; MUSIC starts with a fixed prefix and is
 // scrambled in 50-character blocks. Unscrambled it is a short markup: bar lines, repeats,
 // endings and chords. This reads the bars and chords and ignores the rest.
-import { cleanChord } from "./chords.js?v=20261107f";
+import { cleanChord } from "../assets/js/metronome/chords.js";
 
 const PREFIX = "1r34LbKcu7";
 export const MAX_IMPORT_BARS = 64;
@@ -69,7 +68,7 @@ export function convertChord(text) {
 }
 
 /** Bars of the unscrambled markup, repeats and endings written out. */
-export function readMusic(raw) {
+export function readMusic(raw, { expand = true } = {}) {
   let measures = [];
   let startRepeat = null;
   let endRepeat = null;
@@ -87,7 +86,7 @@ export function readMusic(raw) {
     return measures[measures.length - 1];
   };
   const copyOf = (list) => list.map((m) => [...m]);
-  const pending = () => jumps.dcFine || jumps.dcCoda || jumps.dsCoda || jumps.third;
+  const pending = () => expand && (jumps.dcFine || jumps.dcCoda || jumps.dsCoda || jumps.third);
   const finishJumps = () => {
     if (jumps.third) {
       measures.push(...copyOf(measures.slice(startRepeat ?? 0, endRepeat ?? measures.length)));
@@ -123,7 +122,7 @@ export function readMusic(raw) {
       else if (note === "fine") fine = measures.length;
       i += m[0].length;
     } else if ((m = /^T(\d\d)/.exec(rest))) {
-      timeSig = m[1];
+      if (timeSig === null) timeSig = m[1];
       i += 3;
     } else if (rest.startsWith("Kcl")) {
       if (measures.length) measures.push([...measures[measures.length - 1]]);
@@ -153,8 +152,10 @@ export function readMusic(raw) {
       endRepeat = null;
       i += 1;
     } else if (rest[0] === "}") {
-      const end = endRepeat ?? measures.length;
-      measures.push(...copyOf(measures.slice(startRepeat ?? 0, end)));
+      if (expand) {
+        const end = endRepeat ?? measures.length;
+        measures.push(...copyOf(measures.slice(startRepeat ?? 0, end)));
+      }
       fresh();
       i += 1;
     } else if (rest.startsWith("LZ") || rest[0] === "|" || rest[0] === "[") {
@@ -197,15 +198,25 @@ function makeSong(text) {
   const mi = parts.findIndex((x) => x.startsWith(PREFIX));
   if (mi < 4) return null;
   const music = unscramble(parts[mi].slice(PREFIX.length));
-  const { measures, timeSig } = readMusic(music);
-  const form = [];
-  let carry = null;
-  for (const m of measures) {
-    const bar = barOf(m, carry);
-    if (bar) {
-      form.push(bar);
-      carry = bar[bar.length - 1];
+  const formOf = (measures) => {
+    const out = [];
+    let carry = null;
+    for (const m of measures) {
+      const bar = barOf(m, carry);
+      if (bar) {
+        out.push(bar);
+        carry = bar[bar.length - 1];
+      }
     }
+    return out;
+  };
+  const read = readMusic(music);
+  const timeSig = read.timeSig;
+  let form = formOf(read.measures);
+  // Too long once every repeat is written out: use one pass through the form instead.
+  if (form.length > MAX_IMPORT_BARS) {
+    const once = formOf(readMusic(music, { expand: false }).measures);
+    if (once.length > 0 && once.length < form.length) form = once;
   }
   if (form.length === 0) return null;
   const beats = timeSig ? Number(timeSig[0]) : 4;

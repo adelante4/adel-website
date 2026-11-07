@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { unscramble, readMusic, convertChord, parseIReal } from "../assets/js/metronome/ireal.js";
+import { unscramble, readMusic, convertChord, parseIReal } from "../tools/ireal.mjs";
 
 const PREFIX = "1r34LbKcu7";
 const scramble = unscramble; // the block swap undoes itself

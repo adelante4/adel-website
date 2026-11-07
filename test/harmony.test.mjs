@@ -5,6 +5,7 @@ import { styleHits, flattenForm, generateHarmony } from "../assets/js/metronome/
 import { createTransport } from "../assets/js/metronome/transport.js";
 import { generateGroove, stepBeat, GROOVE_STYLES, grooveFits, grooveSounds } from "../assets/js/metronome/groove.js";
 import { generateBass, BASS_STYLES } from "../assets/js/metronome/bassline.js";
+import { JAZZ_NEW_50 } from "../assets/js/metronome/jazznew50.js";
 import { STANDARDS, MY_STANDARDS } from "../assets/js/metronome/standards.js";
 import { barPlays } from "../assets/js/metronome/overlay.js";
 import { defaultState, normalizePattern, normalizeState, encodeShare, decodeShare } from "../assets/js/metronome/share.js";
@@ -332,5 +333,24 @@ test("bass: walking lines move mostly by step", () => {
     assert.ok(mean < 3, `mean leap ${mean}`);
     assert.ok(Math.max(...leaps) <= 7, `max leap ${Math.max(...leaps)}`);
     assert.ok(leaps.filter((x) => x <= 2).length / leaps.length > 0.6);
+  }
+});
+
+test("Jazz New 50: 50 tunes, valid chords, fit a share link", () => {
+  assert.equal(JAZZ_NEW_50.length, 50);
+  const ids = new Set([...STANDARDS, ...MY_STANDARDS, ...JAZZ_NEW_50].map((x) => x.id));
+  assert.equal(ids.size, STANDARDS.length + MY_STANDARDS.length + JAZZ_NEW_50.length);
+  for (const t of JAZZ_NEW_50) {
+    assert.ok(t.form.length >= 8 && t.form.length <= 64, `${t.id} has ${t.form.length} bars`);
+    assert.ok(t.beats === 3 || t.beats === 4);
+    for (const bar of t.form) {
+      assert.ok(bar.length === 1 || bar.length === 2, t.id);
+      for (const c of bar) assert.notEqual(cleanChord(c, "X"), "X", `${t.id}: ${c}`);
+    }
+    const st = defaultState();
+    st.harmony = { on: true, form: t.form, comp: "charleston", sound: "rhodes" };
+    const link = encodeShare(st);
+    assert.ok(link.length < 3500, `${t.id} link is ${link.length}`);
+    assert.equal(decodeShare(link).harmony.form.length, t.form.length, t.id);
   }
 });
