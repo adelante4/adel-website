@@ -4,21 +4,21 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261107i";
-import { createTransport } from "./transport.js?v=20261107i";
-import { barPlays } from "./overlay.js?v=20261107i";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261107i";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261107i";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261107i";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261107i";
-import { COMP_STYLES } from "./comping.js?v=20261107i";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261107i";
-import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261107i";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261107i";
-import { BAND_STYLES } from "./bands.js?v=20261107i";
-import { JAZZ_NEW_50 } from "./jazznew50.js?v=20261107i";
-import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261107i";
-import { MAX_FORM_BARS } from "./share.js?v=20261107i";
+import { createAudio } from "./audio.js?v=20261107j";
+import { createTransport } from "./transport.js?v=20261107j";
+import { barPlays } from "./overlay.js?v=20261107j";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261107j";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261107j";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261107j";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261107j";
+import { COMP_STYLES } from "./comping.js?v=20261107j";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261107j";
+import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261107j";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261107j";
+import { BAND_STYLES } from "./bands.js?v=20261107j";
+import { TOP_100 } from "./top100.js?v=20261107j";
+import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261107j";
+import { MAX_FORM_BARS } from "./share.js?v=20261107j";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -710,12 +710,12 @@ fillSelect($("chord-quality"), QUALITIES.map((q) => q.id), (id) => QUALITIES.fin
     return g;
   };
   const preset = $("preset");
-  const all = [...PRESETS, ...MY_STANDARDS, ...JAZZ_NEW_50, ...STANDARDS];
+  const all = [...PRESETS, ...MY_STANDARDS, ...TOP_100, ...STANDARDS];
   preset.replaceChildren(
     Object.assign(document.createElement("option"), { value: "", textContent: "Choose one…" }),
     group("Progressions", PRESETS),
     group("My standards", MY_STANDARDS),
-    group("Jazz New 50", JAZZ_NEW_50),
+    group("Top 100", TOP_100),
     ...(STANDARDS.length ? [group("Standards", STANDARDS)] : []),
   );
   preset.addEventListener("change", () => {
@@ -725,7 +725,7 @@ fillSelect($("chord-quality"), QUALITIES.map((q) => q.id), (id) => QUALITIES.fin
     state.harmony.form = p.form.map((bar) => [...bar]);
     sel.bar = 0;
     sel.k = 0;
-    $("preset-note").textContent = (STANDARDS.includes(p) || MY_STANDARDS.includes(p) || JAZZ_NEW_50.includes(p)) ? `${p.name}: typical changes, ${p.form.length} bars. Check them against your own chart.` : "";
+    $("preset-note").textContent = (STANDARDS.includes(p) || MY_STANDARDS.includes(p) || TOP_100.includes(p)) ? `${p.name}: typical changes, ${p.form.length} bars. Check them against your own chart.` : "";
     // A chart written in 3/4 plays in 3/4.
     if (p.beats && (state.pattern.beats !== p.beats || state.pattern.den !== 4)) {
       const q = state.pattern;

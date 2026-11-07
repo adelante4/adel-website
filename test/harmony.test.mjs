@@ -5,7 +5,7 @@ import { styleHits, flattenForm, generateHarmony } from "../assets/js/metronome/
 import { createTransport } from "../assets/js/metronome/transport.js";
 import { generateGroove, stepBeat, GROOVE_STYLES, grooveFits, grooveSounds } from "../assets/js/metronome/groove.js";
 import { generateBass, BASS_STYLES } from "../assets/js/metronome/bassline.js";
-import { JAZZ_NEW_50 } from "../assets/js/metronome/jazznew50.js";
+import { TOP_100 } from "../assets/js/metronome/top100.js";
 import { STANDARDS, MY_STANDARDS } from "../assets/js/metronome/standards.js";
 import { barPlays } from "../assets/js/metronome/overlay.js";
 import { defaultState, normalizePattern, normalizeState, encodeShare, decodeShare } from "../assets/js/metronome/share.js";
@@ -336,11 +336,11 @@ test("bass: walking lines move mostly by step", () => {
   }
 });
 
-test("Jazz New 50: 50 tunes, valid chords, fit a share link", () => {
-  assert.equal(JAZZ_NEW_50.length, 50);
-  const ids = new Set([...STANDARDS, ...MY_STANDARDS, ...JAZZ_NEW_50].map((x) => x.id));
-  assert.equal(ids.size, STANDARDS.length + MY_STANDARDS.length + JAZZ_NEW_50.length);
-  for (const t of JAZZ_NEW_50) {
+test("Top 100: 100 tunes, valid chords, fit a share link", () => {
+  assert.equal(TOP_100.length, 100);
+  const ids = new Set([...STANDARDS, ...MY_STANDARDS, ...TOP_100].map((x) => x.id));
+  assert.equal(ids.size, STANDARDS.length + MY_STANDARDS.length + TOP_100.length);
+  for (const t of TOP_100) {
     assert.ok(t.form.length >= 8 && t.form.length <= 64, `${t.id} has ${t.form.length} bars`);
     assert.ok(t.beats === 3 || t.beats === 4);
     for (const bar of t.form) {

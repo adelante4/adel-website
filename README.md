@@ -46,8 +46,8 @@ python3 -m http.server 8000
 GitHub Pages: Settings, Pages, deploy from branch `main`, folder `/ (root)`.
 
 
-## Jazz New 50
+## Top 100
 
-The "Jazz New 50" group in the chord picker holds the changes from an iReal Pro playlist of that name, decoded once with `node tools/build-jazz-new-50.mjs <file with the irealb:// link>` into `assets/js/metronome/jazznew50.js`. Bars with more than two chords keep two, and chord types are mapped to the ones the page knows. Check them against your own chart.
+The "Top 100" group in the chord picker is the JazzStandards.com top 100 (`tools/top100.txt`), with the changes taken from an iReal Pro playlist that holds them: `node tools/build-top-100.mjs <file with the irealb:// link>` writes `assets/js/metronome/top100.js`. Bars with more than two chords keep two, and chord types are mapped to the ones the page knows. Check them against your own chart.
 
 The "My standards" group (your Notion list) is built the same way from your own charts: `node tools/build-my-standards.mjs <file with the irealb:// link>`.
