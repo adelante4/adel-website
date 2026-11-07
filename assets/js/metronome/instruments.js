@@ -15,6 +15,7 @@ export const KEYS = [
 ];
 
 export const BASSES = [
+  { id: "doublebass", name: "Double bass", note: "A 1958 Otto Rubner upright bass, plucked. Woody, with a short decay." },
   { id: "growlybass", name: "Jazz bass", note: "A Squier Jazz Bass, fingered." },
   { id: "fashionbass", name: "Round bass", note: "A roundwound bass, direct. Clear and punchy." },
   { id: "swagbass", name: "Fabric bass", note: "A bass in a fabric finish. Soft and thumpy, good for lofi." },

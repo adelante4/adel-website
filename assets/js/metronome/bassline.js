@@ -5,10 +5,10 @@
 //
 // Notes are written as chord tones (root, third, fifth, approach) and placed in a low window,
 // E1 to D#2 for the roots. The recorded basses fold by octave if a note is out of their range.
-import { slotRng } from "./prng.js?v=20261107b";
-import { barPlays } from "./overlay.js?v=20261107b";
-import { chordTones } from "./chords.js?v=20261107b";
-import { flattenForm } from "./comping.js?v=20261107b";
+import { slotRng } from "./prng.js?v=20261107c";
+import { barPlays } from "./overlay.js?v=20261107c";
+import { chordTones, parseChord } from "./chords.js?v=20261107c";
+import { flattenForm } from "./comping.js?v=20261107c";
 
 export const BASS_STYLES = ["roots", "twofeel", "walking", "lofi", "bossa", "funk", "sub"];
 export const BASS_STYLE_NAMES = {
@@ -25,6 +25,78 @@ const MAX_NUDGE_BEATS = 0.03;
 
 /** The root's MIDI note in the window E1 to D#2. */
 export const rootMidi = (pc) => WINDOW_LOW + ((((pc - WINDOW_LOW) % 12) + 12) % 12);
+
+
+// ---- Walking lines ----
+// A bassist's line is a path: beat 1 is the root, the last beat approaches the next root by a
+// half step, and the notes between move mostly by step through the chord's scale, leaning on
+// chord tones. Both ends of each chord's path depend only on the two chords, so the line is
+// repeatable and safe to generate in pieces.
+const WALK_LOW = 28;
+const WALK_HIGH = 47;
+const WALK_CENTER = 36;
+const SCALES = {
+  maj7: [0, 2, 4, 5, 7, 9, 11], "6": [0, 2, 4, 5, 7, 9, 11], maj: [0, 2, 4, 5, 7, 9, 11],
+  "7": [0, 2, 4, 5, 7, 9, 10], "9": [0, 2, 4, 5, 7, 9, 10], "13": [0, 2, 4, 5, 7, 9, 10],
+  "7alt": [0, 1, 3, 4, 6, 8, 10], "7#11": [0, 2, 4, 6, 7, 9, 10],
+  m7: [0, 2, 3, 5, 7, 9, 10], m9: [0, 2, 3, 5, 7, 9, 10], m: [0, 2, 3, 5, 7, 9, 10], m6: [0, 2, 3, 5, 7, 9, 11],
+  m7b5: [0, 2, 3, 5, 6, 8, 10], dim7: [0, 2, 3, 5, 6, 8, 9, 11], sus4: [0, 2, 5, 7, 9, 10],
+};
+const pcOf = (n) => ((n % 12) + 12) % 12;
+const nearestTo = (pc, target) => {
+  let best = -1;
+  for (let n = WALK_LOW; n <= WALK_HIGH; n++) if (pcOf(n) === pc && (best < 0 || Math.abs(n - target) < Math.abs(best - target))) best = n;
+  return best;
+};
+
+/** The chord's notes for `count` beats as MIDI numbers, first the root, last the approach. */
+function walkNotes(chord, nextChord, count, rng) {
+  const cur = parseChord(chord) ?? { root: 0, quality: "maj7" };
+  const nxt = parseChord(nextChord) ?? cur;
+  const tones = chordTones(chord);
+  const scale = new Set((SCALES[cur.quality] ?? SCALES.maj7).map((x) => pcOf(cur.root + x)));
+  const strong = new Set([tones.third, tones.fifth, tones.seventh ?? 10].map((x) => pcOf(cur.root + x)));
+  const start = nearestTo(cur.root, WALK_CENTER);
+  if (count < 2) return [start];
+  const n = nearestTo(nxt.root, WALK_CENTER);
+  let approach;
+  if (nxt.root === cur.root) approach = n + (rng() < 0.5 ? -2 : 2);
+  else if (start < n - 1) approach = n - 1;
+  else if (start > n + 1) approach = n + 1;
+  else approach = n + (rng() < 0.5 ? -1 : 1);
+  approach = Math.min(WALK_HIGH, Math.max(WALK_LOW, approach));
+  const out = [start];
+  let prev = start;
+  let before = start;
+  let dir = Math.sign(approach - start) || (rng() < 0.5 ? 1 : -1);
+  for (let k = 1; k < count - 1; k++) {
+    const left = count - 1 - k; // notes still to place after this one, up to the approach
+    let best = null;
+    for (let x = Math.max(WALK_LOW, prev - 5); x <= Math.min(WALK_HIGH, prev + 5); x++) {
+      if (x === prev || !scale.has(pcOf(x))) continue;
+      const leap = Math.abs(x - prev);
+      let sc = leap <= 2 ? 0 : leap === 3 ? -0.6 : leap === 4 ? -1.2 : -2.2;
+      if (strong.has(pcOf(x))) sc += 1;
+      else if (pcOf(x) === cur.root) sc += 0.3;
+      if (x === before) sc -= 1.2;
+      if (Math.sign(x - prev) === dir) sc += 0.4;
+      const gap = Math.abs(approach - x);
+      sc -= Math.max(0, gap - 3 * left) * 1.5;
+      if (left === 1) sc += gap >= 1 && gap <= 4 ? 0.5 : -1;
+      if (gap === 0) sc -= 3;
+      if (x < WALK_LOW + 2 || x > WALK_HIGH - 3) sc -= 0.8;
+      sc += rng() * 0.9;
+      if (!best || sc > best.sc) best = { x, sc };
+    }
+    const x = best ? best.x : prev;
+    dir = Math.sign(x - prev) || dir;
+    before = prev;
+    prev = x;
+    out.push(x);
+  }
+  out.push(approach);
+  return out;
+}
 
 function resolve(info, tone, nextRoot, rng) {
   const r = rootMidi(info.root);
@@ -139,7 +211,12 @@ export function generateBass(bass, harmony, patternCfg, practice, fromBeat, toBe
       const info = infos[idx];
       const nextRoot = rootMidi(infos[(idx + 1) % infos.length].root);
       const base = bar * beats + s.start;
-      const layout = pattern(bass.style, s.span, slotRng(patternCfg.seed, bar, idx, 50));
+      let layout = pattern(bass.style, s.span, slotRng(patternCfg.seed, bar, idx, 50));
+      if (bass.style === "walking" && s.span >= 2) {
+        const count = Math.round(s.span);
+        const line = walkNotes(slots[idx].chord, slots[(idx + 1) % slots.length].chord, count, slotRng(patternCfg.seed, bar, idx, 55));
+        layout = line.map((midi, k) => ({ at: k, dur: 0.92, midi, vel: k === 0 ? 1 : k === line.length - 1 ? 0.85 : 0.9 }));
+      }
       layout.filter((n) => n.at < s.span).forEach((n, k) => {
         const rng = slotRng(patternCfg.seed, bar, idx, 60 + k);
         const plays = rng() < (n.chance ?? 1);
@@ -152,7 +229,7 @@ export function generateBass(bass, harmony, patternCfg, practice, fromBeat, toBe
         if (pos < 0 || pos < fromBeat || pos >= toBeat) return;
         out.push({
           beat: pos,
-          midi: resolve(info, n.tone, nextRoot, appr),
+          midi: n.midi ?? resolve(info, n.tone, nextRoot, appr),
           dur: n.dur,
           gain: Math.min(1, n.vel * (0.9 + loud * 0.2)),
           bar,

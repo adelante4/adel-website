@@ -207,7 +207,7 @@ test("share: hostile harmony input is repaired", () => {
   }
   assert.equal(bad.harmony.comp, "charleston");
   assert.deepEqual(bad.groove, { style: "off", kit: "synth", dust: false });
-  assert.deepEqual(bad.bass, { on: false, style: "walking", sound: "growlybass" });
+  assert.deepEqual(bad.bass, { on: false, style: "walking", sound: "doublebass" });
   assert.equal(bad.harmony.sound, "rhodes");
   assert.deepEqual(bad.mix, { click: 1, chords: 0, bass: 0.6, groove: 0.5, autoMute: true });
   assert.equal(({}).polluted, undefined);
@@ -313,5 +313,24 @@ test("standards: valid chords, one or two per bar, ids unique, and they fit a sh
     const link = encodeShare(s);
     assert.ok(link.length < 3000, `${t.id} link is ${link.length}`);
     assert.equal(decodeShare(link).harmony.form.length, t.form.length, t.id);
+  }
+});
+
+test("bass: walking lines move mostly by step", () => {
+  const forms = [
+    [["Dm7"], ["G7"], ["Cmaj7"], ["A7"]],
+    [["Bb7"], ["Eb7"], ["Bb7"], ["Bb7"], ["Eb7"], ["Edim7"], ["Bb7"], ["G7alt"], ["Cm7"], ["F7"], ["Bb7", "G7"], ["Cm7", "F7"]],
+    [["Dm7"], ["Dm7"], ["Dm7"], ["Ebm7"]],
+  ];
+  for (const f of forms) {
+    const leaps = [];
+    for (const seed of [1, 2, 3]) {
+      const ev = generateBass({ style: "walking" }, { form: f }, { ...pattern, seed }, practice(), 0, f.length * 8);
+      for (let i = 1; i < ev.length; i++) leaps.push(Math.abs(ev[i].midi - ev[i - 1].midi));
+    }
+    const mean = leaps.reduce((a, b) => a + b, 0) / leaps.length;
+    assert.ok(mean < 3, `mean leap ${mean}`);
+    assert.ok(Math.max(...leaps) <= 7, `max leap ${Math.max(...leaps)}`);
+    assert.ok(leaps.filter((x) => x <= 2).length / leaps.length > 0.6);
   }
 });

@@ -1,0 +1,51 @@
+{
+ "id": "doublebass",
+ "name": "Double bass",
+ "kind": "bass",
+ "sampleRate": 24000,
+ "release": 0.25,
+ "license": "CC0 1.0",
+ "credit": "D. Smolken, Otto Rubner double bass (pizzicato)",
+ "notes": [
+  {
+   "midi": 24.108,
+   "file": "n24.wav"
+  },
+  {
+   "midi": 26.808,
+   "file": "n27.wav"
+  },
+  {
+   "midi": 31.079,
+   "file": "n31.wav"
+  },
+  {
+   "midi": 33.948,
+   "file": "n34.wav"
+  },
+  {
+   "midi": 38.097,
+   "file": "n38.wav"
+  },
+  {
+   "midi": 41.092,
+   "file": "n41.wav"
+  },
+  {
+   "midi": 45.096,
+   "file": "n45.wav"
+  },
+  {
+   "midi": 48.054,
+   "file": "n48.wav"
+  },
+  {
+   "midi": 52.01,
+   "file": "n52.wav"
+  },
+  {
+   "midi": 55.094,
+   "file": "n55.wav"
+  }
+ ]
+}

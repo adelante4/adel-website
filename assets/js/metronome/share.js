@@ -6,13 +6,13 @@
 //
 // Links store only what differs from the defaults, so they stay short, and a link made
 // today keeps its meaning if a new setting is added later.
-import { accentsFromGrouping, defaultGrouping } from "./meter.js?v=20261107b";
-import { clampBpm } from "./tempo.js?v=20261107b";
-import { cleanChord } from "./chords.js?v=20261107b";
-import { COMP_STYLES } from "./comping.js?v=20261107b";
-import { GROOVE_STYLES } from "./groove.js?v=20261107b";
-import { BASS_STYLES } from "./bassline.js?v=20261107b";
-import { KEYS, BASSES, KITS, ids } from "./instruments.js?v=20261107b";
+import { accentsFromGrouping, defaultGrouping } from "./meter.js?v=20261107c";
+import { clampBpm } from "./tempo.js?v=20261107c";
+import { cleanChord } from "./chords.js?v=20261107c";
+import { COMP_STYLES } from "./comping.js?v=20261107c";
+import { GROOVE_STYLES } from "./groove.js?v=20261107c";
+import { BASS_STYLES } from "./bassline.js?v=20261107c";
+import { KEYS, BASSES, KITS, ids } from "./instruments.js?v=20261107c";
 
 export const CLICK_ON = ["all", "backbeat", "downbeat", "upbeats"];
 export const SOUNDS = ["tock", "wood", "soft", "woodblock", "claves", "log", "frame", "brake"];
@@ -61,7 +61,7 @@ export function defaultState() {
       comp: "charleston",
       sound: "rhodes",
     },
-    bass: { on: false, style: "walking", sound: "growlybass" },
+    bass: { on: false, style: "walking", sound: "doublebass" },
     groove: { style: "off", kit: "synth", dust: false },
     mix: { click: 1, chords: 0.7, bass: 0.6, groove: 0.5, autoMute: true },
   };

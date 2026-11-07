@@ -31,7 +31,7 @@ npm test
 
 The recorded click voices in `assets/audio/clicks/` come from the CC0 Versilian Community Sample Library. See the licence note in that folder.
 
-The recorded instruments in `assets/audio/inst/` and drum kits in `assets/audio/kits/` are also CC0 (Karoryfer Samples and the Versilian Community Sample Library), so no credit is required. They load lazily, only for the sounds you pick.
+The recorded instruments in `assets/audio/inst/` and drum kits in `assets/audio/kits/` are also CC0 (Karoryfer Samples, the Versilian Community Sample Library and D. Smolken's Otto Rubner double bass), so no credit is required. They load lazily, only for the sounds you pick.
 
 ## Run locally
 

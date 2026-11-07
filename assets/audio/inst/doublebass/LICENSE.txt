@@ -1,0 +1,2 @@
+1958 Otto Rubner double bass, pizzicato, played and sampled by D. Smolken (2013). Released under CC0 1.0. https://github.com/sfzinstruments/dsmolken.double-bass
+Trimmed, resampled to 24 kHz mono 16-bit and normalised.
