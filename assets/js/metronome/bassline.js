@@ -5,10 +5,10 @@
 //
 // Notes are written as chord tones (root, third, fifth, approach) and placed in a low window,
 // E1 to D#2 for the roots. The recorded basses fold by octave if a note is out of their range.
-import { slotRng } from "./prng.js?v=20261107m";
-import { barPlays } from "./overlay.js?v=20261107m";
-import { chordTones, parseChord } from "./chords.js?v=20261107m";
-import { flattenForm } from "./comping.js?v=20261107m";
+import { slotRng } from "./prng.js?v=20261107n";
+import { barPlays } from "./overlay.js?v=20261107n";
+import { chordTones, parseChord } from "./chords.js?v=20261107n";
+import { flattenForm } from "./comping.js?v=20261107n";
 
 export const BASS_STYLES = ["roots", "twofeel", "walking", "lofi", "bossa", "funk", "sub"];
 export const BASS_STYLE_NAMES = {
@@ -111,6 +111,8 @@ function resolve(info, tone, nextRoot, rng) {
       return r + info.fifth;
     case "seventh":
       return r + (info.seventh ?? 12);
+    case "next":
+      return nextRoot;
     case "approach": {
       // a half step above or below the next root, whichever is nearer to where the line is
       const target = nextRoot;
@@ -119,6 +121,31 @@ function resolve(info, tone, nextRoot, rng) {
     default:
       return r;
   }
+}
+
+
+// Funk, from what players and teachers agree on: the one is the anchor and the loudest note; the line is
+// mostly space, with short notes (staccato) on the 16th grid; muted "ghost" notes fill the gaps and
+// make it percussive; the line repeats like a riff, so it locks with the drums; and the last 16th or
+// 8th of a bar jumps ahead to the next chord. [position in beats, length, tone, loudness]; "x" is a ghost.
+const G = (at) => [at, 0.06, "root", 0.38];
+const FUNK_RIFFS = [
+  // Locked to the kick: one, the "a" of 1, the "and" of 2, a pickup into the next bar.
+  [[0, 0.4, "root", 1], G(0.5), [0.75, 0.2, "root", 0.7], G(1.5), [1.75, 0.2, "octave", 0.8], [2.5, 0.3, "fifth", 0.85], G(2.75), [3.25, 0.2, "root", 0.72], G(3.5), [3.75, 0.2, "next", 0.8]],
+  // Sparse and heavy: lots of air around the one.
+  [[0, 0.5, "root", 1], G(0.75), G(1.25), [1.5, 0.25, "root", 0.8], [2.5, 0.3, "seventh", 0.85], G(3), [3.5, 0.25, "fifth", 0.8], [3.75, 0.2, "next", 0.8]],
+  // Octave pops, bouncy.
+  [[0, 0.3, "root", 1], [0.5, 0.15, "octave", 0.75], G(0.75), G(1), [1.75, 0.2, "fifth", 0.8], G(2.25), [2.5, 0.3, "root", 0.9], [3, 0.15, "octave", 0.8], G(3.25), [3.5, 0.2, "seventh", 0.75], [3.75, 0.2, "next", 0.8]],
+  // Busy 16ths around a steady one and three.
+  [[0, 0.4, "root", 1], G(0.25), [0.75, 0.2, "root", 0.75], G(1), [1.5, 0.3, "fifth", 0.85], G(1.75), [2, 0.3, "root", 0.9], [2.5, 0.2, "octave", 0.8], G(2.75), [3.25, 0.2, "seventh", 0.75], G(3.5), [3.75, 0.2, "next", 0.8]],
+];
+
+function funkRiff(index, span) {
+  const notes = FUNK_RIFFS[index].map(([at, dur, tone, vel]) => ({ at, dur, tone, vel }));
+  if (span >= 3) return notes;
+  // Two chords in a bar: the first two beats of the riff, then a pickup into the next chord.
+  const keep = notes.filter((n) => n.at < span - 0.5 && n.tone !== "next");
+  return [...keep, { at: span - 0.25, dur: 0.2, tone: "next", vel: 0.8 }];
 }
 
 /** Notes for one chord of `span` beats: [{at, dur, tone, vel, chance?}]. */
@@ -169,18 +196,6 @@ function pattern(style, span, rng) {
             { at: 3.5, dur: 0.45, tone: "fifth", vel: 0.75 },
           ]
         : [{ at: 0, dur: 1.4, tone: "root", vel: 1 }, { at: Math.max(1.5, span - 0.5), dur: 0.45, tone: "fifth", vel: 0.8 }].filter((n) => n.at < span);
-    case "funk":
-      return long
-        ? [
-            { at: 0, dur: 0.45, tone: "root", vel: 1 },
-            { at: 0.75, dur: 0.2, tone: "octave", vel: 0.6, chance: 0.7 },
-            { at: 1.5, dur: 0.45, tone: "fifth", vel: 0.85 },
-            { at: 2, dur: 0.45, tone: "root", vel: 0.95 },
-            { at: 2.75, dur: 0.2, tone: "third", vel: 0.6, chance: 0.6 },
-            { at: 3.25, dur: 0.25, tone: "root", vel: 0.8 },
-            { at: 3.75, dur: 0.2, tone: "approach", vel: 0.75, chance: 0.8 },
-          ]
-        : [{ at: 0, dur: 0.45, tone: "root", vel: 1 }, { at: 0.75, dur: 0.2, tone: "octave", vel: 0.6, chance: 0.7 }].filter((n) => n.at < span);
     case "sub":
       return long
         ? [{ at: 0, dur: span - 0.15, tone: "root", vel: 1 }, { at: 3.5, dur: 0.4, tone: "root", vel: 0.6, chance: 0.3 }]
@@ -212,6 +227,11 @@ export function generateBass(bass, harmony, patternCfg, practice, fromBeat, toBe
       const nextRoot = rootMidi(infos[(idx + 1) % infos.length].root);
       const base = bar * beats + s.start;
       let layout = pattern(bass.style, s.span, slotRng(patternCfg.seed, bar, idx, 50));
+      if (bass.style === "funk") {
+        // One riff for the whole tune, picked by the seed; the last bar of each four plays another one as a fill.
+        const riff = Math.floor(slotRng(patternCfg.seed, 0, 0, 40)() * FUNK_RIFFS.length);
+        layout = funkRiff(fb % 4 === 3 ? (riff + 1) % FUNK_RIFFS.length : riff, s.span);
+      }
       if (bass.style === "walking" && s.span >= 2) {
         const count = Math.round(s.span);
         const line = walkNotes(slots[idx].chord, slots[(idx + 1) % slots.length].chord, count, slotRng(patternCfg.seed, bar, idx, 55));
