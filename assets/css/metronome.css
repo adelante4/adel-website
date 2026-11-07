@@ -195,11 +195,55 @@ select {
   .transport .btn { min-height: 48px; }
 }
 
-/* Legibility over the moiré */
-.room-tab { background: var(--bg); padding: 0 6px; }
-.rooms { gap: 6px 14px; }
-.room-tab .count { right: -8px; top: -4px; }
-.status, .hint, .note, .label, .quiet-row + .share-url { background: color-mix(in srgb, var(--bg) 85%, transparent); }
-.status, .hint { width: auto; padding: 2px 8px; }
-.pedal-head .led { align-self: center; }
-.pedal-head .pr:empty { display: none; }
+/* Calm ground: no busy moiré on this page. One faint ring field sits behind the dial and fades out. */
+.moire { display: none; }
+body { background: var(--bg); }
+.metro-page::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: repeating-radial-gradient(circle at 25% 32%, rgba(17, 17, 17, 0.09) 0 1px, transparent 1px 14px);
+  -webkit-mask-image: radial-gradient(circle at 25% 32%, #000 0, transparent 46vmax);
+  mask-image: radial-gradient(circle at 25% 32%, #000 0, transparent 46vmax);
+}
+.metro-page { isolation: isolate; }
+
+/* Type: plain, high contrast */
+.note { font-size: 13px; line-height: 1.55; color: #3a3a37; }
+.hint { font-size: 12px; opacity: 1; color: #55554f; }
+.status { font-size: 14px; font-weight: 700; }
+.label { font-size: 14px; }
+
+/* Tempo slider: hairline track, round red thumb */
+.slider-chip { background: none; padding: 0; }
+input[type="range"] { -webkit-appearance: none; appearance: none; background: none; height: 28px; }
+input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: var(--ink); }
+input[type="range"]::-moz-range-track { height: 2px; background: var(--ink); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; margin-top: -9px; border-radius: 50%; background: var(--accent); border: 2px solid var(--ink); }
+input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--accent); border: 2px solid var(--ink); }
+
+/* The room is a sheet: solid, with a heavy top edge */
+.room {
+  background: #fbfbf9; border: 1.5px solid var(--ink); border-top-width: 6px; padding: 24px; gap: 26px;
+  box-shadow: 8px 8px 0 var(--ink);
+}
+.rooms { gap: 0 26px; align-items: baseline; }
+.room-tab { background: none; padding: 0; font-size: clamp(36px, 6.4vw, 64px); }
+.room-tab .count { right: -10px; top: -2px; }
+.stage { gap: 28px; }
+.pedal, .pedal-body { background: #fbfbf9; }
+.pedal.active { background: var(--ink); }
+.pedal-body { border-top-color: var(--ink); }
+.layer { background: #fbfbf9; border-width: 1.5px; }
+.layer.on { box-shadow: inset 6px 0 0 var(--accent); }
+.field + .field, .pedals { padding-top: 0; }
+.dial { box-shadow: 8px 8px 0 var(--accent); }
+.on-now { justify-content: flex-start; }
+.on-now .plain { color: #55554f; opacity: 1; }
+.status { text-align: left; padding: 0; }
+.hint { padding: 0; }
+@media (max-width: 640px) {
+  .room { padding: 16px; box-shadow: 5px 5px 0 var(--ink); }
+  .dial { box-shadow: 5px 5px 0 var(--accent); }
+}
+.pedal-head:has(.pr:empty) .led { grid-row: 1; }
+.pedal-head:has(.pr:empty) { min-height: 44px; }
+@media (max-width: 640px) { .rooms { gap: 0 14px; flex-wrap: nowrap; } .room-tab { font-size: 8.6vw; } }
