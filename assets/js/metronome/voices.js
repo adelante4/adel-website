@@ -2,7 +2,7 @@
 //
 // Every function takes the audio context, a destination node, and a start time, builds a few
 // short-lived nodes, and lets them clean up after themselves. Nothing here keeps state.
-import { midiToHz } from "./chords.js?v=20261107c";
+import { midiToHz } from "./chords.js?v=20261107e";
 
 /** One second of white noise, shared by all drum voices. */
 export function makeNoise(ctx, seconds = 2) {
@@ -131,36 +131,44 @@ export function rhodes(ctx, dest, when, midis, seconds, gain) {
 }
 
 /** A round, short bass note. */
+/** A soft clipper: adds the upper harmonics that let a low note be heard on a small speaker. */
+function softClip(ctx, drive) {
+  const shaper = ctx.createWaveShaper();
+  const curve = new Float32Array(513);
+  for (let i = 0; i < 513; i++) curve[i] = Math.tanh(((i - 256) / 256) * drive);
+  shaper.curve = curve;
+  return shaper;
+}
+
+/** A warm synth bass: a triangle with its octave and fifth, lightly driven. Audible on a phone. */
 export function bass(ctx, dest, when, midi, seconds, gain) {
   const f = midiToHz(midi);
-  const o = ctx.createOscillator();
-  const o2 = ctx.createOscillator();
-  const lp = ctx.createBiquadFilter();
-  const g = ctx.createGain();
-  o.type = "triangle";
-  o2.type = "sine";
-  o.frequency.value = f;
-  o2.frequency.value = f * 2;
-  lp.type = "lowpass";
-  lp.frequency.setValueAtTime(900, when);
-  lp.frequency.exponentialRampToValueAtTime(260, when + 0.5);
   const hold = Math.max(0.15, seconds);
+  const lp = ctx.createBiquadFilter();
+  lp.type = "lowpass";
+  lp.frequency.setValueAtTime(2200, when);
+  lp.frequency.exponentialRampToValueAtTime(700, when + 0.45);
+  const drive = softClip(ctx, 2.4);
+  const g = ctx.createGain();
   g.gain.setValueAtTime(0.0001, when);
-  g.gain.exponentialRampToValueAtTime(0.5 * gain, when + 0.012);
-  g.gain.exponentialRampToValueAtTime(0.3 * gain, when + 0.6);
-  g.gain.setValueAtTime(0.28 * gain, when + hold);
-  g.gain.exponentialRampToValueAtTime(0.0001, when + hold + 0.18);
-  const h2 = ctx.createGain();
-  h2.gain.value = 0.18;
-  o.connect(lp);
-  o2.connect(h2);
-  h2.connect(lp);
+  g.gain.exponentialRampToValueAtTime(0.75 * gain, when + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.5 * gain, when + 0.6);
+  g.gain.setValueAtTime(0.46 * gain, when + hold);
+  g.gain.exponentialRampToValueAtTime(0.0001, when + hold + 0.16);
+  [["triangle", 1, 1], ["sine", 2, 0.55], ["sine", 3, 0.3]].forEach(([type, mult, level]) => {
+    const o = ctx.createOscillator();
+    const og = ctx.createGain();
+    o.type = type;
+    o.frequency.value = f * mult;
+    og.gain.value = level;
+    o.connect(og);
+    og.connect(drive);
+    o.start(when);
+    o.stop(when + hold + 0.25);
+  });
+  drive.connect(lp);
   lp.connect(g);
   g.connect(dest);
-  o.start(when);
-  o2.start(when);
-  o.stop(when + hold + 0.25);
-  o2.stop(when + hold + 0.25);
 }
 
 function noiseHit(ctx, dest, noise, when, { type, freq, q = 0.7, peak, attack = 0.001, decay, low = null }) {
@@ -287,23 +295,32 @@ export function bassSynth(ctx, dest, when, midi, seconds, gain, kind = "round") 
   const hold = Math.max(0.15, seconds);
   const g = ctx.createGain();
   if (kind === "sub") {
+    // A long sine with a pitch drop, driven hard so its harmonics carry on a small speaker,
+    // plus an octave layer.
     const o = ctx.createOscillator();
+    const o2 = ctx.createOscillator();
     o.type = "sine";
-    o.frequency.setValueAtTime(f * 1.5, when);
-    o.frequency.exponentialRampToValueAtTime(f, when + 0.04);
-    const shaper = ctx.createWaveShaper();
-    const curve = new Float32Array(257);
-    for (let i = 0; i < 257; i++) curve[i] = Math.tanh(((i - 128) / 128) * 2.2);
-    shaper.curve = curve;
+    o2.type = "triangle";
+    o.frequency.setValueAtTime(f * 1.8, when);
+    o.frequency.exponentialRampToValueAtTime(f, when + 0.05);
+    o2.frequency.setValueAtTime(f * 3.6, when);
+    o2.frequency.exponentialRampToValueAtTime(f * 2, when + 0.05);
+    const o2g = ctx.createGain();
+    o2g.gain.value = 0.35;
+    const shaper = softClip(ctx, 5);
     g.gain.setValueAtTime(0.0001, when);
-    g.gain.exponentialRampToValueAtTime(0.42 * gain, when + 0.01);
-    g.gain.setValueAtTime(0.38 * gain, when + hold * 0.7);
+    g.gain.exponentialRampToValueAtTime(0.62 * gain, when + 0.008);
+    g.gain.setValueAtTime(0.55 * gain, when + hold * 0.7);
     g.gain.exponentialRampToValueAtTime(0.0001, when + hold + 0.25);
     o.connect(shaper);
+    o2.connect(o2g);
+    o2g.connect(shaper);
     shaper.connect(g);
     g.connect(dest);
     o.start(when);
+    o2.start(when);
     o.stop(when + hold + 0.3);
+    o2.stop(when + hold + 0.3);
     return;
   }
   const saw = ctx.createOscillator();

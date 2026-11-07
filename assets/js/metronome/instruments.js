@@ -16,12 +16,11 @@ export const KEYS = [
 
 export const BASSES = [
   { id: "doublebass", name: "Double bass", note: "A 1958 Otto Rubner upright bass, plucked. Woody, with a short decay." },
-  { id: "growlybass", name: "Jazz bass", note: "A Squier Jazz Bass, fingered." },
   { id: "fashionbass", name: "Round bass", note: "A roundwound bass, direct. Clear and punchy." },
   { id: "swagbass", name: "Fabric bass", note: "A bass in a fabric finish. Soft and thumpy, good for lofi." },
   { id: "moog", name: "Synth bass", synth: true, note: "Sawtooth through a closing filter." },
-  { id: "sub", name: "Sub 808", synth: true, note: "A long, deep sine. Use with Halftime or Sub." },
-  { id: "round", name: "Soft synth", synth: true, note: "A rounded triangle bass." },
+  { id: "sub", name: "Sub 808", synth: true, note: "A long, driven sine with an octave layer. Use with Halftime or Sub." },
+  { id: "round", name: "Warm synth", synth: true, note: "A triangle bass with its octave and fifth, lightly driven. Easy to hear on a phone." },
 ];
 
 export const KITS = [

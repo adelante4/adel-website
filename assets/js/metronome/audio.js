@@ -26,8 +26,8 @@ const SOUNDS = {
 };
 
 // Recorded hits (Versilian Community Sample Library, CC0). Each voice has three files.
-import { rhodes, bass, bassSynth, organ, pad, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261107c";
-import { createSampler } from "./sampler.js?v=20261107c";
+import { rhodes, bass, bassSynth, organ, pad, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261107e";
+import { createSampler } from "./sampler.js?v=20261107e";
 
 const SYNTH_KEYS = new Set(["rhodes", "organ", "pad"]);
 const SYNTH_BASS = new Set(["round", "moog", "sub"]);
@@ -259,7 +259,7 @@ export function createAudio() {
     },
     bass(run, when, midi, seconds, gain, id = "round") {
       if (SYNTH_BASS.has(id)) return bassSynth(ctx, run.bass, when, midi, seconds, gain, id);
-      if (sampler.note(id, run.bass, when, midi, seconds, gain * 1.1)) return;
+      if (sampler.note(id, run.bass, when, midi, seconds, gain * (id === "doublebass" ? 1.7 : 1.1))) return;
       bassSynth(ctx, run.bass, when, midi, seconds, gain, "round");
     },
     drum(run, when, voice, gain, style, kit = "synth") {
