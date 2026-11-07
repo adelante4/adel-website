@@ -302,7 +302,7 @@ test("catalogs: sound ids are unique and every recorded one has a manifest", asy
 
 test("standards: valid chords, one or two per bar, ids unique, and they fit a share link", () => {
   assert.equal(new Set([...STANDARDS, ...MY_STANDARDS].map((x) => x.id)).size, STANDARDS.length + MY_STANDARDS.length);
-  const expected = { "blue-bossa": 16, "so-what": 32, ipanema: 32, "all-things": 36, "fly-me": 16, "giant-steps": 16, cantaloupe: 16, "rhythm-full": 32, "blues-alice": 12, "minor-blues": 12, "my-all-of-me": 32, "my-autumn-leaves": 32, "my-blue-monk": 12, "my-so-what": 32, "my-igr": 32, "my-oleo": 32, "my-anthropology": 32 };
+  const expected = { "blue-bossa": 16, "so-what": 32, ipanema: 32, "all-things": 36, "fly-me": 16, "giant-steps": 16, cantaloupe: 16, "rhythm-full": 32, "blues-alice": 12, "minor-blues": 12, "my-all-of-me": 32, "my-autumn-leaves": 32, "my-blue-monk": 12, "my-so-what": 32, "my-igr": 36, "my-oleo": 32, "my-anthropology": 32, "my-never-another-you": 32, "my-softly": 32, "my-stella": 32, "my-manha": 37, "my-wave": 44, "my-tunisia": 48 };
   for (const t of [...STANDARDS, ...MY_STANDARDS]) {
     assert.equal(t.form.length, expected[t.id], `${t.id} has ${t.form.length} bars`);
     for (const bar of t.form) {

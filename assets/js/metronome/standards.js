@@ -74,37 +74,22 @@ export const STANDARDS = [
   },
 ];
 
-// The tunes in Adel's Notion "My Standards" list (keys from there), shown as their own group.
-// Notion holds only key, form and groove, so the changes are written from general knowledge
-// of how each tune is usually played. Check them against your own chart.
-const AL = [["Cm7"], ["F7"], ["Bbmaj7"], ["Ebmaj7"], ["Am7b5"], ["D7alt"], ["Gm7"], ["Gm7"]];
-export const MY_STANDARDS = [
-  {
-    id: "my-all-of-me",
-    name: "All of Me (C, 32)",
-    form: [
-      ["Cmaj7"], ["Cmaj7"], ["E7"], ["E7"], ["A7"], ["A7"], ["Dm7"], ["Dm7"],
-      ["E7"], ["E7"], ["Am7"], ["Am7"], ["D7"], ["D7"], ["Dm7"], ["G7"],
-      ["Cmaj7"], ["Cmaj7"], ["E7"], ["E7"], ["A7"], ["A7"], ["Dm7"], ["Dm7"],
-      ["Fmaj7"], ["Fm6"], ["Cmaj7"], ["A7"], ["Dm7"], ["G7"], ["Cmaj7"], ["Dm7", "G7"],
-    ],
-  },
-  {
-    id: "my-autumn-leaves",
-    name: "Autumn Leaves (Gm, 32)",
-    form: [
-      ...AL, ...AL,
-      ["Am7b5"], ["D7alt"], ["Gm7"], ["Gm7"], ["Cm7"], ["F7"], ["Bbmaj7"], ["Ebmaj7"],
-      ["Am7b5"], ["D7alt"], ["Gm6"], ["Gm6"], ["Am7b5"], ["D7alt"], ["Gm6"], ["Gm6"],
-    ].slice(0, 32),
-  },
-  {
-    id: "my-blue-monk",
-    name: "Blue Monk (Bb, 12)",
-    form: [["Bb7"], ["Eb7"], ["Bb7"], ["Bb7"], ["Eb7"], ["Edim7"], ["Bb7"], ["G7alt"], ["Cm7"], ["F7"], ["Bb7", "G7"], ["Cm7", "F7"]],
-  },
-  { id: "my-so-what", name: "So What (Dm, 32)", form: [...r("Dm7", 16), ...r("Ebm7", 8), ...r("Dm7", 8)] },
-  { id: "my-igr", name: "I Got Rhythm (Bb, 32)", form: RHYTHM },
-  { id: "my-oleo", name: "Oleo (Bb, rhythm changes, 32)", form: RHYTHM },
-  { id: "my-anthropology", name: "Anthropology (Bb, rhythm changes, 32)", form: RHYTHM },
+// The tunes in Adel's Notion "My Standards" list, with the changes from his own iReal Pro charts
+// (decoded once by tools/build-my-standards.mjs). Each row is [id, name, bars]; bars are
+// separated by "|" and the one or two chords in a bar by a space.
+const MY_ROWS = [
+  ["my-all-of-me", "All of Me (C, 32)", "Cmaj7|Cmaj7|E7|E7|A7|A7|Dm7|Dm7|E7|E7|Am7|Am7|D7|D7|Dm7|G7|Cmaj7|Cmaj7|E7|E7|A7|A7|Dm7|Dm7|Fmaj7|Fm6|Em7|A7|Dm7|G7|C6 Ebdim7|Dm7 G7"],
+  ["my-never-another-you", "There Will Never Be Another You (Eb, 32)", "Ebmaj7|Ebmaj7|Dm7b5|G7alt|Cm7|Cm7|Bbm7|Eb7|Abmaj7|Db7#11|Ebmaj7|Cm7|F7|F7|Fm7|Bb7|Ebmaj7|Ebmaj7|Dm7b5|G7alt|Cm7|Cm7|Bbm7|Eb7|Abmaj7|Db7#11|Ebmaj7|Am7b5 D7|Ebmaj7 Ab7|Gm7 C7|Fm7 Bb7|Eb6 Bb7"],
+  ["my-softly", "Softly, as in a Morning Sunrise (Cm, 32)", "Cm7|Dm7b5 G7alt|Cm7|Dm7b5 G7alt|Cm7|Dm7b5 G7alt|Cm7|Dm7b5 G7alt|Cm7|Dm7b5 G7alt|Cm7|Dm7b5 G7alt|Cm7|Dm7b5 G7alt|Cm7|Fm7 Bb7|Ebmaj7|Ebmaj7|C7alt|C7alt|Fm7|F#dim7|Dm7b5|G7alt|Cm7|Dm7b5 G7alt|Cm7|Dm7b5 G7alt|Cm7|Dm7b5 G7alt|Cm7|Dm7b5 G7alt"],
+  ["my-blue-monk", "Blue Monk (Bb, 12)", "Bb7|Eb7|Bb7|Bb7|Eb7|Eb7|Bb7|Bb7|F7|F7|Bb7|Bb7"],
+  ["my-oleo", "Oleo (Bb, 32)", "Bbmaj7 G7|Cm7 F7|Dm7 G7|Cm7 F7|Fm7 Bb7|Eb7 Ab7|Dm7 G7|Cm7 F7|Bbmaj7 G7|Cm7 F7|Dm7 G7|Cm7 F7|Fm7 Bb7|Eb7 Ab7|Cm7 F7|Bb6|D7|D7|G7|G7|C7|C7|F7|F7|Bbmaj7 G7|Cm7 F7|Dm7 G7|Cm7 F7|Fm7 Bb7|Eb7 Ab7|Cm7 F7|Bb6"],
+  ["my-igr", "I Got Rhythm (Bb, 36)", "Bb6 Gm7|Cm7 F7|Dm7 Gm7|Cm7 F7|Bb7|Eb7 Edim7|Bb6 F7|Bb6 F7|Bb6 Gm7|Cm7 F7|Dm7 Gm7|Cm7 F7|Bb7|Eb7 Edim7|Bb6 F7|Bb6|D7|D7|G7|G7|C7|C7|F7|F7|Bb6 Gm7|Cm7 F7|Dm7 Gm7|Cm7 F7|Bb7|Eb7 Edim7|Bb6 F7|Bb6 F7|Bb6 Eb9|Dm7 G7|Cm7 F7|Bb6"],
+  ["my-stella", "Stella by Starlight (Bb, 32)", "Em7b5|A7alt|Cm7|F7|Fm7|Bb7|Ebmaj7|Ab7|Bbmaj7|Em7b5 A7alt|Dm7|Bbm7 Eb7|Fmaj7|Em7b5|Ebmaj7|D7alt|G7alt|G7alt|Cm7|Cm7|Ab7#11|Ab7#11|Bbmaj7|Bbmaj7|Em7b5|A7alt|Dm7b5|G7alt|Cm7b5|F7alt|Bbmaj7|Bbmaj7"],
+  ["my-manha", "Manhã de Carnaval (Am, 37)", "Am|Bm7b5 E7alt|Am|Bm7b5 E7alt|Am|Dm7 G7|Cmaj7|A7alt|Dm7|G7|Cmaj7|Fmaj7|Bm7b5|E7alt|Am|Bm7b5 E7alt|Am|Bm7b5 E7alt|Am|Am|Em7b5|A7alt|Dm|Dm|Dm7|Bm7b5 E7alt|Am Am7|Fmaj7|Bm7b5|E7alt|Am|Bm7b5 E7alt|Am|Dm7 Am7|Dm7 Am7|Dm7 Em7|Am"],
+  ["my-anthropology", "Anthropology (Bb, 32)", "Bbmaj7 G7|Cm7 F7|Dm7 G7|Cm7 F7|Fm7 Bb7|Eb7 Ab7|Dm7 G7|Cm7 F7|Bbmaj7 G7|Cm7 F7|Dm7 G7|Cm7 F7|Fm7 Bb7|Eb7 Ab7|Cm7 F7|Bb6|D7|D7|G7|G7|C7|C7|F7|F7|Bbmaj7 G7|Cm7 F7|Dm7 G7|Cm7 F7|Fm7 Bb7|Eb7 Ab7|Cm7 F7|Bb6"],
+  ["my-wave", "Wave (D, 44)", "Dmaj7|Bbdim7|Am7|D7alt|Gmaj7|Gm6|F#13 F#7alt|B9 B7alt|E9|Bb7 A7|Dm7 G7|Dm7 G7|Dmaj7|Bbdim7|Am7|D7alt|Gmaj7|Gm6|F#13 F#7alt|B9 B7alt|E9|Bb7 A7|Dm7 G7|Dm7 G7|Gm7|C7|Fmaj7|Fmaj7|Fm7|Bb7|Ebmaj7|A7alt|Dmaj7|Bbdim7|Am7|D7alt|Gmaj7|Gm6|F#13 F#7alt|B9 B7alt|E9|Bb7 A7|Dm7 G7|Dm7 G7"],
+  ["my-autumn-leaves", "Autumn Leaves (Gm, 32)", "Cm7|F7|Bbmaj7|Ebmaj7|Am7b5|D7alt|Gm6|Gm6|Cm7|F7|Bbmaj7|Ebmaj7|Am7b5|D7alt|Gm6|Gm6|Am7b5|D7alt|Gm6|Gm6|Cm7|F7|Bbmaj7|Ebmaj7|Am7b5|D7alt|Gm7 F#7|Fm7 E7|Am7b5|D7alt|Gm6|Gm6"],
+  ["my-so-what", "So What (Dm, 32)", "Dm7|Dm7|Dm7|Dm7|Dm7|Dm7|Dm7|Dm7|Dm7|Dm7|Dm7|Dm7|Dm7|Dm7|Dm7|Dm7|Ebm7|Ebm7|Ebm7|Ebm7|Ebm7|Ebm7|Ebm7|Ebm7|Dm7|Dm7|Dm7|Dm7|Dm7|Dm7|Dm7|Dm7"],
+  ["my-tunisia", "A Night in Tunisia (Dm, 48)", "Eb7|Dm6|Eb7|Dm6|Eb7|Dm6|Em7b5 A7alt|Dm|Eb7|Dm6|Eb7|Dm6|Eb7|Dm6|Em7b5 A7alt|Dm|Am7b5|D7alt|Gm7|Gm7|Gm7b5|C7alt|Fmaj7|Em7b5 A7alt|Eb7|Dm6|Eb7|Dm6|Eb7|Dm6|Em7b5 A7alt|Dm|Em7b5|Em7b5|Eb7#11|Eb7#11|Dm7|Dm7|G7#11|G7#11|Gm7|Gm7|F#7alt|F#7alt|Fmaj7|Fmaj7|Em7b5|A7alt"],
 ];
+export const MY_STANDARDS = MY_ROWS.map(([id, name, bars]) => ({ id, name, form: bars.split("|").map((b) => b.split(" ")) }));

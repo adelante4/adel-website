@@ -4,21 +4,21 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261107g";
-import { createTransport } from "./transport.js?v=20261107g";
-import { barPlays } from "./overlay.js?v=20261107g";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261107g";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261107g";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261107g";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261107g";
-import { COMP_STYLES } from "./comping.js?v=20261107g";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261107g";
-import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261107g";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261107g";
-import { BAND_STYLES } from "./bands.js?v=20261107g";
-import { JAZZ_NEW_50 } from "./jazznew50.js?v=20261107g";
-import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261107g";
-import { MAX_FORM_BARS } from "./share.js?v=20261107g";
+import { createAudio } from "./audio.js?v=20261107h";
+import { createTransport } from "./transport.js?v=20261107h";
+import { barPlays } from "./overlay.js?v=20261107h";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261107h";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261107h";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261107h";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261107h";
+import { COMP_STYLES } from "./comping.js?v=20261107h";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261107h";
+import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261107h";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261107h";
+import { BAND_STYLES } from "./bands.js?v=20261107h";
+import { JAZZ_NEW_50 } from "./jazznew50.js?v=20261107h";
+import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261107h";
+import { MAX_FORM_BARS } from "./share.js?v=20261107h";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
