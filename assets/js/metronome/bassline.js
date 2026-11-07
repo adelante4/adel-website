@@ -5,10 +5,10 @@
 //
 // Notes are written as chord tones (root, third, fifth, approach) and placed in a low window,
 // E1 to D#2 for the roots. The recorded basses fold by octave if a note is out of their range.
-import { slotRng } from "./prng.js?v=20261107n";
-import { barPlays } from "./overlay.js?v=20261107n";
-import { chordTones, parseChord } from "./chords.js?v=20261107n";
-import { flattenForm } from "./comping.js?v=20261107n";
+import { slotRng } from "./prng.js?v=20261107p";
+import { barPlays } from "./overlay.js?v=20261107p";
+import { chordTones, parseChord } from "./chords.js?v=20261107p";
+import { flattenForm } from "./comping.js?v=20261107p";
 
 export const BASS_STYLES = ["roots", "twofeel", "walking", "lofi", "bossa", "funk", "sub"];
 export const BASS_STYLE_NAMES = {

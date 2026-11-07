@@ -7,7 +7,7 @@
 <meta name="description" content="A practice metronome with odd meters, swing, chance, gap trainer and tempo ladder. Runs in the browser.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
 <link rel="stylesheet" href="assets/css/site.css?v=20261106">
-<link rel="stylesheet" href="assets/css/metronome.css?v=20261107n">
+<link rel="stylesheet" href="assets/css/metronome.css?v=20261107p">
 </head>
 <body>
 <div class="moire soft" aria-hidden="true"><i></i><i></i></div>
@@ -102,14 +102,7 @@
       </div>
     </section>
 
-    <section class="room" id="room-band" role="tabpanel" aria-label="Band" hidden>
-      <div class="field">
-        <label class="label" for="band-style">Start from a style</label>
-        <select id="band-style" aria-label="Set every layer from a style"></select>
-        <p class="note">Sets the drums, bass, keys and tempo together. Change any layer after.</p>
-        <p class="note" id="band-status" role="status" aria-live="polite"></p>
-      </div>
-
+    <section class="room" id="room-tune" role="tabpanel" aria-label="Tune" hidden>
       <div class="field">
         <label class="label" for="preset">Tune</label>
         <select id="preset" aria-label="Load a progression"></select>
@@ -120,8 +113,16 @@
           <button class="btn small" id="key-up" type="button" aria-label="Up a semitone">+1</button>
           <button class="btn small" id="key-fourth" type="button">Up a 4th</button>
         </div>
-        <div class="form" id="form" role="group" aria-label="Chord form"></div>
       </div>
+
+      <div class="now-next" id="now-next" aria-live="off"></div>
+
+      <div class="field lens-field">
+        <span class="label" id="lens-label">Show on the chart</span>
+        <div class="segs" id="lens" role="group" aria-labelledby="lens-label"></div>
+        <p class="note" id="lens-note"></p>
+      </div>
+      <div class="form" id="form" role="group" aria-label="Chord form"></div>
 
       <div class="pedals">
         <div class="pedal" data-pedal="edit" data-name="Edit chords" data-open-on="form">
@@ -137,6 +138,17 @@
             <button class="btn small" id="bar-remove" type="button">Remove bar</button>
           </div>
         </div>
+      </div>
+
+      <div class="dna" id="dna" aria-label="What is in this tune"></div>
+    </section>
+
+    <section class="room" id="room-band" role="tabpanel" aria-label="Band" hidden>
+      <div class="field">
+        <label class="label" for="band-style">Start from a style</label>
+        <select id="band-style" aria-label="Set every layer from a style"></select>
+        <p class="note">Sets the drums, bass, keys and tempo together. Change any layer after.</p>
+        <p class="note" id="band-status" role="status" aria-live="polite"></p>
       </div>
 
       <div class="layer" data-layer="keys">
@@ -228,6 +240,6 @@
     </section>
   </div>
 </div>
-<script type="module" src="assets/js/metronome/metronome.js?v=20261107n"></script>
+<script type="module" src="assets/js/metronome/metronome.js?v=20261107p"></script>
 </body>
 </html>

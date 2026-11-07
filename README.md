@@ -51,3 +51,7 @@ GitHub Pages: Settings, Pages, deploy from branch `main`, folder `/ (root)`.
 The "Top 100" group in the chord picker is the JazzStandards.com top 100 (`tools/top100.txt`), with the changes taken from an iReal Pro playlist that holds them: `node tools/build-top-100.mjs <file with the irealb:// link>` writes `assets/js/metronome/top100.js`. Bars with more than two chords keep two, and chord types are mapped to the ones the page knows. Check them against your own chart.
 
 The "My standards" group (your Notion list) is built the same way from your own charts: `node tools/build-my-standards.mjs <file with the irealb:// link>`.
+
+## Tune room
+
+The Tune room holds the chart. A lens changes what each bar shows: chord names, Roman numerals (`analysis.js` finds ii-V-I, ii-V-i, V-I and tritone-sub cadences and names each chord in the key it is working in), the 3rd and 7th of each chord (`tune.js`), or a four-string guitar shape per chord (`voicing.js` searches shapes and picks a path with the least hand movement). The Now/Next strip follows the playhead. Under the chart, `dna.js` lists the four-bar pieces the tune shares with the others in the library, matched by shape, not by key.

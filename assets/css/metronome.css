@@ -256,3 +256,83 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
 .chord { border-width: 0 0 1.5px 0; margin-right: 0; font-size: clamp(11px, 3.2vw, 15px); padding: 8px 2px; min-height: 44px; overflow: hidden; text-overflow: ellipsis; }
 .cell .pair .chord + .chord { border-left: 1.5px solid var(--ink); }
 .chord.on { outline-offset: -3px; }
+
+/* ---- Tune room ---- */
+.rooms { gap: 0 20px; }
+.room-tab { font-size: clamp(30px, 5.2vw, 52px); }
+@media (max-width: 640px) { .rooms { flex-wrap: wrap; gap: 0 14px; } .room-tab { font-size: 7.4vw; } }
+
+.lens-field .segs { width: 100%; }
+
+/* Now / next: big enough to read from a music stand. */
+.now-next { display: grid; grid-template-columns: 3fr 2fr; gap: 10px; }
+.nn-card { border: 1.5px solid var(--ink); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; min-width: 0; background: var(--bg); }
+.nn-card.now { background: var(--ink); color: var(--bg); }
+.nn-top { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; }
+.nn-role { font-weight: 700; }
+.nn-card.now .nn-role { color: var(--accent); }
+.nn-chord { font-size: clamp(30px, 6vw, 48px); font-weight: 700; line-height: 1.05; letter-spacing: -0.02em; overflow-wrap: anywhere; }
+.nn-card.next .nn-chord { font-size: clamp(22px, 4.2vw, 32px); }
+.nn-fn { font-size: 12px; opacity: 0.85; }
+.nn-fn b { font-size: 15px; }
+.nn-gt { display: flex; gap: 14px; }
+.nn-hint { font-size: 12px; font-weight: 700; color: var(--accent); }
+.nn-card.next .nn-hint { color: var(--ink); background: var(--accent); align-self: flex-start; padding: 1px 6px; }
+.nn-fret { max-width: 150px; }
+.nn-card.next .nn-fret { max-width: 110px; }
+.nn-beats { display: flex; gap: 6px; margin-top: 2px; }
+.nn-beats i { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid currentColor; }
+.nn-beats i.on { background: var(--accent); border-color: var(--accent); }
+
+/* Chart cells under each lens */
+.half { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; position: relative; }
+.pair { align-items: stretch; }
+.half .chord { margin-right: 0; width: 100%; border-width: 0 0 1.5px 0; }
+.pair .half + .half { border-left: 1.5px solid var(--ink); }
+.cell .no b.kt { color: var(--accent); font-weight: 700; }
+.num { padding: 5px 2px 2px; font-size: 13px; font-weight: 700; text-align: center; }
+.half[data-cad]::after { content: ""; display: block; height: 5px; margin-top: 3px; background: var(--accent); }
+.half[data-cad="start"]::after { margin-left: 3px; }
+.half[data-cad="end"]::after { margin-right: 3px; }
+.gts { display: flex; flex-direction: column; gap: 1px; padding: 4px 4px 2px; align-items: center; }
+.gt { font-size: 12px; font-weight: 700; display: inline-flex; gap: 3px; align-items: baseline; padding: 0 4px; }
+.gt i { font-style: normal; font-size: 9px; opacity: 0.6; font-weight: 400; }
+.gt.tie { background: var(--accent); }
+.gt.big { font-size: 20px; }
+.gt.big i { font-size: 12px; }
+.nn-card.now .gt.tie { color: var(--ink); }
+.fretbox { display: flex; justify-content: center; padding: 6px 0 4px; }
+.fret { width: 100%; max-width: 62px; height: auto; display: block; }
+.fret.big { max-width: none; }
+.fret .nut { stroke: currentColor; stroke-width: 1; }
+.fret .nut.on { stroke-width: 3; }
+.fret .fl, .fret .st { stroke: currentColor; stroke-width: 0.7; opacity: 0.55; }
+.fret .dot { stroke: currentColor; stroke-width: 1.3; }
+.fret .dot.n { fill: currentColor; }
+.fret .dot.gt { fill: var(--accent); stroke: var(--accent); }
+.fret .dot.root { fill: none; }
+.fret .dl { font-size: 6.4px; font-weight: 700; fill: var(--bg); }
+.fret .dl.gt { fill: var(--ink); }
+.fret .dl.root { fill: currentColor; }
+.nn-card.now .fret .dl.n { fill: var(--ink); }
+.fret .fn { font-size: 8px; fill: currentColor; }
+.fret .sn { font-size: 6.5px; fill: currentColor; opacity: 0.7; }
+
+/* What the tune shares */
+.dna { border-top: 1.5px solid var(--ink); padding-top: 18px; display: flex; flex-direction: column; gap: 12px; }
+.dna-body { display: flex; flex-direction: column; gap: 12px; }
+.dna-line, .dna-head { margin: 0; font-size: 13px; }
+.dna-head { font-weight: 700; margin-top: 4px; }
+.dna-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.dna-chip { border: 1.5px solid var(--ink); padding: 3px 10px; font-size: 12px; border-radius: 999px; }
+.dna-piece { display: flex; flex-direction: column; gap: 3px; font-size: 13px; border-left: 4px solid var(--accent); padding-left: 10px; }
+.dna-piece code { font-family: inherit; font-size: 12px; overflow-wrap: anywhere; }
+.dna-who { font-size: 12px; }
+.dna-tune { border: 0; padding: 0; background: none; font: inherit; text-decoration: underline; cursor: pointer; color: var(--ink); }
+.dna-tune:hover { color: var(--accent); }
+@media (max-width: 640px) { .now-next { grid-template-columns: 1fr; } .nn-card.next .nn-chord { font-size: 26px; } }
+.form[data-lens="function"] .half::after { content: ""; display: block; height: 5px; margin-top: 3px; background: transparent; }
+.form[data-lens="function"] .half[data-cad]::after { background: var(--accent); }
+.half[data-cad]::after { content: none; }
+.form[data-lens="function"] .half[data-cad]::after { content: ""; }
+.fret { max-width: 70px; }

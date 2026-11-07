@@ -4,22 +4,23 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261107n";
-import { createTransport } from "./transport.js?v=20261107n";
-import { barPlays } from "./overlay.js?v=20261107n";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261107n";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261107n";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261107n";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261107n";
-import { COMP_STYLES } from "./comping.js?v=20261107n";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261107n";
-import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261107n";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261107n";
-import { BAND_STYLES } from "./bands.js?v=20261107n";
-import { initRooms } from "./rooms.js?v=20261107n";
-import { TOP_100 } from "./top100.js?v=20261107n";
-import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261107n";
-import { MAX_FORM_BARS } from "./share.js?v=20261107n";
+import { createAudio } from "./audio.js?v=20261107p";
+import { createTransport } from "./transport.js?v=20261107p";
+import { barPlays } from "./overlay.js?v=20261107p";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261107p";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261107p";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261107p";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261107p";
+import { COMP_STYLES } from "./comping.js?v=20261107p";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261107p";
+import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261107p";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261107p";
+import { BAND_STYLES } from "./bands.js?v=20261107p";
+import { createTuneView } from "./tune.js?v=20261107p";
+import { initRooms } from "./rooms.js?v=20261107p";
+import { TOP_100 } from "./top100.js?v=20261107p";
+import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261107p";
+import { MAX_FORM_BARS } from "./share.js?v=20261107p";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -490,34 +491,7 @@ function renderHarmony() {
 
   sel.bar = Math.min(sel.bar, h.form.length - 1);
   sel.k = Math.min(sel.k, h.form[sel.bar].length - 1);
-  const key = JSON.stringify([h.form, sel]);
-  if (els.form.dataset.key !== key) {
-    els.form.dataset.key = key;
-    els.form.replaceChildren(
-      ...h.form.map((bar, i) => {
-        const cell = document.createElement("div");
-        cell.className = "cell";
-        const no = document.createElement("span");
-        no.className = "no";
-        no.textContent = `Bar ${i + 1}`;
-        const pair = document.createElement("div");
-        pair.className = "pair";
-        bar.forEach((c, k) => {
-          const btn = document.createElement("button");
-          btn.type = "button";
-          btn.className = "chord";
-          btn.textContent = c;
-          btn.dataset.bar = String(i);
-          btn.dataset.k = String(k);
-          btn.setAttribute("aria-pressed", String(i === sel.bar && k === sel.k));
-          btn.setAttribute("aria-label", `Bar ${i + 1}${bar.length === 2 ? (k ? ", second half" : ", first half") : ""}: ${c}`);
-          pair.append(btn);
-        });
-        cell.append(no, pair);
-        return cell;
-      }),
-    );
-  }
+  tuneView.render({ form: h.form, sel, beats: state.pattern.beats, tuneName });
   const cur = parseChord(h.form[sel.bar][sel.k]);
   $("chord-root").value = String(cur.root);
   $("chord-quality").value = cur.quality;
@@ -526,17 +500,19 @@ function renderHarmony() {
   $("bar-remove").disabled = h.form.length <= 1;
 }
 
-/** Marks the chord that is sounding now. */
+/** Marks the chord that is sounding now, and tells the Now/Next strip. */
 function markChord(bar, inBar) {
   const h = state.harmony;
-  let want = null;
   const pb = bar - state.practice.countIn;
-  if ((h.on || state.bass.on) && pb >= 0) {
-    const fb = pb % h.form.length;
-    const k = h.form[fb].length === 2 && inBar >= Math.ceil(state.pattern.beats / 2) ? 1 : 0;
-    want = `${fb}:${k}`;
+  if (pb < 0) {
+    for (const c of els.form.querySelectorAll(".chord.on")) c.classList.remove("on");
+    return;
   }
+  const fb = pb % h.form.length;
+  const k = h.form[fb].length === 2 && inBar >= Math.ceil(state.pattern.beats / 2) ? 1 : 0;
+  const want = `${fb}:${k}`;
   for (const c of els.form.querySelectorAll(".chord")) c.classList.toggle("on", `${c.dataset.bar}:${c.dataset.k}` === want);
+  tuneView.follow({ bar: fb, k }, k === 1 ? inBar - Math.ceil(state.pattern.beats / 2) : inBar);
 }
 
 async function audition(text) {
@@ -585,6 +561,7 @@ function setPlaying(on) {
 function clearPlayhead() {
   els.beats.querySelectorAll(".col.on").forEach((c) => c.classList.remove("on"));
   els.form.querySelectorAll(".chord.on").forEach((c) => c.classList.remove("on"));
+  tuneView?.follow(null);
   els.page.style.setProperty("--p", "0");
 }
 
@@ -621,6 +598,21 @@ function notice(text) {
   notice.t = setTimeout(() => (el.textContent = ""), 5000);
 }
 
+const library = [...MY_STANDARDS, ...TOP_100, ...STANDARDS];
+let tuneName = "";
+const tuneView = createTuneView({
+  chart: els.form,
+  nowNext: $("now-next"),
+  lensBar: $("lens"),
+  lensNote: $("lens-note"),
+  dna: $("dna"),
+  library,
+  loadTune: (id) => {
+    $("preset").value = id;
+    $("preset").dispatchEvent(new Event("change"));
+    notice("Loaded.");
+  },
+});
 const rooms = initRooms({ getState: () => state, commit });
 
 // ---- wiring ----
@@ -733,6 +725,7 @@ fillSelect($("chord-quality"), QUALITIES.map((q) => q.id), (id) => QUALITIES.fin
     const p = all.find((x) => x.id === preset.value);
     preset.value = "";
     if (!p) return;
+    tuneName = p.name;
     state.harmony.form = p.form.map((bar) => [...bar]);
     sel.bar = 0;
     sel.k = 0;

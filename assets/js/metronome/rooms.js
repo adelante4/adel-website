@@ -4,7 +4,7 @@
 // metronome.js; this module only decides what is visible.
 
 const $ = (id) => document.getElementById(id);
-const ROOMS = [["beat", "Beat"], ["band", "Band"], ["train", "Train"]];
+const ROOMS = [["beat", "Beat"], ["tune", "Tune"], ["band", "Band"], ["train", "Train"]];
 
 const pressed = (id) => $(id).querySelector('[aria-pressed="true"]')?.textContent ?? "";
 
@@ -26,7 +26,7 @@ const PEDALS = {
     },
   },
   sound: { room: "beat", on: (s) => s.pattern.sound !== "tock", read: () => pressed("sound"), reset: (s) => void (s.pattern.sound = "tock") },
-  edit: { room: "band", on: () => false, read: () => "", reset: null },
+  edit: { room: "tune", on: () => false, read: () => "", reset: null },
   countin: { room: "train", on: (s) => s.practice.countIn > 0, read: () => pressed("countin"), reset: (s) => { s.practice.countIn = 0; return "restart"; } },
   gap: {
     room: "train",
@@ -145,7 +145,7 @@ export function initRooms({ getState, commit }) {
   function sync() {
     const s = getState();
     const chips = [];
-    const counts = { beat: 0, band: 0, train: 0 };
+    const counts = { beat: 0, tune: 0, band: 0, train: 0 };
 
     const { beats, den, bars } = s.pattern;
     if (beats !== 4 || den !== 4) chips.push([`${beats}/${den}`, "beat", null]);
