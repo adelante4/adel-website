@@ -247,3 +247,12 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
 .pedal-head:has(.pr:empty) .led { grid-row: 1; }
 .pedal-head:has(.pr:empty) { min-height: 44px; }
 @media (max-width: 640px) { .rooms { gap: 0 14px; flex-wrap: nowrap; } .room-tab { font-size: 8.6vw; } }
+
+/* Lead-sheet layout: four bars to a line */
+.form { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 0; }
+.cell { flex: none; max-width: none; min-width: 0; padding: 0 0 0 0; border-left: 2px solid var(--ink); }
+.cell:nth-child(4n) { border-right: 2px solid var(--ink); }
+.cell .no { padding-left: 6px; }
+.chord { border-width: 0 0 1.5px 0; margin-right: 0; font-size: clamp(11px, 3.2vw, 15px); padding: 8px 2px; min-height: 44px; overflow: hidden; text-overflow: ellipsis; }
+.cell .pair .chord + .chord { border-left: 1.5px solid var(--ink); }
+.chord.on { outline-offset: -3px; }
