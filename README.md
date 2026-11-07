@@ -23,7 +23,7 @@ Every three posts make a new vinyl.
 
 ## Metronome
 
-`metronome.html` is a practice metronome: odd meters, swing, chance, gap trainer, tempo ladder, count-in, share links, a chord progression builder with an electric piano, and a band you build in layers: chords (7 keys sounds), bass (walking, two-feel, bossa, lofi and more, 6 sounds), and drums (10 grooves, 3 kits), each with its own volume. A few standards are included as changes only (typical changes, check against your own chart). Every sound has a synth fallback. It has no build step. The code is plain ES modules in `assets/js/metronome/`. The timing logic (`timeline`, `pattern`, `overlay`, `chords`, `comping`, `groove`, `transport`, `share`) does not touch Web Audio, so it runs under Node.
+`metronome.html` is a practice metronome: odd meters, swing, chance, gap trainer, tempo ladder, count-in, share links, a chord progression builder with an electric piano, and a band you build in layers: chords (7 keys sounds), bass (walking, two-feel, bossa, lofi and more, 6 sounds), and drums (10 grooves, 3 kits), each with its own volume. A few standards are included as changes only (typical changes, check against your own chart). Every sound has a synth fallback. You can also load your own iReal Pro playlist (`irealb://` link or file) under Chords. It is decoded in the browser by `ireal.js` and kept in local storage on that device. No charts are included in the site or sent anywhere. It has no build step. The code is plain ES modules in `assets/js/metronome/`. The timing logic (`timeline`, `pattern`, `overlay`, `chords`, `comping`, `groove`, `transport`, `share`) does not touch Web Audio, so it runs under Node.
 
 ```
 npm test

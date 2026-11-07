@@ -6,13 +6,13 @@
 //
 // Links store only what differs from the defaults, so they stay short, and a link made
 // today keeps its meaning if a new setting is added later.
-import { accentsFromGrouping, defaultGrouping } from "./meter.js?v=20261107e";
-import { clampBpm } from "./tempo.js?v=20261107e";
-import { cleanChord } from "./chords.js?v=20261107e";
-import { COMP_STYLES } from "./comping.js?v=20261107e";
-import { GROOVE_STYLES } from "./groove.js?v=20261107e";
-import { BASS_STYLES } from "./bassline.js?v=20261107e";
-import { KEYS, BASSES, KITS, ids } from "./instruments.js?v=20261107e";
+import { accentsFromGrouping, defaultGrouping } from "./meter.js?v=20261107f";
+import { clampBpm } from "./tempo.js?v=20261107f";
+import { cleanChord } from "./chords.js?v=20261107f";
+import { COMP_STYLES } from "./comping.js?v=20261107f";
+import { GROOVE_STYLES } from "./groove.js?v=20261107f";
+import { BASS_STYLES } from "./bassline.js?v=20261107f";
+import { KEYS, BASSES, KITS, ids } from "./instruments.js?v=20261107f";
 
 export const CLICK_ON = ["all", "backbeat", "downbeat", "upbeats"];
 export const SOUNDS = ["tock", "wood", "soft", "woodblock", "claves", "log", "frame", "brake"];
@@ -67,7 +67,7 @@ export function defaultState() {
   };
 }
 
-export const MAX_FORM_BARS = 48;
+export const MAX_FORM_BARS = 64;
 
 export function normalizeHarmony(raw) {
   const d = defaultState().harmony;

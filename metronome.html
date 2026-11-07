@@ -7,7 +7,7 @@
 <meta name="description" content="A practice metronome with odd meters, swing, chance, gap trainer and tempo ladder. Runs in the browser.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
 <link rel="stylesheet" href="assets/css/site.css?v=20261106">
-<link rel="stylesheet" href="assets/css/metronome.css?v=20261107e">
+<link rel="stylesheet" href="assets/css/metronome.css?v=20261107f">
 </head>
 <body>
 <div class="moire soft" aria-hidden="true"><i></i><i></i></div>
@@ -64,6 +64,20 @@
         <label class="label" for="preset">Progression</label>
         <select id="preset" aria-label="Load a progression"></select>
         <p class="note" id="preset-note"></p>
+        <details class="import" id="import">
+          <summary>Your iReal Pro library</summary>
+          <p class="note">Load your own charts. Paste an irealb:// link (on the forum, right-click the import link and copy its address), paste the text of a playlist file, or choose a file. It is decoded in this browser and kept on this device only. Nothing is uploaded.</p>
+          <textarea id="import-text" rows="3" placeholder="irealb://…" aria-label="iReal Pro link or file text"></textarea>
+          <div class="inline">
+            <input id="import-file" type="file" accept=".html,.htm,.txt,.irealb,text/*" aria-label="Choose a playlist file">
+            <button class="btn small" id="import-go" type="button">Import</button>
+          </div>
+          <p class="note" id="import-note" role="status"></p>
+          <label class="label" for="lib-search">Search your songs <b id="lib-count"></b></label>
+          <input id="lib-search" type="search" placeholder="Title or composer" autocomplete="off">
+          <div class="lib-results" id="lib-results"></div>
+          <button class="btn small" id="lib-clear" type="button">Remove imported songs</button>
+        </details>
         <div class="inline">
           <span class="label">Key</span>
           <button class="btn small" id="key-down" type="button" aria-label="Down a semitone">&minus;1</button>
@@ -223,6 +237,6 @@
     </section>
   </div>
 </div>
-<script type="module" src="assets/js/metronome/metronome.js?v=20261107e"></script>
+<script type="module" src="assets/js/metronome/metronome.js?v=20261107f"></script>
 </body>
 </html>

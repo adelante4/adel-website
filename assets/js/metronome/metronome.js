@@ -4,20 +4,21 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261107e";
-import { createTransport } from "./transport.js?v=20261107e";
-import { barPlays } from "./overlay.js?v=20261107e";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261107e";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261107e";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261107e";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261107e";
-import { COMP_STYLES } from "./comping.js?v=20261107e";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261107e";
-import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261107e";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261107e";
-import { BAND_STYLES } from "./bands.js?v=20261107e";
-import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261107e";
-import { MAX_FORM_BARS } from "./share.js?v=20261107e";
+import { createAudio } from "./audio.js?v=20261107f";
+import { createTransport } from "./transport.js?v=20261107f";
+import { barPlays } from "./overlay.js?v=20261107f";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261107f";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261107f";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261107f";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261107f";
+import { COMP_STYLES } from "./comping.js?v=20261107f";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261107f";
+import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261107f";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261107f";
+import { BAND_STYLES } from "./bands.js?v=20261107f";
+import { parseIReal } from "./ireal.js?v=20261107f";
+import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261107f";
+import { MAX_FORM_BARS } from "./share.js?v=20261107f";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -863,3 +864,101 @@ window.addEventListener("pagehide", () => transport.running && stop());
 renderAll();
 warm();
 if (linkProblem) notice("That shared link could not be read, so your last setup is shown.");
+
+
+// ---- Your iReal Pro library ----
+// Songs you import are decoded here and kept in this browser only. Nothing is uploaded.
+const LIB_KEY = "adelMetronomeLibrary";
+const LIB_MAX = 3000;
+let library = [];
+try {
+  const stored = JSON.parse(localStorage.getItem(LIB_KEY) || "[]");
+  if (Array.isArray(stored)) library = stored.filter((x) => x && typeof x.title === "string" && Array.isArray(x.form)).slice(0, LIB_MAX);
+} catch {}
+const saveLibrary = () => {
+  try {
+    localStorage.setItem(LIB_KEY, JSON.stringify(library));
+    return true;
+  } catch {
+    return false;
+  }
+};
+function renderLibrary() {
+  const q = $("lib-search").value.trim().toLowerCase();
+  $("lib-count").textContent = library.length ? `(${library.length})` : "";
+  const hits = library.filter((x) => !q || `${x.title} ${x.composer}`.toLowerCase().includes(q)).slice(0, 40);
+  $("lib-results").replaceChildren(
+    ...hits.map((song) => {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.append(song.title);
+      const small = document.createElement("small");
+      small.textContent = ` ${song.composer ? song.composer + ", " : ""}${song.key}, ${song.form.length} bars`;
+      b.append(small);
+      b.addEventListener("click", () => loadSong(song));
+      return b;
+    }),
+  );
+  $("lib-clear").hidden = library.length === 0;
+}
+function loadSong(song) {
+  state.harmony.form = song.form.map((bar) => [...bar]);
+  state.harmony.on = true;
+  sel.bar = 0;
+  sel.k = 0;
+  const p = state.pattern;
+  if (song.den === 4 && [3, 4].includes(song.beats) && (p.beats !== song.beats || p.den !== 4)) {
+    p.beats = song.beats;
+    p.den = 4;
+    p.levels = defaultLevels(p.beats, p.bars);
+    p.chances = new Array(p.beats * p.bars).fill(1);
+  }
+  $("preset-note").textContent = `${song.title}${song.truncated ? ` (cut to ${song.form.length} bars)` : ""}: from your own chart, ${song.form.length} bars. Bars with more than two chords keep two.`;
+  commit("restart");
+}
+function importText(text) {
+  const { songs, links } = parseIReal(text);
+  if (links === 0) {
+    $("import-note").textContent = /^https?:/i.test(text.trim())
+      ? "That is a web address. Copy the address of the import link itself; it starts with irealb://."
+      : "No iReal link found. It should start with irealb://.";
+    return;
+  }
+  if (songs.length === 0) {
+    $("import-note").textContent = "The link was read, but it holds no charts this page can open.";
+    return;
+  }
+  const seen = new Set(library.map((x) => `${x.title}|${x.composer}`));
+  let added = 0;
+  for (const s of songs) {
+    const id = `${s.title}|${s.composer}`;
+    if (seen.has(id) || library.length >= LIB_MAX) continue;
+    seen.add(id);
+    library.push({ title: s.title, composer: s.composer, key: s.key, beats: s.beats, den: s.den, truncated: s.truncated, form: s.form });
+    added++;
+  }
+  library.sort((a, b) => a.title.localeCompare(b.title));
+  const ok = saveLibrary();
+  $("import-note").textContent = `Added ${added} of ${songs.length} songs.${ok ? "" : " Could not save them on this device, so they last until you close the page."}`;
+  $("import-text").value = "";
+  renderLibrary();
+}
+$("import-go").addEventListener("click", () => importText($("import-text").value));
+$("import-file").addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  if (file.size > 20 * 1024 * 1024) {
+    $("import-note").textContent = "That file is too large.";
+    return;
+  }
+  importText(await file.text());
+  e.target.value = "";
+});
+$("lib-search").addEventListener("input", renderLibrary);
+$("lib-clear").addEventListener("click", () => {
+  library = [];
+  saveLibrary();
+  $("import-note").textContent = "Removed the imported songs from this device.";
+  renderLibrary();
+});
+renderLibrary();

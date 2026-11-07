@@ -68,7 +68,7 @@ test("bass note is the root in the second octave", () => {
 
 test("presets are valid", () => {
   for (const p of PRESETS) {
-    assert.ok(p.form.length >= 2 && p.form.length <= 48);
+    assert.ok(p.form.length >= 2 && p.form.length <= 64);
     for (const bar of p.form) {
       assert.ok(bar.length === 1 || bar.length === 2);
       for (const c of bar) assert.equal(cleanChord(c, "X"), c, `${p.name}: ${c}`);
@@ -200,7 +200,7 @@ test("share: hostile harmony input is repaired", () => {
     mix: { click: 99, chords: -4, groove: "x", bass: NaN },
   });
   assert.equal(bad.harmony.on, false);
-  assert.ok(bad.harmony.form.length <= 48);
+  assert.ok(bad.harmony.form.length <= 64);
   for (const bar of bad.harmony.form) {
     assert.ok(bar.length >= 1 && bar.length <= 2);
     for (const c of bar) assert.ok(parseChord(c));

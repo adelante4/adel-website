@@ -121,3 +121,20 @@ select {
   .panel { padding: 16px; }
   .bar { height: 96px; }
 }
+
+/* ---- Imported library ---- */
+.import { width: 100%; border: 1.5px solid var(--ink); padding: 12px 14px; }
+.import summary { cursor: pointer; font-weight: 700; font-size: 14px; min-height: 28px; }
+.import[open] summary { margin-bottom: 10px; }
+.import > * + * { margin-top: 10px; }
+.import textarea, .import input[type="search"] {
+  width: 100%; min-width: 0; box-sizing: border-box; font: inherit; font-size: 13px; padding: 8px;
+  border: 1.5px solid var(--ink); background: var(--bg); color: var(--ink);
+}
+.import input[type="file"] { max-width: 100%; font-size: 12px; }
+.lib-results { display: flex; flex-direction: column; gap: 4px; max-height: 260px; overflow-y: auto; }
+.lib-results button {
+  text-align: left; font: inherit; font-size: 13px; min-height: 40px; padding: 6px 10px; cursor: pointer;
+  border: 1.5px solid var(--ink); background: var(--bg); color: var(--ink);
+}
+.lib-results button small { opacity: 0.7; }
