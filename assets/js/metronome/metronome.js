@@ -4,20 +4,20 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261107a";
-import { createTransport } from "./transport.js?v=20261107a";
-import { barPlays } from "./overlay.js?v=20261107a";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261107a";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261107a";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261107a";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261107a";
-import { COMP_STYLES } from "./comping.js?v=20261107a";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261107a";
-import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261107a";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261107a";
-import { BAND_STYLES } from "./bands.js?v=20261107a";
-import { STANDARDS } from "./standards.js?v=20261107a";
-import { MAX_FORM_BARS } from "./share.js?v=20261107a";
+import { createAudio } from "./audio.js?v=20261107b";
+import { createTransport } from "./transport.js?v=20261107b";
+import { barPlays } from "./overlay.js?v=20261107b";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261107b";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261107b";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261107b";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261107b";
+import { COMP_STYLES } from "./comping.js?v=20261107b";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261107b";
+import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261107b";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261107b";
+import { BAND_STYLES } from "./bands.js?v=20261107b";
+import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261107b";
+import { MAX_FORM_BARS } from "./share.js?v=20261107b";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -695,10 +695,11 @@ fillSelect($("chord-quality"), QUALITIES.map((q) => q.id), (id) => QUALITIES.fin
     return g;
   };
   const preset = $("preset");
-  const all = [...PRESETS, ...STANDARDS];
+  const all = [...PRESETS, ...MY_STANDARDS, ...STANDARDS];
   preset.replaceChildren(
     Object.assign(document.createElement("option"), { value: "", textContent: "Choose one…" }),
     group("Progressions", PRESETS),
+    group("My standards", MY_STANDARDS),
     ...(STANDARDS.length ? [group("Standards", STANDARDS)] : []),
   );
   preset.addEventListener("change", () => {
@@ -708,7 +709,7 @@ fillSelect($("chord-quality"), QUALITIES.map((q) => q.id), (id) => QUALITIES.fin
     state.harmony.form = p.form.map((bar) => [...bar]);
     sel.bar = 0;
     sel.k = 0;
-    $("preset-note").textContent = STANDARDS.includes(p) ? `${p.name}: typical changes, ${p.form.length} bars. Check them against your own chart.` : "";
+    $("preset-note").textContent = (STANDARDS.includes(p) || MY_STANDARDS.includes(p)) ? `${p.name}: typical changes, ${p.form.length} bars. Check them against your own chart.` : "";
     commit();
   });
 }

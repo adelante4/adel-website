@@ -5,7 +5,7 @@ import { styleHits, flattenForm, generateHarmony } from "../assets/js/metronome/
 import { createTransport } from "../assets/js/metronome/transport.js";
 import { generateGroove, stepBeat, GROOVE_STYLES, grooveFits, grooveSounds } from "../assets/js/metronome/groove.js";
 import { generateBass, BASS_STYLES } from "../assets/js/metronome/bassline.js";
-import { STANDARDS } from "../assets/js/metronome/standards.js";
+import { STANDARDS, MY_STANDARDS } from "../assets/js/metronome/standards.js";
 import { barPlays } from "../assets/js/metronome/overlay.js";
 import { defaultState, normalizePattern, normalizeState, encodeShare, decodeShare } from "../assets/js/metronome/share.js";
 
@@ -300,9 +300,9 @@ test("catalogs: sound ids are unique and every recorded one has a manifest", asy
 });
 
 test("standards: valid chords, one or two per bar, ids unique, and they fit a share link", () => {
-  assert.equal(new Set(STANDARDS.map((x) => x.id)).size, STANDARDS.length);
-  const expected = { "blue-bossa": 16, "so-what": 32, ipanema: 32, "all-things": 36, "fly-me": 16, "giant-steps": 16, cantaloupe: 16, "rhythm-full": 32, "blues-alice": 12, "minor-blues": 12 };
-  for (const t of STANDARDS) {
+  assert.equal(new Set([...STANDARDS, ...MY_STANDARDS].map((x) => x.id)).size, STANDARDS.length + MY_STANDARDS.length);
+  const expected = { "blue-bossa": 16, "so-what": 32, ipanema: 32, "all-things": 36, "fly-me": 16, "giant-steps": 16, cantaloupe: 16, "rhythm-full": 32, "blues-alice": 12, "minor-blues": 12, "my-all-of-me": 32, "my-autumn-leaves": 32, "my-blue-monk": 12, "my-so-what": 32, "my-igr": 32, "my-oleo": 32, "my-anthropology": 32 };
+  for (const t of [...STANDARDS, ...MY_STANDARDS]) {
     assert.equal(t.form.length, expected[t.id], `${t.id} has ${t.form.length} bars`);
     for (const bar of t.form) {
       assert.ok(bar.length === 1 || bar.length === 2, t.id);
