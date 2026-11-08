@@ -3,9 +3,9 @@ import assert from "node:assert/strict";
 import { describeSound } from "../assets/js/metronome/sentence.js";
 import { defaultState } from "../assets/js/metronome/share.js";
 
-test("plain click", () => {
+test("plain metronome", () => {
   const d = describeSound(defaultState());
-  assert.match(d.text, /^Click only/);
+  assert.match(d.text, /^Metronome only/);
   assert.equal(d.values.keys, "adds a backing");
 });
 
@@ -15,7 +15,7 @@ test("band on, click auto, trainers", () => {
   s.practice.gap = { audible: 2, silent: 2 }; s.practice.trade = 4; s.pattern.swing = 0.6;
   const d = describeSound(s, "Autumn Leaves");
   assert.match(d.text, /Chords, bass and drums play Autumn Leaves/);
-  assert.match(d.text, /click steps aside/);
+  assert.match(d.text, /metronome steps aside/);
   assert.match(d.text, /Gap trainer: 2 bars on, 2 silent/);
   assert.match(d.text, /drop out every other 4 bars/);
   assert.equal(d.values.click, "Auto, 4/4");

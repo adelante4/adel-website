@@ -4,24 +4,24 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261108n";
-import { createTransport } from "./transport.js?v=20261108n";
-import { barPlays } from "./overlay.js?v=20261108n";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261108n";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261108n";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261108n";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261108n";
-import { COMP_STYLES } from "./comping.js?v=20261108n";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261108n";
-import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261108n";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261108n";
-import { BAND_STYLES } from "./bands.js?v=20261108n";
-import { createTuneView } from "./tune.js?v=20261108n";
-import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261108n";
-import { initRooms } from "./rooms.js?v=20261108n";
-import { TOP_100 } from "./top100.js?v=20261108n";
-import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261108n";
-import { MAX_FORM_BARS } from "./share.js?v=20261108n";
+import { createAudio } from "./audio.js?v=20261108p";
+import { createTransport } from "./transport.js?v=20261108p";
+import { barPlays } from "./overlay.js?v=20261108p";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261108p";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261108p";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261108p";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261108p";
+import { COMP_STYLES } from "./comping.js?v=20261108p";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261108p";
+import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261108p";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261108p";
+import { BAND_STYLES } from "./bands.js?v=20261108p";
+import { createTuneView } from "./tune.js?v=20261108p";
+import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261108p";
+import { initRooms } from "./rooms.js?v=20261108p";
+import { TOP_100 } from "./top100.js?v=20261108p";
+import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261108p";
+import { MAX_FORM_BARS } from "./share.js?v=20261108p";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -74,7 +74,9 @@ function tick() {
   const { clicks, chords, bass, drums } = transport.pullAll(now, document.hidden ? LOOKAHEAD_HIDDEN : LOOKAHEAD);
   for (const e of clicks) {
     if (e.time < now - 0.03) continue; // too late to be useful
-    audio.click(run, Math.max(e.time, now), e.kind, e.gain, state.pattern.sound);
+    // The count-in is always heard, even with the click turned off.
+    const counting = state.mix.click === 0 && e.bar < state.practice.countIn;
+    audio.click(run, Math.max(e.time, now), e.kind, e.gain, state.pattern.sound, counting ? run.countOut : run.out);
   }
   for (const e of chords) {
     if (e.time < now - 0.03) continue;
@@ -351,7 +353,7 @@ function renderEverything() {
   })(mode);
   $("mode-note").textContent =
     mode === "accent"
-      ? "Touch a bar at the height you want: tall is an accent, middle is a normal click, empty is silent."
+      ? "Touch a bar at the height you want: tall is an accent, middle is a normal tick, empty is silent."
       : "Touch a bar to set how often that beat sounds. Full height always plays.";
 
   makeSeg($("subdiv"), [[1, "Quarters"], [2, "Eighths"], [3, "Triplets"], [4, "16ths"]], (v) => {
@@ -500,9 +502,9 @@ function renderHarmony() {
   const clickMode = state.mix.click === 0 ? "off" : state.mix.autoMute ? "auto" : "on";
   makeSeg($("click-mode"), [["on", "On"], ["auto", "Auto"], ["off", "Off"]], setClickMode)(clickMode);
   $("click-note").textContent = {
-    on: "The click plays all the time, over the band.",
-    auto: "The click goes quiet while the drums play. It comes back in the count-in and in trade-fours gaps.",
-    off: "No click. Only the band plays.",
+    on: "The metronome plays all the time, over the band.",
+    auto: "The metronome goes quiet while the drums play. It comes back in the count-in and in trade-fours gaps.",
+    off: "No metronome. Only the band plays. The count-in is still heard.",
   }[clickMode];
   for (const k of ["click", "chords", "bass", "groove"]) {
     $(`mix-${k}`).value = String(state.mix[k]);
@@ -619,7 +621,7 @@ function frame() {
     const parts = [];
     if (bar < pr.countIn) parts.push(`Count-in, bar ${bar + 1} of ${pr.countIn}`);
     else parts.push(`Bar ${bar - pr.countIn + 1}`);
-    if (pr.gap && bar >= pr.countIn) parts.push(barPlays(pr, bar).click ? "click on" : "click off");
+    if (pr.gap && bar >= pr.countIn) parts.push(barPlays(pr, bar).click ? "metronome on" : "metronome off");
     if (pr.ladder && bar >= pr.countIn) parts.push(`step ${Math.min(pr.ladder.rungs, Math.floor((bar - pr.countIn) / pr.ladder.everyBars) + 1)} of ${pr.ladder.rungs}`);
     $("status").textContent = parts.join(", ");
   }

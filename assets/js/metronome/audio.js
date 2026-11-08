@@ -26,9 +26,9 @@ const SOUNDS = {
 };
 
 // Recorded hits (Versilian Community Sample Library, CC0). Each voice has three files.
-import { rhodes, bass, bassSynth, organ, pad, juno, drone, glass, supersaw, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261108n";
-import { createSampler } from "./sampler.js?v=20261108n";
-import { KEYS, BASSES, trimOf, drumTrim } from "./instruments.js?v=20261108n";
+import { rhodes, bass, bassSynth, organ, pad, juno, drone, glass, supersaw, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261108p";
+import { createSampler } from "./sampler.js?v=20261108p";
+import { KEYS, BASSES, trimOf, drumTrim } from "./instruments.js?v=20261108p";
 
 const SYNTH_KEYS = new Set(["rhodes", "organ", "pad", "juno", "drone", "glass", "supersaw"]);
 const SYNTH_BASS = new Set(["round", "moog", "sub", "reese", "acid", "fmbass", "dub"]);
@@ -175,6 +175,10 @@ export function createAudio() {
       run.connect(master);
       const clickBus = ctx.createGain();
       clickBus.connect(run);
+      // Count-in clicks go here, past the click level, so the count-in is heard even when the click is off.
+      const countBus = ctx.createGain();
+      countBus.gain.value = 0.7;
+      countBus.connect(run);
       // Piano: a soft low-pass tames the FM brightness before it reaches the mix.
       const chordBus = ctx.createGain();
       const chordTone = ctx.createBiquadFilter();
@@ -206,6 +210,7 @@ export function createAudio() {
       return {
         trims: new Map(),
         out: clickBus,
+        countOut: countBus,
         chords: chordBus,
         bass: bassBus,
         groove: grooveBus,
@@ -290,7 +295,7 @@ export function createAudio() {
       drum(ctx, out, noise, when, voice, gain, kit === "synth" ? style : "");
     },
     /** Schedule one click at an audio-clock time. kind is "accent", "beat" or "sub". */
-    click(run, when, kind, gain, sound) {
+    click(run, when, kind, gain, sound, dest = run.out) {
       if (SAMPLE_VOICES.includes(sound)) {
         const set = buffers.get(sound);
         if (set && !(set instanceof Promise)) {
@@ -299,7 +304,7 @@ export function createAudio() {
           src.buffer = set[kind] || set.beat;
           env.gain.value = Math.max(0.0002, gain);
           src.connect(env);
-          env.connect(run.out);
+          env.connect(dest);
           src.start(when);
           return;
         }
@@ -318,7 +323,7 @@ export function createAudio() {
       env.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain * 0.9), when + 0.002);
       env.gain.exponentialRampToValueAtTime(0.0001, when + decay);
       osc.connect(env);
-      env.connect(run.out);
+      env.connect(dest);
       osc.start(when);
       osc.stop(when + decay + 0.03);
     },

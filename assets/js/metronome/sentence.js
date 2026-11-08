@@ -1,6 +1,6 @@
 // Says in plain words what the page is playing, from the same state the transport reads.
 // Pure functions: no DOM, no audio.
-import { KEYS, BASSES } from "./instruments.js?v=20261108n";
+import { KEYS, BASSES } from "./instruments.js?v=20261108p";
 
 export const GROOVE_NAMES = {
   lofi: "Lofi", dilla: "Neo-soul", halftime: "Halftime", boombap: "Boom-bap", jazz: "Jazz swing",
@@ -40,17 +40,17 @@ export function describeSound(s, tuneName = "") {
   const voices = [h.on && "chords", b.on && "bass", drumsOn && "drums"].filter(Boolean);
   const out = [];
   if (!voices.length) {
-    out.push(clickOff ? "Silence: the click is off and no band is on." : `Click only. ${meter}, ${pattern(p)}.`);
+    out.push(clickOff ? "Silence: the metronome is off and no band is on." : `Metronome only. ${meter}, ${pattern(p)}.`);
   } else {
     const list = voices.length > 1 ? `${voices.slice(0, -1).join(", ")} and ${voices[voices.length - 1]}` : voices[0];
     const chords = h.on || b.on;
     out.push(`${cap(list)} ${chords ? `play ${tuneName ? tuneName : "the chart below"}` : "play"}.`);
-    if (clickOff) out.push("Click is off.");
-    else if (clickMode === "auto") out.push("The click steps aside while the drums play.");
-    else out.push("The click plays on top of the band.");
+    if (clickOff) out.push("Metronome is off.");
+    else if (clickMode === "auto") out.push("The metronome steps aside while the drums play.");
+    else out.push("The metronome plays on top of the band.");
   }
   if (p.swing > 0.5) out.push(`Swing is ${swingWord(p.swing)}, on everything.`);
-  if (pr.countIn > 0) out.push(`${cap(plural(pr.countIn, "bar"))} of click first.`);
+  if (pr.countIn > 0) out.push(`${cap(plural(pr.countIn, "bar"))} of count-in first.`);
   if (pr.gap) out.push(`Gap trainer: ${plural(pr.gap.audible, "bar")} on, ${pr.gap.silent} silent.`);
   if (pr.ladder) out.push(`Tempo climbs ${pr.ladder.step} BPM every ${plural(pr.ladder.everyBars, "bar")}.`);
   if (pr.trade > 0) out.push(drumsOn ? `The drums drop out every other ${pr.trade} bars.` : "Trade fours does nothing: the drums are off.");
@@ -60,6 +60,6 @@ export function describeSound(s, tuneName = "") {
 
 function pattern(p) {
   if (p.clickOn !== "all") return { backbeat: "on 2 and 4", downbeat: "on the downbeat only", upbeats: "on the upbeats" }[p.clickOn] ?? "on every beat";
-  return p.subdivision > 1 ? `${p.subdivision} clicks to the beat` : "one click a beat";
+  return p.subdivision > 1 ? `${p.subdivision} ticks to the beat` : "one tick a beat";
 }
 const cap = (t) => t.charAt(0).toUpperCase() + t.slice(1);

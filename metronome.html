@@ -6,8 +6,8 @@
 <title>Metronome | Adel Mostafavi</title>
 <meta name="description" content="A practice metronome with odd meters, swing, chance, gap trainer and tempo ladder. Runs in the browser.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="assets/css/site.css?v=20261108n">
-<link rel="stylesheet" href="assets/css/metronome.css?v=20261108n">
+<link rel="stylesheet" href="assets/css/site.css?v=20261108p">
+<link rel="stylesheet" href="assets/css/metronome.css?v=20261108p">
 </head>
 <body>
 <div class="moire soft" aria-hidden="true"><i></i><i></i></div>
@@ -54,7 +54,7 @@
       <h2 id="h-sound">Sound</h2>
       <p class="lede">What you hear is these four parts added together. Open one to change it.</p>
       <div class="chips" id="chips-sound">
-        <div class="cg"><button class="chip" type="button" data-chip="click" aria-expanded="false"><span class="cn">Click</span><span class="cv" id="cv-click"></span></button></div>
+        <div class="cg"><button class="chip" type="button" data-chip="click" aria-expanded="false"><span class="cn">Metronome</span><span class="cv" id="cv-click"></span></button></div>
         <div class="cg"><button class="sw" id="harmony-toggle" type="button" aria-pressed="false" aria-label="Chords on or off">Off</button><button class="chip" type="button" data-chip="keys" aria-expanded="false"><span class="cn">Chords</span><span class="cv" id="cv-keys"></span></button></div>
         <div class="cg"><button class="sw" id="bass-toggle" type="button" aria-pressed="false" aria-label="Bass on or off">Off</button><button class="chip" type="button" data-chip="bass" aria-expanded="false"><span class="cn">Bass</span><span class="cv" id="cv-bass"></span></button></div>
         <div class="cg"><button class="sw" id="drums-toggle" type="button" aria-pressed="false" aria-label="Drums on or off">Off</button><button class="chip" type="button" data-chip="drums" aria-expanded="false"><span class="cn">Drums</span><span class="cv" id="cv-drums"></span></button></div>
@@ -70,16 +70,16 @@
 
       <div class="detail" id="detail-sound" data-detail="sound">
         <div class="panel" data-panel="click" hidden>
-          <div class="panel-head"><h3>Click</h3><button class="btn small close" type="button">Close</button></div>
+          <div class="panel-head"><h3>Metronome</h3><button class="btn small close" type="button">Close</button></div>
           <div class="click-mode">
-            <span class="label" id="click-label">Click plays</span>
+            <span class="label" id="click-label">Metronome plays</span>
             <div class="segs" id="click-mode" role="group" aria-labelledby="click-label"></div>
             <p class="note" id="click-note"></p>
           </div>
-          <label class="label" for="mix-click">Click level <b id="mix-click-val"></b></label>
+          <label class="label" for="mix-click">Metronome level <b id="mix-click-val"></b></label>
           <input id="mix-click" type="range" min="0" max="1" step="0.05" value="0.7">
-          <span class="label">Click sound</span>
-          <div class="segs" id="sound" role="group" aria-label="Click sound"></div>
+          <span class="label">Metronome sound</span>
+          <div class="segs" id="sound" role="group" aria-label="Metronome sound"></div>
       <div class="field">
         <span class="label">Time signature</span>
         <div class="segs" id="meter" role="group" aria-label="Time signature"></div>
@@ -103,24 +103,24 @@
           </details>
 
           <div class="field">
-            <span class="label">Clicks per beat</span>
-            <div class="segs" id="subdiv" role="group" aria-label="Clicks per beat"></div>
+            <span class="label">Ticks per beat</span>
+            <div class="segs" id="subdiv" role="group" aria-label="Ticks per beat"></div>
           </div>
           <div class="field">
-            <span class="label">Click on</span>
-            <div class="segs" id="clickon" role="group" aria-label="Which beats click"></div>
-            <p class="note">2 &amp; 4 is the backbeat, where a drummer's snare lands. Downbeat gives one click a bar, so you carry the rest. &amp; clicks only the upbeats, so you hold the pulse while the click lands between your beats.</p>
+            <span class="label">Metronome on</span>
+            <div class="segs" id="clickon" role="group" aria-label="Which beats sound"></div>
+            <p class="note">2 &amp; 4 is the backbeat, where a drummer's snare lands. Downbeat gives one tick a bar, so you carry the rest. &amp; ticks only the upbeats, so you hold the pulse while the click lands between your beats.</p>
           </div>
           <details class="more" id="looseness">
             <summary>Looseness: chance and human feel</summary>
             <div class="more-body">
               <label class="label" for="humanize">Human feel <b id="humanize-val"></b></label>
               <input id="humanize" type="range" min="0" max="1" step="0.05" value="0">
-              <p class="note">Leave it off while you check your time. It nudges each click off the grid on purpose.</p>
+              <p class="note">Leave it off while you check your time. It nudges each tick off the grid on purpose.</p>
               <label class="label" for="density">Chance <b id="density-val"></b></label>
               <input id="density" type="range" min="0" max="1" step="0.05" value="1">
               <button class="btn small" id="freeze" type="button" aria-pressed="false">Freeze the dice</button>
-              <p class="note">Scales every beat's chance, so clicks drop out at random and you have to listen. Freeze repeats the same choices each bar.</p>
+              <p class="note">Scales every beat's chance, so beats drop out at random and you have to listen. Freeze repeats the same choices each bar.</p>
             </div>
           </details>
         </div>
@@ -164,7 +164,7 @@
           <div class="panel-head"><h3>Feel</h3><button class="btn small close" type="button">Close</button></div>
           <label class="label" for="swing">Swing <b id="swing-val"></b></label>
           <input id="swing" type="range" min="0.5" max="0.8" step="0.005" value="0.5">
-          <p class="note">Swings the click (with two or four clicks per beat) and the whole band: chords, bass and drums. Left at straight, the band plays its style's own feel.</p>
+          <p class="note">Swings the metronome (with two or four ticks per beat) and the whole band: chords, bass and drums. Left at straight, the band plays its style's own feel.</p>
         </div>
       </div>
     </section>
@@ -182,7 +182,7 @@
         <div class="panel" data-panel="countin" hidden>
           <div class="panel-head"><h3>Count-in</h3><button class="btn small close" type="button">Close</button></div>
           <div class="segs" id="countin" role="group" aria-label="Count-in bars"></div>
-          <p class="note">Bars of click first, always audible. The gap trainer and the ladder start after it.</p>
+          <p class="note">Bars of metronome first, always audible, even with the metronome off. The gap trainer and the ladder start after it.</p>
         </div>
         <div class="panel" data-panel="gap" hidden>
           <div class="panel-head"><h3>Gap trainer</h3><button class="btn small close" type="button">Close</button></div>
@@ -213,7 +213,7 @@
           <div class="panel-head"><h3>Trade fours</h3><button class="btn small close" type="button">Close</button></div>
           <div class="segs" id="trade" role="group" aria-label="Groove trades every N bars"></div>
           <p class="note" id="trade-hint">Needs drums. Switch Drums on first.</p>
-          <p class="note">The groove plays four or eight bars, then drops out for the same length while the click and chords carry on. You play the gap.</p>
+          <p class="note">The groove plays four or eight bars, then drops out for the same length while the metronome and chords carry on. You play the gap.</p>
         </div>
       </div>
     </section>
@@ -285,6 +285,6 @@
     <button class="btn" id="tap" type="button">Tap</button>
   </div>
 </div>
-<script type="module" src="assets/js/metronome/metronome.js?v=20261108n"></script>
+<script type="module" src="assets/js/metronome/metronome.js?v=20261108p"></script>
 </body>
 </html>
