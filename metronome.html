@@ -7,7 +7,7 @@
 <meta name="description" content="A practice metronome with odd meters, swing, chance, gap trainer and tempo ladder. Runs in the browser.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
 <link rel="stylesheet" href="assets/css/site.css?v=20261106">
-<link rel="stylesheet" href="assets/css/metronome.css?v=20261108d">
+<link rel="stylesheet" href="assets/css/metronome.css?v=20261108e">
 </head>
 <body>
 <div class="moire soft" aria-hidden="true"><i></i><i></i></div>
@@ -16,11 +16,25 @@
 
   <main class="flow">
     <section class="top" aria-label="Tempo">
-      <div class="dial" id="dial">
+      <div class="dial vinyl" id="dial">
+        <svg class="disc" viewBox="0 0 200 200" aria-hidden="true">
+          <defs><path id="vinyl-ring" d="M100 100 m-84 0 a84 84 0 1 1 168 0 a84 84 0 1 1 -168 0"/></defs>
+          <circle cx="100" cy="100" r="99" fill="#111"/>
+          <g fill="none" stroke="#2c2c2c" stroke-width="1">
+            <circle cx="100" cy="100" r="93"/><circle cx="100" cy="100" r="90"/><circle cx="100" cy="100" r="87"/>
+            <circle cx="100" cy="100" r="71"/><circle cx="100" cy="100" r="68"/><circle cx="100" cy="100" r="65"/><circle cx="100" cy="100" r="62"/>
+            <circle cx="100" cy="100" r="59"/><circle cx="100" cy="100" r="56"/><circle cx="100" cy="100" r="53"/>
+          </g>
+          <circle cx="100" cy="100" r="79" fill="none" stroke="#4a4a4a" stroke-width="2.4"/>
+          <text class="ring-text" font-size="8.4" letter-spacing="2.1"><textPath href="#vinyl-ring" startOffset="0">ADEL MOSTAFAVI  &#183;  METRONOME  &#183;  ONE TURN, ONE BAR  &#183;  PRACTICE SLOWLY  &#183;</textPath></text>
+          <circle class="marker" cx="100" cy="13" r="4.6" fill="#ff3b1f"/>
+        </svg>
         <span class="pulse" aria-hidden="true"></span>
-        <output class="bpm" id="bpm" aria-live="off">80</output>
-        <span class="unit">BPM</span>
-        <span class="word" id="tempo-word">Andante</span>
+        <div class="label">
+          <output class="bpm" id="bpm" aria-live="off">80</output>
+          <span class="unit">BPM</span>
+          <span class="word" id="tempo-word">Andante</span>
+        </div>
       </div>
       <div class="top-side">
         <p class="status" id="status" aria-live="polite">Ready</p>
@@ -273,6 +287,6 @@
     <button class="btn" id="tap" type="button">Tap</button>
   </div>
 </div>
-<script type="module" src="assets/js/metronome/metronome.js?v=20261108d"></script>
+<script type="module" src="assets/js/metronome/metronome.js?v=20261108e"></script>
 </body>
 </html>

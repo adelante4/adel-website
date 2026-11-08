@@ -1,0 +1,63 @@
+{
+ "id": "kawai",
+ "name": "Studio grand",
+ "kind": "keys",
+ "sampleRate": 32000,
+ "release": 0.5,
+ "license": "CC0 1.0",
+ "credit": "VCSL, Kawai grand",
+ "notes": [
+  {
+   "midi": 21.05,
+   "file": "n21.wav"
+  },
+  {
+   "midi": 29.962,
+   "file": "n30.wav"
+  },
+  {
+   "midi": 38.919,
+   "file": "n39.wav"
+  },
+  {
+   "midi": 48.014,
+   "file": "n48.wav"
+  },
+  {
+   "midi": 54.035,
+   "file": "n54.wav"
+  },
+  {
+   "midi": 60.008,
+   "file": "n60.wav"
+  },
+  {
+   "midi": 65.951,
+   "file": "n66.wav"
+  },
+  {
+   "midi": 72.008,
+   "file": "n72.wav"
+  },
+  {
+   "midi": 78.096,
+   "file": "n78.wav"
+  },
+  {
+   "midi": 83.038,
+   "file": "n83.wav"
+  },
+  {
+   "midi": 89.991,
+   "file": "n90.wav"
+  },
+  {
+   "midi": 99.0,
+   "file": "n99.wav"
+  },
+  {
+   "midi": 108.0,
+   "file": "n108.wav"
+  }
+ ]
+}

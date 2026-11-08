@@ -5,13 +5,19 @@
 // loaded the first time they are chosen. All recordings are CC0 (see the LICENSE files).
 
 export const KEYS = [
-  { id: "rhodes", name: "Rhodes", trim: 0.947, synth: true, note: "Electric piano made in code. Warm and round." },
-  { id: "fmpiano", name: "FM piano", trim: 1.188, note: "A Yamaha TX81Z patch, recorded from the hardware. Glassy 80s electric piano." },
-  { id: "upright", name: "Upright", trim: 1.157, note: "A Yamaha upright. Close and a little dusty." },
-  { id: "vibes", name: "Vibraphone", trim: 1.003, note: "Soft mallets. Sits high, so voicings are lifted an octave." },
-  { id: "clavisynth", name: "Clav", trim: 1.201, note: "A TX81Z pluck with a clavinet bite. Best with Push or On 1." },
-  { id: "organ", name: "Organ", trim: 1.074, synth: true, note: "Drawbar organ made in code." },
-  { id: "pad", name: "Pad", trim: 0.774, synth: true, note: "A slow, warm synth pad. Pairs with Sustain." },
+  { id: "rhodes", name: "Rhodes", trim: 0.952, synth: true, note: "Electric piano made in code. Warm and round." },
+  { id: "grand", name: "Grand piano", trim: 1.561, note: "A Steinway B grand, recorded close. Full and natural: the normal piano." },
+  { id: "kawai", name: "Studio grand", trim: 1.257, note: "A Kawai grand. Softer and rounder than the Steinway, good for ballads." },
+  { id: "fmpiano", name: "FM piano", trim: 1.194, note: "A Yamaha TX81Z patch, recorded from the hardware. Glassy 80s electric piano." },
+  { id: "upright", name: "Upright", trim: 1.163, note: "A Yamaha upright. Close and a little dusty." },
+  { id: "vibes", name: "Vibraphone", trim: 1.007, note: "Soft mallets. Sits high, so voicings are lifted an octave." },
+  { id: "clavisynth", name: "Clav", trim: 1.207, note: "A TX81Z pluck with a clavinet bite. Best with Push or On 1." },
+  { id: "organ", name: "Organ", trim: 1.079, synth: true, note: "Drawbar organ made in code." },
+  { id: "harpsichord", name: "Harpsichord", trim: 1.574, note: "An English harpsichord. Plucked and bright, no sustain pedal." },
+  { id: "harp", name: "Concert harp", trim: 1.197, note: "A concert harp. Rolled chords sound natural here." },
+  { id: "marimba", name: "Marimba", trim: 1.062, note: "Wooden bars. Warm and dry, best with Push or Two-feel." },
+  { id: "kalimba", name: "Kalimba", trim: 3.958, note: "A Kenyan thumb piano. Small, bell-like and lofi." },
+  { id: "pad", name: "Pad", trim: 0.778, synth: true, note: "A slow, warm synth pad. Pairs with Sustain." },
 ];
 
 export const BASSES = [

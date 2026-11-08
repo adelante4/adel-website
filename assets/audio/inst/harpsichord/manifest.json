@@ -1,0 +1,51 @@
+{
+ "id": "harpsichord",
+ "name": "Harpsichord",
+ "kind": "keys",
+ "sampleRate": 32000,
+ "release": 0.15,
+ "license": "CC0 1.0",
+ "credit": "VCSL, English harpsichord (Zuckermann)",
+ "notes": [
+  {
+   "midi": 34.081,
+   "file": "n34.wav"
+  },
+  {
+   "midi": 39.998,
+   "file": "n40.wav"
+  },
+  {
+   "midi": 45.994,
+   "file": "n46.wav"
+  },
+  {
+   "midi": 52.089,
+   "file": "n52.wav"
+  },
+  {
+   "midi": 58.069,
+   "file": "n58.wav"
+  },
+  {
+   "midi": 64.048,
+   "file": "n64.wav"
+  },
+  {
+   "midi": 70.013,
+   "file": "n70.wav"
+  },
+  {
+   "midi": 76.045,
+   "file": "n76.wav"
+  },
+  {
+   "midi": 81.955,
+   "file": "n82.wav"
+  },
+  {
+   "midi": 87.967,
+   "file": "n88.wav"
+  }
+ ]
+}

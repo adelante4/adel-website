@@ -1,0 +1,47 @@
+{
+ "id": "harp",
+ "name": "Concert harp",
+ "kind": "keys",
+ "sampleRate": 32000,
+ "release": 0.4,
+ "license": "CC0 1.0",
+ "credit": "VCSL, concert harp (K. Smith)",
+ "notes": [
+  {
+   "midi": 34.858,
+   "file": "n35.wav"
+  },
+  {
+   "midi": 40.932,
+   "file": "n41.wav"
+  },
+  {
+   "midi": 51.961,
+   "file": "n52.wav"
+  },
+  {
+   "midi": 58.865,
+   "file": "n59.wav"
+  },
+  {
+   "midi": 64.988,
+   "file": "n65.wav"
+  },
+  {
+   "midi": 71.89,
+   "file": "n72.wav"
+  },
+  {
+   "midi": 78.939,
+   "file": "n79.wav"
+  },
+  {
+   "midi": 85.924,
+   "file": "n86.wav"
+  },
+  {
+   "midi": 92.815,
+   "file": "n93.wav"
+  }
+ ]
+}

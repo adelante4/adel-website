@@ -3,7 +3,7 @@
 // A rule never touches the pattern. It only says, for a given bar number, whether the
 // click and the drum groove play. That keeps every mode small and easy to test, and
 // lets new modes be added without changing how clicks are generated.
-import { clampBpm } from "./tempo.js?v=20261108d";
+import { clampBpm } from "./tempo.js?v=20261108e";
 
 /**
  * @typedef {Object} Practice

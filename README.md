@@ -23,7 +23,7 @@ Every three posts make a new vinyl.
 
 ## Metronome
 
-`metronome.html` is a practice metronome: odd meters, swing, chance, gap trainer, tempo ladder, count-in, share links, a chord progression builder with an electric piano, and a band you build in layers: chords (7 keys sounds), bass (walking, two-feel, bossa, lofi and more, 6 sounds), and drums (10 grooves, 7 kits), each with its own volume. A few standards are included as changes only (typical changes, check against your own chart). Every sound has a synth fallback. It has no build step. The code is plain ES modules in `assets/js/metronome/`. The timing logic (`timeline`, `pattern`, `overlay`, `chords`, `comping`, `groove`, `transport`, `share`) does not touch Web Audio, so it runs under Node.
+`metronome.html` is a practice metronome: odd meters, swing, chance, gap trainer, tempo ladder, count-in, share links, a chord progression builder with an electric piano, and a band you build in layers: chords (13 keys sounds, including two sampled grand pianos), bass (walking, two-feel, bossa, lofi and more, 6 sounds), and drums (10 grooves, 7 kits), each with its own volume. A few standards are included as changes only (typical changes, check against your own chart). Every sound has a synth fallback. It has no build step. The code is plain ES modules in `assets/js/metronome/`. The timing logic (`timeline`, `pattern`, `overlay`, `chords`, `comping`, `groove`, `transport`, `share`) does not touch Web Audio, so it runs under Node.
 
 ```
 npm test
@@ -34,6 +34,8 @@ The recorded click voices in `assets/audio/clicks/` come from the CC0 Versilian 
 The recorded instruments in `assets/audio/inst/` and drum kits in `assets/audio/kits/` are also CC0 (Karoryfer Samples, the Versilian Community Sample Library and D. Smolken's Otto Rubner double bass), so no credit is required. They load lazily, only for the sounds you pick.
 
 The kits `gogoroom`, `gogoretro`, `swirly` and `hands` are cut from the Karoryfer libraries by `tools/build-kits.py` (needs numpy and scipy, and local clones of `karoryfer.swirly-drums` and `karoryfer.gogodze-phu-vol-ii` from sfzinstruments on GitHub). Per-sound loudness trims live in `instruments.js`. `tools/measure-levels.html` renders every sound through the real audio engine so the trims can be re-measured after any change.
+
+The keys `grand`, `kawai`, `harpsichord`, `harp`, `marimba` and `kalimba` are cut from the VCSL library (CC0) by `tools/build-keys.py` (needs numpy and scipy and a local clone of `sgossner/vcsl`). They load on first use.
 
 ## Run locally
 

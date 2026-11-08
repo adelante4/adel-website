@@ -1,0 +1,51 @@
+{
+ "id": "marimba",
+ "name": "Marimba",
+ "kind": "keys",
+ "sampleRate": 32000,
+ "release": 0.15,
+ "license": "CC0 1.0",
+ "credit": "VCSL, marimba",
+ "notes": [
+  {
+   "midi": 40.988,
+   "file": "n41.wav"
+  },
+  {
+   "midi": 48.043,
+   "file": "n48.wav"
+  },
+  {
+   "midi": 55.006,
+   "file": "n55.wav"
+  },
+  {
+   "midi": 59.027,
+   "file": "n59.wav"
+  },
+  {
+   "midi": 64.997,
+   "file": "n65.wav"
+  },
+  {
+   "midi": 72.045,
+   "file": "n72.wav"
+  },
+  {
+   "midi": 78.976,
+   "file": "n79.wav"
+  },
+  {
+   "midi": 83.003,
+   "file": "n83.wav"
+  },
+  {
+   "midi": 89.001,
+   "file": "n89.wav"
+  },
+  {
+   "midi": 96.552,
+   "file": "n97.wav"
+  }
+ ]
+}

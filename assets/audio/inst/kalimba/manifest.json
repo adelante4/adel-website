@@ -1,0 +1,55 @@
+{
+ "id": "kalimba",
+ "name": "Kalimba",
+ "kind": "keys",
+ "sampleRate": 32000,
+ "release": 0.3,
+ "license": "CC0 1.0",
+ "credit": "VCSL, Kenyan kalimba",
+ "notes": [
+  {
+   "midi": 59.033,
+   "file": "n59.wav"
+  },
+  {
+   "midi": 61.267,
+   "file": "n61.wav"
+  },
+  {
+   "midi": 62.918,
+   "file": "n63.wav"
+  },
+  {
+   "midi": 66.349,
+   "file": "n66.wav"
+  },
+  {
+   "midi": 68.409,
+   "file": "n68.wav"
+  },
+  {
+   "midi": 71.196,
+   "file": "n71.wav"
+  },
+  {
+   "midi": 72.952,
+   "file": "n73.wav"
+  },
+  {
+   "midi": 75.6,
+   "file": "n76.wav"
+  },
+  {
+   "midi": 78.35,
+   "file": "n78.wav"
+  },
+  {
+   "midi": 80.358,
+   "file": "n80.wav"
+  },
+  {
+   "midi": 83.0,
+   "file": "n83.wav"
+  }
+ ]
+}

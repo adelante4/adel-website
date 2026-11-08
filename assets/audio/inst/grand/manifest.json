@@ -1,0 +1,67 @@
+{
+ "id": "grand",
+ "name": "Grand piano",
+ "kind": "keys",
+ "sampleRate": 32000,
+ "release": 0.5,
+ "license": "CC0 1.0",
+ "credit": "VCSL, Steinway B grand (J. Hodges)",
+ "notes": [
+  {
+   "midi": 22.095,
+   "file": "n22.wav"
+  },
+  {
+   "midi": 27.888,
+   "file": "n28.wav"
+  },
+  {
+   "midi": 34.156,
+   "file": "n34.wav"
+  },
+  {
+   "midi": 40.072,
+   "file": "n40.wav"
+  },
+  {
+   "midi": 46.019,
+   "file": "n46.wav"
+  },
+  {
+   "midi": 52.047,
+   "file": "n52.wav"
+  },
+  {
+   "midi": 58.141,
+   "file": "n58.wav"
+  },
+  {
+   "midi": 64.047,
+   "file": "n64.wav"
+  },
+  {
+   "midi": 70.034,
+   "file": "n70.wav"
+  },
+  {
+   "midi": 76.004,
+   "file": "n76.wav"
+  },
+  {
+   "midi": 82.023,
+   "file": "n82.wav"
+  },
+  {
+   "midi": 88.027,
+   "file": "n88.wav"
+  },
+  {
+   "midi": 93.97,
+   "file": "n94.wav"
+  },
+  {
+   "midi": 100.0,
+   "file": "n100.wav"
+  }
+ ]
+}

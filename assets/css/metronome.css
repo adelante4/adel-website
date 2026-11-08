@@ -5,19 +5,6 @@
 }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 /* ---- Tempo column ---- */
-.dial {
-  position: relative; width: min(70vw, 280px); aspect-ratio: 1; border-radius: 50%;
-  background: var(--ink); color: var(--bg);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-}
-.dial .pulse {
-  position: absolute; top: 9%; left: 50%; width: 13%; aspect-ratio: 1; margin-left: -6.5%;
-  border-radius: 50%; background: var(--accent);
-  transform: scale(calc(0.45 + var(--p, 0) * 0.75)); opacity: calc(0.25 + var(--p, 0) * 0.75);
-}
-.dial .bpm { font-size: clamp(60px, 16vw, 84px); font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
-.dial .unit { font-size: 12px; letter-spacing: 0.3em; }
-.dial .word { margin-top: 8px; font-size: 13px; color: var(--accent); }
 .status { margin: 0; width: 100%; text-align: center; min-height: 1.6em; font-size: 13px; }
 .transport { display: flex; gap: 8px; width: 100%; align-items: stretch; }
 .transport .btn { flex: 1 1 0; font-weight: 700; }
@@ -92,13 +79,11 @@ select {
 .share-url[hidden] { display: none; }
 #notice { min-height: 1.6em; text-align: center; width: 100%; }
 @media (prefers-reduced-motion: reduce) {
-  .dial .pulse { transform: none; }
 }
 @media (max-width: 640px) {
   .metro-page { padding: 72px 16px 110px 56px; gap: 20px; }
   .bar { height: 96px; }
   .hint { display: none; }
-  .dial { width: min(58vw, 230px); }
   .transport {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; width: auto; gap: 6px;
     padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: var(--bg); border-top: 1.5px solid var(--ink);
@@ -134,11 +119,9 @@ input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20p
 input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--accent); border: 2px solid var(--ink); }
 /* The room is a sheet: solid, with a heavy top edge */
 .field + .field { padding-top: 0; }
-.dial { box-shadow: 8px 8px 0 var(--accent); }
 .status { text-align: left; padding: 0; }
 .hint { padding: 0; }
 @media (max-width: 640px) {
-  .dial { box-shadow: 5px 5px 0 var(--accent); }
 }
 /* Lead-sheet layout: four bars to a line */
 .form { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 0; }
@@ -239,7 +222,6 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
 
 /* Tempo head: the dial, and what belongs to it */
 .top { display: flex; flex-wrap: wrap; align-items: center; gap: 24px 32px; }
-.dial { flex: none; width: min(64vw, 240px); }
 .top-side { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
 .quiet-row { display: flex; gap: 8px; }
 .quiet-row .btn { flex: 0 1 140px; }
@@ -319,7 +301,6 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
   .metro-page { padding: 72px 16px 130px 56px; }
   .flow { gap: 34px; }
   .top { gap: 16px; }
-  .dial { width: min(52vw, 200px); }
   .chips { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .panel { padding: 14px; box-shadow: 4px 4px 0 var(--ink); }
   .transport { gap: 6px; padding-inline: 10px; }
@@ -331,3 +312,41 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
 #chips-practice { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 @media (max-width: 900px) { #chips-sound, #chips-practice { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .chip .cv { white-space: normal; }
+
+/* ================= Vinyl: turns once per bar ================= */
+.vinyl { position: relative; flex: none; width: min(64vw, 250px); aspect-ratio: 1; }
+.vinyl .disc {
+  position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%;
+  transform: rotate(var(--rot, 0deg)); will-change: transform;
+  box-shadow: 8px 8px 0 var(--accent);
+}
+.vinyl .disc.settle { transition: transform 0.7s cubic-bezier(0.3, 0.7, 0.2, 1); }
+.vinyl .ring-text { fill: var(--bg); font-family: var(--font); font-weight: 700; }
+/* Where beat one lands: a small lit notch at twelve o'clock that flashes on every beat. */
+.vinyl .pulse {
+  position: absolute; top: -3%; left: 50%; width: 9%; aspect-ratio: 1; margin-left: -4.5%;
+  background: var(--accent); border: 2px solid var(--ink); border-radius: 50%; z-index: 2;
+  transform: scale(calc(0.8 + var(--p, 0) * 0.5));
+}
+.vinyl .label {
+  position: absolute; left: 50%; top: 50%; width: 46%; aspect-ratio: 1; transform: translate(-50%, -50%);
+  border-radius: 50%; background: var(--accent); color: var(--ink); border: 2px solid var(--ink);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; z-index: 1;
+}
+.vinyl .label::after { content: ""; position: absolute; left: 50%; top: 50%; width: 5%; aspect-ratio: 1; transform: translate(-50%, -50%); }
+.vinyl .bpm { font-size: clamp(34px, 11vw, 48px); font-weight: 700; line-height: 1; letter-spacing: -0.03em; }
+.vinyl .unit { font-size: 10px; letter-spacing: 0.3em; margin-top: 2px; }
+.vinyl .word { margin-top: 3px; font-size: 11px; font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { .vinyl .disc { transform: none; } .vinyl .pulse { transform: none; } }
+
+/* Phone: the name sits on its own line above everything, and the record gets the full width. */
+@media (max-width: 640px) {
+  .metro-page { padding: 16px 16px 130px 16px; }
+  .metro-page .name-tab {
+    position: static; display: block; writing-mode: horizontal-tb; transform: none; padding: 0 0 18px; background: none;
+  }
+  .top { justify-content: center; text-align: left; }
+  .vinyl { width: min(72vw, 270px); }
+  .top-side { flex: 1 1 100%; }
+  .quiet-row .btn { flex: 1 1 0; }
+}

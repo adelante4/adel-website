@@ -4,24 +4,24 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261108d";
-import { createTransport } from "./transport.js?v=20261108d";
-import { barPlays } from "./overlay.js?v=20261108d";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261108d";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261108d";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261108d";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261108d";
-import { COMP_STYLES } from "./comping.js?v=20261108d";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261108d";
-import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261108d";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261108d";
-import { BAND_STYLES } from "./bands.js?v=20261108d";
-import { createTuneView } from "./tune.js?v=20261108d";
-import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261108d";
-import { initRooms } from "./rooms.js?v=20261108d";
-import { TOP_100 } from "./top100.js?v=20261108d";
-import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261108d";
-import { MAX_FORM_BARS } from "./share.js?v=20261108d";
+import { createAudio } from "./audio.js?v=20261108e";
+import { createTransport } from "./transport.js?v=20261108e";
+import { barPlays } from "./overlay.js?v=20261108e";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261108e";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261108e";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261108e";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261108e";
+import { COMP_STYLES } from "./comping.js?v=20261108e";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261108e";
+import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261108e";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261108e";
+import { BAND_STYLES } from "./bands.js?v=20261108e";
+import { createTuneView } from "./tune.js?v=20261108e";
+import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261108e";
+import { initRooms } from "./rooms.js?v=20261108e";
+import { TOP_100 } from "./top100.js?v=20261108e";
+import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261108e";
+import { MAX_FORM_BARS } from "./share.js?v=20261108e";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -259,6 +259,7 @@ const pct = (x) => `${Math.round(x * 100)}%`;
 const humanWord = (h) => (h === 0 ? "exact" : pct(h));
 
 // ---- drawing ----
+const disc = document.querySelector("#dial .disc");
 const els = {
   form: $("form"),
   beats: $("beats"),
@@ -585,6 +586,9 @@ function clearPlayhead() {
   els.form.querySelectorAll(".chord.on").forEach((c) => c.classList.remove("on"));
   tuneView?.follow(null);
   els.page.style.setProperty("--p", "0");
+  // Settle the record back to its starting point instead of snapping.
+  disc.classList.add("settle");
+  disc.style.setProperty("--rot", "0deg");
 }
 
 function frame() {
@@ -597,6 +601,9 @@ function frame() {
     const slot = whole % (p.beats * p.bars);
     els.beats.querySelectorAll(".col").forEach((c, j) => c.classList.toggle("on", j === slot));
     els.page.style.setProperty("--p", Math.max(0, 1 - (beat - whole) * 3).toFixed(3));
+    // The record turns once per bar, so the red marker passes the notch on every downbeat.
+    disc.classList.remove("settle");
+    disc.style.setProperty("--rot", `${(((beat % p.beats) + p.beats) % p.beats / p.beats * 360).toFixed(2)}deg`);
     const bpm = Math.round(transport.bpmAt(beat));
     $("bpm").textContent = String(bpm);
     $("bpm-mini").textContent = String(bpm);
