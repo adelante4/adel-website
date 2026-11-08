@@ -7,7 +7,7 @@
 <meta name="description" content="A practice metronome with odd meters, swing, chance, gap trainer and tempo ladder. Runs in the browser.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
 <link rel="stylesheet" href="assets/css/site.css?v=20261106">
-<link rel="stylesheet" href="assets/css/metronome.css?v=20261108a">
+<link rel="stylesheet" href="assets/css/metronome.css?v=20261108b">
 </head>
 <body>
 <div class="moire soft" aria-hidden="true"><i></i><i></i></div>
@@ -103,7 +103,7 @@
         <div class="pedal" data-pedal="sound" data-name="Click sound">
           <div class="segs" id="sound" role="group" aria-label="Click sound"></div>
           <label class="label" for="mix-click">Click level <b id="mix-click-val"></b></label>
-          <input id="mix-click" type="range" min="0" max="1" step="0.05" value="1">
+          <input id="mix-click" type="range" min="0" max="1" step="0.05" value="0.7">
         </div>
       </div>
     </section>
@@ -213,9 +213,9 @@
           <div class="lv" data-lv="chords"><label class="label" for="mix-chords">Keys <b id="mix-chords-val"></b></label>
             <input id="mix-chords" type="range" min="0" max="1" step="0.05" value="0.7"></div>
           <div class="lv" data-lv="bass"><label class="label" for="mix-bass">Bass <b id="mix-bass-val"></b></label>
-            <input id="mix-bass" type="range" min="0" max="1" step="0.05" value="0.6"></div>
+            <input id="mix-bass" type="range" min="0" max="1" step="0.05" value="0.7"></div>
           <div class="lv" data-lv="groove"><label class="label" for="mix-groove">Drums <b id="mix-groove-val"></b></label>
-            <input id="mix-groove" type="range" min="0" max="1" step="0.05" value="0.5"></div>
+            <input id="mix-groove" type="range" min="0" max="1" step="0.05" value="0.7"></div>
         </div>
       </div>
     </section>
@@ -258,6 +258,6 @@
     </section>
   </div>
 </div>
-<script type="module" src="assets/js/metronome/metronome.js?v=20261108a"></script>
+<script type="module" src="assets/js/metronome/metronome.js?v=20261108b"></script>
 </body>
 </html>

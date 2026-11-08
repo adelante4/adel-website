@@ -1,0 +1,65 @@
+<!doctype html><meta charset=utf-8><script type=module>
+const V="20261108b";
+let off;
+const SR=44100, SECS=22;
+window.AudioContext=function(){off=new OfflineAudioContext(2,SR*SECS,SR);return off;};
+const {createAudio}=await import(`/assets/js/metronome/audio.js?v=${V}`);
+const {createTransport}=await import(`/assets/js/metronome/transport.js?v=${V}`);
+const {defaultState,normalizeState}=await import(`/assets/js/metronome/share.js?v=${V}`);
+const FORM=[["Dm7"],["G7"],["Cmaj7","A7"],["Dm7"],["Gm7","C7"],["Fmaj7"],["Bm7b5","E7"],["Am7"]];
+async function kweight(buf){
+  const o=new OfflineAudioContext(buf.numberOfChannels,buf.length,SR);
+  const s=o.createBufferSource();s.buffer=buf;
+  const hs=o.createBiquadFilter();hs.type="highshelf";hs.frequency.value=1500;hs.gain.value=4;
+  const hp=o.createBiquadFilter();hp.type="highpass";hp.frequency.value=60;hp.Q.value=0.5;
+  s.connect(hs);hs.connect(hp);hp.connect(o.destination);s.start();
+  return o.startRendering();
+}
+function stats(buf){
+  const a=buf.getChannelData(0),b=buf.getChannelData(1);
+  const w=Math.floor(SR*0.4);let blocks=[];let peak=0;
+  for(let i=0;i+w<=a.length;i+=w){let s=0;for(let j=i;j<i+w;j++){s+=a[j]*a[j]+b[j]*b[j];const p=Math.max(Math.abs(a[j]),Math.abs(b[j]));if(p>peak)peak=p;}blocks.push(s/(2*w));}
+  const ms=blocks.filter(x=>x>1e-9);
+  // gated: ignore blocks 20dB below the loudest
+  const mx=Math.max(...ms);const g=ms.filter(x=>x>mx*0.01);
+  const mean=g.reduce((x,y)=>x+y,0)/g.length;
+  return {lufs:-0.691+10*Math.log10(mean),peak:20*Math.log10(peak)};
+}
+window.band=async function(id,only){
+  const {BAND_STYLES}=await import(`/assets/js/metronome/bands.js?v=${V}`);
+  const b=BAND_STYLES.find(x=>x.id===id);
+  const st0=defaultState();
+  const cfg={keys:only&&only!=="keys"?null:b.keys.sound,bass:only&&only!=="bass"?null:b.bass.sound,drums:only&&only!=="drums"?null:{style:b.groove.style,kit:b.groove.kit},bassStyle:b.bass.style,comp:b.keys.comp,mix:{click:0,chords:st0.mix.chords,bass:st0.mix.bass,groove:st0.mix.groove,autoMute:false}};
+  if(b.meter[0]===3)cfg.beats=3;
+  return measure(cfg);
+};
+window.measure=async function(cfg){
+  const audio=createAudio();
+  const st=defaultState();
+  st.pattern.bpm=100;if(cfg.click)st.pattern.sound=cfg.click;if(cfg.beats){st.pattern.beats=cfg.beats;}
+  st.harmony.form=FORM;
+  st.harmony.on=!!cfg.keys;if(cfg.keys)st.harmony.sound=cfg.keys;
+  st.bass.on=!!cfg.bass;if(cfg.bass)st.bass.sound=cfg.bass;
+  if(cfg.drums){st.groove={style:cfg.drums.style,kit:cfg.drums.kit,dust:false};}
+  if(cfg.bassStyle)st.bass.style=cfg.bassStyle;
+  if(cfg.comp)st.harmony.comp=cfg.comp;
+  st.mix=cfg.mix||{click:cfg.click?0.25:0,chords:0.25,bass:0.25,groove:0.25,autoMute:false};
+  if(cfg.beats){Object.assign(st,normalizeState(st));}
+  audio.ensure();
+  await audio.preloadBand({keys:cfg.keys,bass:cfg.bass,kit:cfg.drums?.kit});
+  const run=audio.createRun(st.mix);
+  const tr=createTransport(()=>st);
+  tr.start(0,0);
+  const out=tr.pullAll(0,16);
+  const {chordVoicing}=window;
+  const voice=(await import(`/assets/js/metronome/chords.js?v=${V}`)).voiceChord;
+  for(const e of out.clicks) audio.click(run,e.time,e.kind,e.gain,st.pattern.sound);
+  for(const e of out.chords) audio.chord(run,e.time,e.notes,e.seconds,e.gain,st.harmony.sound);
+  for(const e of out.bass) audio.bass(run,e.time,e.midi,e.seconds,e.gain,st.bass.sound);
+  for(const e of out.drums) audio.drum(run,e.time,e.voice,e.gain,st.groove.style,st.groove.kit);
+  const r=await off.startRendering();
+  const k=await kweight(r);
+  return stats(k);
+};
+document.title="ready";
+</script>

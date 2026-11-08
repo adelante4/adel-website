@@ -63,7 +63,7 @@ export function defaultState() {
     },
     bass: { on: false, style: "walking", sound: "doublebass" },
     groove: { style: "off", kit: "synth", dust: false },
-    mix: { click: 1, chords: 0.7, bass: 0.6, groove: 0.5, autoMute: false },
+    mix: { click: 0.7, chords: 0.7, bass: 0.7, groove: 0.7, autoMute: false },
   };
 }
 

@@ -26,8 +26,9 @@ const SOUNDS = {
 };
 
 // Recorded hits (Versilian Community Sample Library, CC0). Each voice has three files.
-import { rhodes, bass, bassSynth, organ, pad, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261108a";
-import { createSampler } from "./sampler.js?v=20261108a";
+import { rhodes, bass, bassSynth, organ, pad, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261108b";
+import { createSampler } from "./sampler.js?v=20261108b";
+import { KEYS, BASSES, trimOf, drumTrim } from "./instruments.js?v=20261108b";
 
 const SYNTH_KEYS = new Set(["rhodes", "organ", "pad"]);
 const SYNTH_BASS = new Set(["round", "moog", "sub"]);
@@ -85,6 +86,20 @@ export function createAudio() {
       }
       keepAlive.play().catch(() => {});
     } catch {}
+  }
+
+  /** A bus with a fixed trim in front of it, so each sound sits at the same loudness. */
+  function via(run, bus, v) {
+    if (v === 1) return run[bus];
+    const key = `${bus}${v}`;
+    let g = run.trims.get(key);
+    if (!g) {
+      g = ctx.createGain();
+      g.gain.value = v;
+      g.connect(run[bus]);
+      run.trims.set(key, g);
+    }
+    return g;
   }
 
   function ensure() {
@@ -154,7 +169,7 @@ export function createAudio() {
      * The buses for one run: click, chords and groove each have their own level, so Stop can
      * silence everything already queued and the mix can change while playing.
      */
-    createRun(mix = { click: 1, chords: 0.7, bass: 0.6, groove: 0.5 }) {
+    createRun(mix = { click: 0.7, chords: 0.7, bass: 0.7, groove: 0.7 }) {
       ensure();
       const run = ctx.createGain();
       run.connect(master);
@@ -189,6 +204,7 @@ export function createAudio() {
       };
       setMix(mix);
       return {
+        trims: new Map(),
         out: clickBus,
         chords: chordBus,
         bass: bassBus,
@@ -245,26 +261,29 @@ export function createAudio() {
       return Promise.all(jobs);
     },
     chord(run, when, notes, seconds, gain, id = "rhodes") {
-      if (id === "organ") return organ(ctx, run.chords, when, notes, seconds, gain);
-      if (id === "pad") return pad(ctx, run.chords, when, notes, seconds, gain);
+      const out = via(run, "chords", trimOf(KEYS, id));
+      if (id === "organ") return organ(ctx, out, when, notes, seconds, gain);
+      if (id === "pad") return pad(ctx, out, when, notes, seconds, gain);
       if (id !== "rhodes") {
         // A recorded instrument plays each note on its own; the strum is a few milliseconds.
         let ok = true;
         notes.forEach((m, i) => {
-          ok = sampler.note(id, run.chords, when + i * 0.006, m, seconds, (gain * 0.9) / Math.sqrt(notes.length) * 0.65) && ok;
+          ok = sampler.note(id, out, when + i * 0.006, m, seconds, (gain * 0.9) / Math.sqrt(notes.length) * 0.65) && ok;
         });
         if (ok) return;
       }
-      rhodes(ctx, run.chords, when, notes, seconds, gain);
+      rhodes(ctx, out, when, notes, seconds, gain);
     },
     bass(run, when, midi, seconds, gain, id = "round") {
-      if (SYNTH_BASS.has(id)) return bassSynth(ctx, run.bass, when, midi, seconds, gain, id);
-      if (sampler.note(id, run.bass, when, midi, seconds, gain * (id === "doublebass" ? 1.7 : 1.1))) return;
-      bassSynth(ctx, run.bass, when, midi, seconds, gain, "round");
+      const out = via(run, "bass", trimOf(BASSES, id));
+      if (SYNTH_BASS.has(id)) return bassSynth(ctx, out, when, midi, seconds, gain, id);
+      if (sampler.note(id, out, when, midi, seconds, gain * (id === "doublebass" ? 1.7 : 1.1))) return;
+      bassSynth(ctx, via(run, "bass", trimOf(BASSES, "round")), when, midi, seconds, gain, "round");
     },
     drum(run, when, voice, gain, style, kit = "synth") {
-      if (kit !== "synth" && sampler.drum(kit, run.groove, when, voice, gain)) return;
-      drum(ctx, run.groove, noise, when, voice, gain, kit === "synth" ? style : "");
+      const out = via(run, "groove", drumTrim(kit, style));
+      if (kit !== "synth" && sampler.drum(kit, out, when, voice, gain)) return;
+      drum(ctx, out, noise, when, voice, gain, kit === "synth" ? style : "");
     },
     /** Schedule one click at an audio-clock time. kind is "accent", "beat" or "sub". */
     click(run, when, kind, gain, sound) {

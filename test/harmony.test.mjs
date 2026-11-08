@@ -210,7 +210,7 @@ test("share: hostile harmony input is repaired", () => {
   assert.deepEqual(bad.groove, { style: "off", kit: "synth", dust: false });
   assert.deepEqual(bad.bass, { on: false, style: "walking", sound: "doublebass" });
   assert.equal(bad.harmony.sound, "rhodes");
-  assert.deepEqual(bad.mix, { click: 1, chords: 0, bass: 0.6, groove: 0.5, autoMute: false });
+  assert.deepEqual(bad.mix, { click: 1, chords: 0, bass: 0.7, groove: 0.7, autoMute: false });
   assert.equal(({}).polluted, undefined);
 });
 
