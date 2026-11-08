@@ -4,24 +4,24 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261108c";
-import { createTransport } from "./transport.js?v=20261108c";
-import { barPlays } from "./overlay.js?v=20261108c";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261108c";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261108c";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261108c";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261108c";
-import { COMP_STYLES } from "./comping.js?v=20261108c";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261108c";
-import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261108c";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261108c";
-import { BAND_STYLES } from "./bands.js?v=20261108c";
-import { createTuneView } from "./tune.js?v=20261108c";
-import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261108c";
-import { initRooms } from "./rooms.js?v=20261108c";
-import { TOP_100 } from "./top100.js?v=20261108c";
-import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261108c";
-import { MAX_FORM_BARS } from "./share.js?v=20261108c";
+import { createAudio } from "./audio.js?v=20261108d";
+import { createTransport } from "./transport.js?v=20261108d";
+import { barPlays } from "./overlay.js?v=20261108d";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261108d";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261108d";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261108d";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261108d";
+import { COMP_STYLES } from "./comping.js?v=20261108d";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261108d";
+import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261108d";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261108d";
+import { BAND_STYLES } from "./bands.js?v=20261108d";
+import { createTuneView } from "./tune.js?v=20261108d";
+import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261108d";
+import { initRooms } from "./rooms.js?v=20261108d";
+import { TOP_100 } from "./top100.js?v=20261108d";
+import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261108d";
+import { MAX_FORM_BARS } from "./share.js?v=20261108d";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -550,6 +550,7 @@ function applyBand(id) {
   const style = BAND_STYLES.find((x) => x.id === id);
   if (!style) return;
   const p = state.pattern;
+  const before = structuredClone({ pattern: state.pattern, harmony: { ...state.harmony, form: undefined }, bass: state.bass, groove: state.groove });
   const [beats, den] = style.meter;
   if (p.beats !== beats || p.den !== den) {
     p.beats = beats;
@@ -564,7 +565,13 @@ function applyBand(id) {
   state.harmony.sound = style.keys.sound;
   state.harmony.comp = style.keys.comp;
   commit("restart");
-  notice(`${style.name}: ${style.bpm} BPM. Change any layer below.`);
+  notice(`${style.name}: ${style.bpm} BPM (was ${before.pattern.bpm}).`, () => {
+    state.pattern = before.pattern;
+    state.harmony = { ...state.harmony, on: before.harmony.on, sound: before.harmony.sound, comp: before.harmony.comp };
+    state.bass = before.bass;
+    state.groove = before.groove;
+    commit("restart");
+  });
 }
 
 function setPlaying(on) {
@@ -606,11 +613,22 @@ function frame() {
   raf = requestAnimationFrame(frame);
 }
 
-function notice(text) {
+function notice(text, undo = null) {
   const el = $("notice");
   el.textContent = text;
+  if (undo) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "btn small undo";
+    b.textContent = "Undo";
+    b.addEventListener("click", () => {
+      undo();
+      el.textContent = "";
+    });
+    el.append(" ", b);
+  }
   clearTimeout(notice.t);
-  notice.t = setTimeout(() => (el.textContent = ""), 5000);
+  notice.t = setTimeout(() => (el.textContent = ""), undo ? 9000 : 5000);
 }
 
 const library = [...MY_STANDARDS, ...TOP_100, ...STANDARDS];
@@ -631,49 +649,7 @@ const tuneView = createTuneView({
     notice("Loaded.");
   },
 });
-// ---- what the player wants to do: metronome, band, or learn a tune ----
-const layersOn = () => state.harmony.on || state.bass.on || state.groove.style !== "off";
-let parked = null; // the band, set aside while the page is a plain metronome
-function onIntent(id) {
-  try {
-    localStorage.setItem("metro-intent", id);
-  } catch {
-    /* not remembered */
-  }
-  tuneView.force(id === "learn" ? null : "chords");
-  if (id === "metronome") {
-    if (layersOn()) {
-      parked = { harmony: state.harmony.on, bass: state.bass.on, groove: state.groove.style };
-      state.harmony.on = false;
-      state.bass.on = false;
-      state.groove = { ...state.groove, style: "off" };
-    }
-    if (state.mix.click === 0) state.mix.click = lastClickLevel || 1;
-    commit();
-  } else if (!layersOn()) {
-    if (parked) {
-      state.harmony.on = parked.harmony;
-      state.bass.on = parked.bass;
-      state.groove = { ...state.groove, style: parked.groove };
-      parked = null;
-      commit();
-    } else applyBand(id === "learn" ? "swing" : "lofi");
-  }
-}
-const rooms = initRooms({ getState: () => state, commit, onIntent });
-{
-  let saved = null;
-  try {
-    saved = localStorage.getItem("metro-intent");
-  } catch {
-    /* none */
-  }
-  let start = ["metronome", "band", "learn"].includes(saved) ? saved : "metronome";
-  if (layersOn() && start === "metronome") start = "band";
-  if (!layersOn()) start = "metronome";
-  rooms.quietIntent(start);
-  tuneView.force(start === "learn" ? null : "chords");
-}
+const rooms = initRooms({ getState: () => state, commit, getTuneName: () => tuneName });
 
 // ---- wiring ----
 $("start").addEventListener("click", toggle);

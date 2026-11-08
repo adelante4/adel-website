@@ -7,53 +7,67 @@
 <meta name="description" content="A practice metronome with odd meters, swing, chance, gap trainer and tempo ladder. Runs in the browser.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
 <link rel="stylesheet" href="assets/css/site.css?v=20261106">
-<link rel="stylesheet" href="assets/css/metronome.css?v=20261108c">
+<link rel="stylesheet" href="assets/css/metronome.css?v=20261108d">
 </head>
 <body>
 <div class="moire soft" aria-hidden="true"><i></i><i></i></div>
 <div class="page metro-page">
   <a class="name-tab" href="index.html">Adel Mostafavi</a>
 
-  <section class="dial-col" aria-label="Tempo">
-    <div class="dial" id="dial">
-      <span class="pulse" aria-hidden="true"></span>
-      <output class="bpm" id="bpm" aria-live="off">80</output>
-      <span class="unit">BPM</span>
-      <span class="word" id="tempo-word">Andante</span>
-    </div>
-    <p class="status" id="status" aria-live="polite">Ready</p>
-    <label class="chip slider-chip">
-      <span class="sr">Tempo</span>
-      <input id="bpm-slider" type="range" min="20" max="240" step="1" value="80">
-    </label>
-    <div class="transport">
-      <button class="btn go" id="start" type="button" aria-pressed="false">Start</button>
-      <output class="bpm-mini" id="bpm-mini" aria-hidden="true">80</output>
-      <button class="btn" id="tap" type="button">Tap</button>
-      <button class="btn" id="bpm-down" type="button" aria-label="Slower">&minus;</button>
-      <button class="btn" id="bpm-up" type="button" aria-label="Faster">+</button>
-    </div>
-    <div class="click-mode" data-modes="band learn">
-      <span class="label" id="click-label">Click</span>
-      <div class="segs" id="click-mode" role="group" aria-labelledby="click-label"></div>
-      <p class="note" id="click-note"></p>
-    </div>
-    <div class="on-now" id="on-now" aria-label="What is switched on"></div>
-    <div class="quiet-row">
-      <button class="btn small" id="share-copy" type="button">Copy link</button>
-      <button class="btn small" id="reset" type="button">Reset</button>
-    </div>
-    <input class="share-url" id="share-url" type="text" readonly aria-label="Setup link" hidden>
-    <p class="note" id="notice" role="status" aria-live="polite"></p>
-    <p class="hint">Space starts and stops. T taps the tempo. Your setup is saved on this device.</p>
-  </section>
+  <main class="flow">
+    <section class="top" aria-label="Tempo">
+      <div class="dial" id="dial">
+        <span class="pulse" aria-hidden="true"></span>
+        <output class="bpm" id="bpm" aria-live="off">80</output>
+        <span class="unit">BPM</span>
+        <span class="word" id="tempo-word">Andante</span>
+      </div>
+      <div class="top-side">
+        <p class="status" id="status" aria-live="polite">Ready</p>
+        <label class="slider-wrap">
+          <span class="sr">Tempo</span>
+          <input id="bpm-slider" type="range" min="20" max="240" step="1" value="80">
+        </label>
+        <div class="quiet-row">
+          <button class="btn small" id="share-copy" type="button">Copy link</button>
+          <button class="btn small" id="reset" type="button">Reset</button>
+        </div>
+        <input class="share-url" id="share-url" type="text" readonly aria-label="Setup link" hidden>
+        <p class="note" id="notice" role="status" aria-live="polite"></p>
+        <p class="hint">Space starts and stops. T taps the tempo. Your setup is saved on this device.</p>
+      </div>
+    </section>
 
-  <div class="stage">
-    <div class="intents" id="intents" role="group" aria-label="What do you want to do?"></div>
-    <p class="intent-note" id="intent-note"></p>
-    <div class="rooms" id="rooms" role="tablist" aria-label="Settings"></div>
+    <section class="block" id="sec-sound" aria-labelledby="h-sound">
+      <h2 id="h-sound">Sound</h2>
+      <p class="lede">What you hear is these four parts added together. Open one to change it.</p>
+      <div class="chips" id="chips-sound">
+        <div class="cg"><button class="chip" type="button" data-chip="click" aria-expanded="false"><span class="cn">Click</span><span class="cv" id="cv-click"></span></button></div>
+        <div class="cg"><button class="sw" id="harmony-toggle" type="button" aria-pressed="false" aria-label="Keys on or off">Off</button><button class="chip" type="button" data-chip="keys" aria-expanded="false"><span class="cn">Keys</span><span class="cv" id="cv-keys"></span></button></div>
+        <div class="cg"><button class="sw" id="bass-toggle" type="button" aria-pressed="false" aria-label="Bass on or off">Off</button><button class="chip" type="button" data-chip="bass" aria-expanded="false"><span class="cn">Bass</span><span class="cv" id="cv-bass"></span></button></div>
+        <div class="cg"><button class="sw" id="drums-toggle" type="button" aria-pressed="false" aria-label="Drums on or off">Off</button><button class="chip" type="button" data-chip="drums" aria-expanded="false"><span class="cn">Drums</span><span class="cv" id="cv-drums"></span></button></div>
+        <div class="cg"><button class="chip" type="button" data-chip="feel" aria-expanded="false"><span class="cn">Feel</span><span class="cv" id="cv-feel"></span></button></div>
+      </div>
+      <div class="field style-row">
+        <label class="label" for="band-style">Start from a style</label>
+        <select id="band-style" aria-label="Set keys, bass, drums and tempo from a style"></select>
+        <p class="note">Sets keys, bass, drums and tempo together. Change any part after.</p>
+        <p class="note" id="band-status" role="status" aria-live="polite"></p>
+      </div>
+      <p class="sentence" id="sentence" aria-live="polite"></p>
 
-    <section class="room" id="room-beat" role="tabpanel" aria-label="Beat">
+      <div class="detail" id="detail-sound" data-detail="sound">
+        <div class="panel" data-panel="click" hidden>
+          <div class="panel-head"><h3>Click</h3><button class="btn small close" type="button">Close</button></div>
+          <div class="click-mode">
+            <span class="label" id="click-label">Click plays</span>
+            <div class="segs" id="click-mode" role="group" aria-labelledby="click-label"></div>
+            <p class="note" id="click-note"></p>
+          </div>
+          <label class="label" for="mix-click">Click level <b id="mix-click-val"></b></label>
+          <input id="mix-click" type="range" min="0" max="1" step="0.05" value="0.7">
+          <span class="label">Click sound</span>
+          <div class="segs" id="sound" role="group" aria-label="Click sound"></div>
       <div class="field">
         <span class="label">Time signature</span>
         <div class="segs" id="meter" role="group" aria-label="Time signature"></div>
@@ -66,167 +80,100 @@
         <span class="label">Bars</span>
         <div class="segs" id="bars" role="group" aria-label="Pattern length in bars"></div>
       </div>
-      <div class="field">
-        <span class="label">Beat bars</span>
-        <div class="segs" id="mode" role="group" aria-label="What the beat bars set"></div>
-        <p class="note" id="mode-note"></p>
-        <div class="beats" id="beats"></div>
-      </div>
+          <details class="more" id="levels-more">
+            <summary>Per-beat levels and pattern length</summary>
+            <div class="more-body">
+              <span class="label">Beat bars</span>
+              <div class="segs" id="mode" role="group" aria-label="What the beat bars set"></div>
+              <p class="note" id="mode-note"></p>
+              <div class="beats" id="beats"></div>
+            </div>
+          </details>
 
-      <div class="pedals">
-        <div class="pedal" data-pedal="subdiv" data-name="Clicks per beat">
-          <div class="segs" id="subdiv" role="group" aria-label="Clicks per beat"></div>
-        </div>
-        <div class="pedal" data-pedal="clickon" data-name="Click on">
-          <div class="segs" id="clickon" role="group" aria-label="Which beats click"></div>
-          <p class="note">2 &amp; 4 is the backbeat, where a drummer's snare lands. Downbeat gives one click a bar, so you carry the rest. &amp; clicks only the upbeats, so you hold the pulse while the click lands between your beats.</p>
-        </div>
-        <div class="pedal" data-pedal="swing" data-name="Swing">
-          <label class="sr" for="swing">Swing</label>
-          <input id="swing" type="range" min="0.5" max="0.8" step="0.005" value="0.5">
-          <span class="hide-val" id="swing-val">straight</span>
-          <p class="note">Swings the click (with two or four clicks per beat) and the whole band: keys, bass and drums. Left at straight, the band plays its style's own feel.</p>
-        </div>
-        <div class="pedal" data-pedal="humanize" data-name="Human feel">
-          <label class="sr" for="humanize">Human feel</label>
-          <input id="humanize" type="range" min="0" max="1" step="0.05" value="0">
-          <span class="hide-val" id="humanize-val">exact</span>
-          <p class="note">Leave it off while you check your time. It nudges each click off the grid on purpose.</p>
-        </div>
-        <div class="pedal" data-pedal="chance" data-name="Chance">
-          <label class="sr" for="density">Chance</label>
-          <input id="density" type="range" min="0" max="1" step="0.05" value="1">
-          <span class="hide-val" id="density-val">100%</span>
-          <button class="btn small" id="freeze" type="button" aria-pressed="false">Freeze the dice</button>
-          <p class="note">Scales every beat's chance, so clicks drop out at random and you have to listen. Freeze repeats the same choices each bar.</p>
-        </div>
-        <div class="pedal" data-pedal="sound" data-name="Click sound">
-          <div class="segs" id="sound" role="group" aria-label="Click sound"></div>
-          <label class="label" for="mix-click">Click level <b id="mix-click-val"></b></label>
-          <input id="mix-click" type="range" min="0" max="1" step="0.05" value="0.7">
-        </div>
-      </div>
-    </section>
-
-    <section class="room" id="room-tune" role="tabpanel" aria-label="Tune" hidden>
-      <div class="field">
-        <label class="label" for="preset">Tune</label>
-        <select id="preset" aria-label="Load a progression"></select>
-        <p class="note" id="preset-note"></p>
-        <div class="inline">
-          <span class="label">Key</span>
-          <button class="btn small" id="key-down" type="button" aria-label="Down a semitone">&minus;1</button>
-          <button class="btn small" id="key-up" type="button" aria-label="Up a semitone">+1</button>
-          <button class="btn small" id="key-fourth" type="button">Up a 4th</button>
-        </div>
-        <button class="btn small" id="tune-new" type="button">New progression</button>
-      </div>
-
-      <div class="now-next" id="now-next" aria-live="off" data-modes="learn"></div>
-
-      <div class="field lens-field" data-modes="learn">
-        <span class="label" id="lens-label">Show on the chart</span>
-        <div class="segs" id="lens" role="group" aria-labelledby="lens-label"></div>
-        <p class="note" id="lens-note"></p>
-      </div>
-      <div class="form" id="form" role="group" aria-label="Chord form"></div>
-
-      <div class="pedals">
-        <div class="pedal" data-pedal="write" data-name="Write chords" data-modes="learn">
-          <label class="note" for="write-text">One bar per segment, bars separated by |. Two chords in a bar: Dm7 G7. % repeats the bar before.</label>
-          <textarea id="write-text" rows="4" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
-          <button class="btn small" id="write-apply" type="button">Use these chords</button>
-          <p class="note" id="write-note" role="status" aria-live="polite"></p>
-        </div>
-        <div class="pedal" data-pedal="save" data-name="Save as mine" data-modes="learn">
-          <label class="label" for="save-name">Name</label>
-          <input id="save-name" type="text" maxlength="60" autocomplete="off" placeholder="My ii–V–I in Eb">
-          <div class="inline">
-            <button class="btn small" id="save-go" type="button">Save</button>
-            <button class="btn small" id="delete-go" type="button" hidden>Delete this one</button>
+          <div class="field">
+            <span class="label">Clicks per beat</span>
+            <div class="segs" id="subdiv" role="group" aria-label="Clicks per beat"></div>
           </div>
-          <p class="note" id="save-note" role="status" aria-live="polite">Saved on this device, under My progressions in the picker.</p>
-        </div>
-        <div class="pedal" data-pedal="edit" data-name="Edit chords" data-open-on="form">
-          <p class="note">Pick a chord to change it. Splitting a bar gives two chords, two beats each.</p>
-          <div class="inline">
-            <select id="chord-root" aria-label="Root"></select>
-            <select id="chord-quality" aria-label="Chord type"></select>
-            <button class="btn small" id="chord-hear" type="button">Hear it</button>
+          <div class="field">
+            <span class="label">Click on</span>
+            <div class="segs" id="clickon" role="group" aria-label="Which beats click"></div>
+            <p class="note">2 &amp; 4 is the backbeat, where a drummer's snare lands. Downbeat gives one click a bar, so you carry the rest. &amp; clicks only the upbeats, so you hold the pulse while the click lands between your beats.</p>
           </div>
-          <div class="inline">
-            <button class="btn small" id="bar-split" type="button">Split bar</button>
-            <button class="btn small" id="bar-add" type="button">Add bar</button>
-            <button class="btn small" id="bar-remove" type="button">Remove bar</button>
-          </div>
+          <details class="more" id="looseness">
+            <summary>Looseness: chance and human feel</summary>
+            <div class="more-body">
+              <label class="label" for="humanize">Human feel <b id="humanize-val"></b></label>
+              <input id="humanize" type="range" min="0" max="1" step="0.05" value="0">
+              <p class="note">Leave it off while you check your time. It nudges each click off the grid on purpose.</p>
+              <label class="label" for="density">Chance <b id="density-val"></b></label>
+              <input id="density" type="range" min="0" max="1" step="0.05" value="1">
+              <button class="btn small" id="freeze" type="button" aria-pressed="false">Freeze the dice</button>
+              <p class="note">Scales every beat's chance, so clicks drop out at random and you have to listen. Freeze repeats the same choices each bar.</p>
+            </div>
+          </details>
         </div>
-      </div>
 
-      <div class="dna" id="dna" aria-label="What is in this tune" data-modes="learn"></div>
-    </section>
-
-    <section class="room" id="room-band" role="tabpanel" aria-label="Band" hidden>
-      <div class="field">
-        <label class="label" for="band-style">Start from a style</label>
-        <select id="band-style" aria-label="Set every layer from a style"></select>
-        <p class="note">Sets the drums, bass, keys and tempo together. Change any layer after.</p>
-        <p class="note" id="band-status" role="status" aria-live="polite"></p>
-      </div>
-
-      <div class="layer" data-layer="keys">
-        <div class="layer-head"><h3>Keys</h3><button class="btn small" id="harmony-toggle" type="button" aria-pressed="false">Off</button></div>
-        <div class="layer-body">
+        <div class="panel" data-panel="keys" hidden>
+          <div class="panel-head"><h3>Keys</h3><button class="btn small close" type="button">Close</button></div>
           <div class="segs" id="keys-sound" role="group" aria-label="Keys sound"></div>
           <p class="note" id="keys-note"></p>
           <span class="label">Comping</span>
           <div class="segs" id="comp" role="group" aria-label="Comping rhythm"></div>
           <p class="note" id="comp-note"></p>
+          <label class="label" for="mix-chords">Keys level <b id="mix-chords-val"></b></label>
+          <input id="mix-chords" type="range" min="0" max="1" step="0.05" value="0.7">
         </div>
-      </div>
 
-      <div class="layer" data-layer="bass">
-        <div class="layer-head"><h3>Bass</h3><button class="btn small" id="bass-toggle" type="button" aria-pressed="false">Off</button></div>
-        <div class="layer-body">
+        <div class="panel" data-panel="bass" hidden>
+          <div class="panel-head"><h3>Bass</h3><button class="btn small close" type="button">Close</button></div>
           <div class="segs" id="bass-sound" role="group" aria-label="Bass sound"></div>
           <p class="note" id="bass-note"></p>
           <span class="label">Line</span>
           <div class="segs" id="bass-style" role="group" aria-label="Bass line"></div>
           <p class="note" id="bass-style-note"></p>
+          <label class="label" for="mix-bass">Bass level <b id="mix-bass-val"></b></label>
+          <input id="mix-bass" type="range" min="0" max="1" step="0.05" value="0.7">
         </div>
-      </div>
 
-      <div class="layer" data-layer="drums">
-        <div class="layer-head"><h3>Drums</h3></div>
-        <div class="segs" id="groove" role="group" aria-label="Drum groove"></div>
-        <div class="layer-body">
+        <div class="panel" data-panel="drums" hidden>
+          <div class="panel-head"><h3>Drums</h3><button class="btn small close" type="button">Close</button></div>
+          <span class="label">Groove</span>
+          <div class="segs" id="groove" role="group" aria-label="Drum groove"></div>
           <p class="note" id="groove-note"></p>
           <span class="label">Kit</span>
           <div class="segs" id="kit" role="group" aria-label="Drum kit"></div>
           <p class="note" id="kit-note"></p>
           <button class="btn small" id="dust-toggle" type="button" aria-pressed="false">Vinyl dust</button>
+          <label class="label" for="mix-groove">Drums level <b id="mix-groove-val"></b></label>
+          <input id="mix-groove" type="range" min="0" max="1" step="0.05" value="0.7">
         </div>
-      </div>
 
-      <div class="layer" id="levels">
-        <div class="layer-head"><h3>Levels</h3></div>
-        <div class="levels-body">
-          <div class="lv" data-lv="chords"><label class="label" for="mix-chords">Keys <b id="mix-chords-val"></b></label>
-            <input id="mix-chords" type="range" min="0" max="1" step="0.05" value="0.7"></div>
-          <div class="lv" data-lv="bass"><label class="label" for="mix-bass">Bass <b id="mix-bass-val"></b></label>
-            <input id="mix-bass" type="range" min="0" max="1" step="0.05" value="0.7"></div>
-          <div class="lv" data-lv="groove"><label class="label" for="mix-groove">Drums <b id="mix-groove-val"></b></label>
-            <input id="mix-groove" type="range" min="0" max="1" step="0.05" value="0.7"></div>
+        <div class="panel" data-panel="feel" hidden>
+          <div class="panel-head"><h3>Feel</h3><button class="btn small close" type="button">Close</button></div>
+          <label class="label" for="swing">Swing <b id="swing-val"></b></label>
+          <input id="swing" type="range" min="0.5" max="0.8" step="0.005" value="0.5">
+          <p class="note">Swings the click (with two or four clicks per beat) and the whole band: keys, bass and drums. Left at straight, the band plays its style's own feel.</p>
         </div>
       </div>
     </section>
 
-    <section class="room" id="room-train" role="tabpanel" aria-label="Train" hidden>
-      <div class="pedals">
-        <div class="pedal" data-pedal="countin" data-name="Count-in">
+    <section class="block" id="practice" aria-labelledby="h-practice">
+      <h2 id="h-practice">Practice</h2>
+      <p class="lede">Tools that change how the sound behaves over time. Tap to switch on, or open for the numbers.</p>
+      <div class="chips" id="chips-practice">
+        <div class="cg"><button class="chip" type="button" data-chip="countin" aria-expanded="false"><span class="cn">Count-in</span><span class="cv" id="cv-countin"></span></button></div>
+        <div class="cg"><button class="sw" id="pc-gap" type="button" aria-pressed="false" aria-label="Gap trainer on or off">Off</button><button class="chip" type="button" data-chip="gap" aria-expanded="false"><span class="cn">Gap trainer</span><span class="cv" id="cv-gap"></span></button></div>
+        <div class="cg"><button class="sw" id="pc-ladder" type="button" aria-pressed="false" aria-label="Tempo ladder on or off">Off</button><button class="chip" type="button" data-chip="ladder" aria-expanded="false"><span class="cn">Tempo ladder</span><span class="cv" id="cv-ladder"></span></button></div>
+        <div class="cg"><button class="chip" type="button" data-chip="trade" aria-expanded="false"><span class="cn">Trade fours</span><span class="cv" id="cv-trade"></span></button></div>
+      </div>
+      <div class="detail" id="detail-practice" data-detail="practice">
+        <div class="panel" data-panel="countin" hidden>
+          <div class="panel-head"><h3>Count-in</h3><button class="btn small close" type="button">Close</button></div>
           <div class="segs" id="countin" role="group" aria-label="Count-in bars"></div>
-          <p class="note">Bars of click first. The gap trainer and the ladder start after it.</p>
+          <p class="note">Bars of click first, always audible. The gap trainer and the ladder start after it.</p>
         </div>
-        <div class="pedal" data-pedal="gap" data-name="Gap trainer">
+        <div class="panel" data-panel="gap" hidden>
+          <div class="panel-head"><h3>Gap trainer</h3><button class="btn small close" type="button">Close</button></div>
           <button class="btn small" id="gap-toggle" type="button" aria-pressed="false">Gap trainer</button>
           <div class="inline">
             Play
@@ -237,7 +184,8 @@
           </div>
           <p class="note">Two on, two off is the classic. It is the only way to find out whether the time is yours.</p>
         </div>
-        <div class="pedal" data-pedal="ladder" data-name="Tempo ladder">
+        <div class="panel" data-panel="ladder" hidden>
+          <div class="panel-head"><h3>Tempo ladder</h3><button class="btn small close" type="button">Close</button></div>
           <button class="btn small" id="ladder-toggle" type="button" aria-pressed="false">Tempo ladder</button>
           <div class="inline">
             Add
@@ -249,15 +197,82 @@
             steps.
           </div>
         </div>
-        <div class="pedal" data-pedal="trade" data-name="Trade fours">
+        <div class="panel" data-panel="trade" hidden>
+          <div class="panel-head"><h3>Trade fours</h3><button class="btn small close" type="button">Close</button></div>
           <div class="segs" id="trade" role="group" aria-label="Groove trades every N bars"></div>
-          <p class="note" id="trade-hint">Needs drums. Pick a groove in Band first.</p>
+          <p class="note" id="trade-hint">Needs drums. Switch Drums on first.</p>
           <p class="note">The groove plays four or eight bars, then drops out for the same length while the click and chords carry on. You play the gap.</p>
         </div>
       </div>
     </section>
+
+    <section class="block" id="tune" aria-labelledby="h-tune">
+      <h2 id="h-tune">Tune</h2>
+      <p class="lede">The chords the keys and bass follow. Pick a tune, or write your own.</p>
+      <div class="field">
+        <label class="label" for="preset">Tune</label>
+        <select id="preset" aria-label="Load a progression"></select>
+        <p class="note" id="preset-note"></p>
+        <div class="inline">
+          <span class="label">Key</span>
+          <button class="btn small" id="key-down" type="button" aria-label="Down a semitone">&minus;1</button>
+          <button class="btn small" id="key-up" type="button" aria-label="Up a semitone">+1</button>
+          <button class="btn small" id="key-fourth" type="button">Up a 4th</button>
+          <button class="btn small" id="tune-new" type="button">New progression</button>
+        </div>
+      </div>
+      <p class="chart-note" id="chart-note" hidden>The chart is silent until Keys or Bass is on.</p>
+      <div class="now-next" id="now-next" aria-live="off"></div>
+      <div class="field lens-field">
+        <span class="label" id="lens-label">Show on the chart</span>
+        <div class="segs" id="lens" role="group" aria-labelledby="lens-label"></div>
+        <p class="note" id="lens-note"></p>
+      </div>
+      <div class="form" id="form" role="group" aria-label="Chord form"></div>
+      <div class="editor" id="chord-editor" hidden>
+        <p class="note">Pick a chord to change it. Splitting a bar gives two chords, two beats each.</p>
+        <div class="inline">
+          <select id="chord-root" aria-label="Root"></select>
+          <select id="chord-quality" aria-label="Chord type"></select>
+          <button class="btn small" id="chord-hear" type="button">Hear it</button>
+        </div>
+        <div class="inline">
+          <button class="btn small" id="bar-split" type="button">Split bar</button>
+          <button class="btn small" id="bar-add" type="button">Add bar</button>
+          <button class="btn small" id="bar-remove" type="button">Remove bar</button>
+        </div>
+      </div>
+      <details class="more" id="more-write">
+        <summary>Write chords as text, and save</summary>
+        <div class="more-body">
+          <label class="note" for="write-text">One bar per segment, bars separated by |. Two chords in a bar: Dm7 G7. % repeats the bar before.</label>
+          <textarea id="write-text" rows="4" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+          <button class="btn small" id="write-apply" type="button">Use these chords</button>
+          <p class="note" id="write-note" role="status" aria-live="polite"></p>
+          <label class="label" for="save-name">Name</label>
+          <input id="save-name" type="text" maxlength="60" autocomplete="off" placeholder="My ii–V–I in Eb">
+          <div class="inline">
+            <button class="btn small" id="save-go" type="button">Save</button>
+            <button class="btn small" id="delete-go" type="button" hidden>Delete this one</button>
+          </div>
+          <p class="note" id="save-note" role="status" aria-live="polite">Saved on this device, under My progressions in the picker.</p>
+        </div>
+      </details>
+      <details class="more" id="more-dna">
+        <summary>Shared pieces: where else these chords appear</summary>
+        <div class="dna" id="dna" aria-label="What is in this tune"></div>
+      </details>
+    </section>
+  </main>
+
+  <div class="transport" role="group" aria-label="Transport">
+    <button class="btn go" id="start" type="button" aria-pressed="false">Start</button>
+    <button class="btn" id="bpm-down" type="button" aria-label="Slower">&minus;</button>
+    <output class="bpm-mini" id="bpm-mini" aria-hidden="true">80</output>
+    <button class="btn" id="bpm-up" type="button" aria-label="Faster">+</button>
+    <button class="btn" id="tap" type="button">Tap</button>
   </div>
 </div>
-<script type="module" src="assets/js/metronome/metronome.js?v=20261108c"></script>
+<script type="module" src="assets/js/metronome/metronome.js?v=20261108d"></script>
 </body>
 </html>

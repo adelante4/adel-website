@@ -1,18 +1,10 @@
 /* Metronome page. Uses the shared tokens from site.css. */
-
 .metro-page {
   display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center;
   gap: 32px; padding: 56px 32px 64px 80px;
 }
-
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-
 /* ---- Tempo column ---- */
-.dial-col { flex: 0 1 340px; display: flex; flex-direction: column; align-items: center; gap: 14px; }
-@media (min-width: 900px) {
-  .dial-col { position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; padding: 4px; scrollbar-width: thin; }
-}
-
 .dial {
   position: relative; width: min(70vw, 280px); aspect-ratio: 1; border-radius: 50%;
   background: var(--ink); color: var(--bg);
@@ -26,57 +18,21 @@
 .dial .bpm { font-size: clamp(60px, 16vw, 84px); font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
 .dial .unit { font-size: 12px; letter-spacing: 0.3em; }
 .dial .word { margin-top: 8px; font-size: 13px; color: var(--accent); }
-
 .status { margin: 0; width: 100%; text-align: center; min-height: 1.6em; font-size: 13px; }
-
 .transport { display: flex; gap: 8px; width: 100%; align-items: stretch; }
 .transport .btn { flex: 1 1 0; font-weight: 700; }
 .transport .go { flex: 2 1 0; }
 .transport .go[aria-pressed="true"] { background: var(--accent); }
 .bpm-mini { display: none; }
-
 .slider-chip { width: 100%; display: block; padding: 10px 16px; }
 .hint { margin: 0; width: 100%; font-size: 12px; opacity: 0.7; }
-
 /* What is switched on, right under the dial. */
-.on-now { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; width: 100%; min-height: 32px; }
-.on-now .plain { font-size: 12px; opacity: 0.6; align-self: center; }
-.tag {
-  min-height: 32px; padding: 4px 12px; border: 1.5px solid var(--ink); border-radius: 999px;
-  background: var(--ink); color: var(--bg); font: inherit; font-size: 12px; cursor: pointer;
-}
-.tag:hover { background: var(--accent); color: var(--ink); }
-.quiet-row { display: flex; gap: 6px; width: 100%; }
-.quiet-row .btn { flex: 1 1 0; min-width: 0; padding-inline: 8px; }
-
 /* ---- Stage: rooms ---- */
-.stage { flex: 1 1 460px; min-width: 0; max-width: 640px; display: flex; flex-direction: column; gap: 24px; }
-
-.rooms { display: flex; flex-wrap: wrap; gap: 4px 22px; }
-.room-tab {
-  position: relative; padding: 0; border: 0; background: none; cursor: pointer;
-  font: inherit; font-weight: 700; font-size: clamp(34px, 7vw, 60px); line-height: 1.05; letter-spacing: -0.03em;
-  color: transparent; -webkit-text-stroke: 1.5px var(--ink);
-}
-.room-tab:hover { -webkit-text-stroke-color: var(--accent); }
-.room-tab[aria-selected="true"] { color: var(--ink); }
-.room-tab:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
-.room-tab .count {
-  position: absolute; top: 2px; right: -14px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px;
-  background: var(--accent); color: var(--ink); -webkit-text-stroke: 0;
-  font-size: 11px; font-weight: 700; line-height: 18px; letter-spacing: 0; text-align: center; vertical-align: baseline;
-}
-.room-tab .count:empty { display: none; }
-
-.room { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
-.room[hidden] { display: none; }
-
 .field { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
 .label { font-size: 13px; font-weight: 700; }
 .label b { margin-left: 8px; color: var(--accent); }
 .note { margin: 0; font-size: 12px; line-height: 1.6; max-width: 56ch; }
 .field[hidden] { display: none; }
-
 .segs { display: flex; flex-wrap: wrap; }
 .seg {
   min-height: 40px; padding: 8px 14px; margin: 0 -1.5px -1.5px 0;
@@ -86,10 +42,8 @@
 .seg:hover { background: var(--accent); }
 .seg[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
 .seg[aria-pressed="true"]:hover { background: var(--ink); }
-
 .btn.small { min-height: 40px; }
 .btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
-
 input[type="range"] { width: 100%; accent-color: var(--accent); height: 28px; }
 select {
   max-width: 100%; min-width: 0; text-overflow: ellipsis;
@@ -97,7 +51,6 @@ select {
   border: 1.5px solid var(--ink); background: var(--bg); color: var(--ink);
 }
 .inline { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; }
-
 /* ---- Beat bars ---- */
 .beats { display: flex; gap: 6px; width: 100%; touch-action: none; user-select: none; -webkit-user-select: none; padding-top: 4px; }
 .col { flex: 1 1 0; max-width: 64px; min-width: 16px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
@@ -113,7 +66,6 @@ select {
 .bar:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .col.on .bar { outline: 3px solid var(--accent); outline-offset: 2px; }
 .col.on .n { color: var(--accent); font-weight: 700; }
-
 /* ---- Chord form ---- */
 .form { display: flex; flex-wrap: wrap; gap: 8px; width: 100%; }
 .cell { flex: 1 1 88px; max-width: 150px; display: flex; flex-direction: column; gap: 4px; }
@@ -129,40 +81,9 @@ select {
 .chord.on { outline: 3px solid var(--accent); outline-offset: 2px; position: relative; z-index: 1; }
 .form + .inline { margin-top: 4px; }
 .field label.label + input[type="range"] { margin-bottom: 8px; }
-
 /* ---- Band layers ---- */
-.layer { border: 1.5px solid var(--ink); padding: 16px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
-.layer-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; }
-.layer-head h3 { margin: 0; font-size: 15px; letter-spacing: 0.04em; }
-.layer .segs { width: 100%; }
-.layer .label { margin-top: 2px; }
-.layer input[type="range"] { margin-bottom: 4px; }
-
 /* ---- Pedals ---- */
-.pedals { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; align-items: start; }
-.pedal { border: 1.5px solid var(--ink); background: var(--bg); min-width: 0; }
-.pedal.open { grid-column: 1 / -1; }
-.pedal-head {
-  width: 100%; display: grid; grid-template-columns: auto 1fr; column-gap: 10px; align-items: center; text-align: left;
-  padding: 10px 12px; border: 0; background: none; color: var(--ink); font: inherit; cursor: pointer; min-height: 52px;
-}
-.pedal-head:hover { background: color-mix(in srgb, var(--accent) 35%, var(--bg)); }
-.pedal-head:focus-visible { outline: 2px solid var(--ink); outline-offset: -4px; }
-.pedal-head .led {
-  grid-row: 1 / 3; width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid currentColor; background: transparent;
-}
-.pedal-head .pn { font-size: 13px; font-weight: 700; }
-.pedal-head .pr { grid-column: 2; font-size: 12px; opacity: 0.65; min-height: 1.2em; }
-.pedal.active { background: var(--ink); }
-.pedal.active .pedal-head { color: var(--bg); }
-.pedal.active .pedal-head:hover { background: var(--ink); }
-.pedal.active .pedal-head .led { background: var(--accent); border-color: var(--accent); transform: scale(calc(0.85 + var(--p, 0) * 0.5)); box-shadow: 0 0 calc(var(--p, 0) * 10px) var(--accent); }
-.pedal.active .pedal-head .pr { opacity: 1; color: var(--accent); }
-.pedal-body { padding: 14px 12px 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; background: var(--bg); border-top: 1.5px solid var(--ink); }
-.pedal-body[hidden] { display: none; }
-.hide-val { display: none; }
-.pedal-reset[hidden], #freeze[hidden], [data-lv][hidden], #levels[hidden] { display: none; }
-
+#freeze[hidden] { display: none; }
 /* ---- Share ---- */
 .share-url {
   width: 100%; font: inherit; font-size: 12px; padding: 10px;
@@ -170,13 +91,8 @@ select {
 }
 .share-url[hidden] { display: none; }
 #notice { min-height: 1.6em; text-align: center; width: 100%; }
-
 @media (prefers-reduced-motion: reduce) {
   .dial .pulse { transform: none; }
-  .pedal.active .pedal-head .led { transform: none; box-shadow: none; }
-}
-@media (max-width: 899px) {
-  .dial-col { flex-basis: 100%; }
 }
 @media (max-width: 640px) {
   .metro-page { padding: 72px 16px 110px 56px; gap: 20px; }
@@ -194,7 +110,6 @@ select {
   .transport #bpm-up { order: 5; flex: 0 0 44px; }
   .transport .btn { min-height: 48px; }
 }
-
 /* Calm ground: no busy moiré on this page. One faint ring field sits behind the dial and fades out. */
 .moire { display: none; }
 body { background: var(--bg); }
@@ -205,13 +120,11 @@ body { background: var(--bg); }
   mask-image: radial-gradient(circle at 25% 32%, #000 0, transparent 46vmax);
 }
 .metro-page { isolation: isolate; }
-
 /* Type: plain, high contrast */
 .note { font-size: 13px; line-height: 1.55; color: #3a3a37; }
 .hint { font-size: 12px; opacity: 1; color: #55554f; }
 .status { font-size: 14px; font-weight: 700; }
 .label { font-size: 14px; }
-
 /* Tempo slider: hairline track, round red thumb */
 .slider-chip { background: none; padding: 0; }
 input[type="range"] { -webkit-appearance: none; appearance: none; background: none; height: 28px; }
@@ -219,35 +132,14 @@ input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: va
 input[type="range"]::-moz-range-track { height: 2px; background: var(--ink); }
 input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; margin-top: -9px; border-radius: 50%; background: var(--accent); border: 2px solid var(--ink); }
 input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius: 50%; background: var(--accent); border: 2px solid var(--ink); }
-
 /* The room is a sheet: solid, with a heavy top edge */
-.room {
-  background: #fbfbf9; border: 1.5px solid var(--ink); border-top-width: 6px; padding: 24px; gap: 26px;
-  box-shadow: 8px 8px 0 var(--ink);
-}
-.rooms { gap: 0 26px; align-items: baseline; }
-.room-tab { background: none; padding: 0; font-size: clamp(36px, 6.4vw, 64px); }
-.room-tab .count { right: -10px; top: -2px; }
-.stage { gap: 28px; }
-.pedal, .pedal-body { background: #fbfbf9; }
-.pedal.active { background: var(--ink); }
-.pedal-body { border-top-color: var(--ink); }
-.layer { background: #fbfbf9; border-width: 1.5px; }
-.layer.on { box-shadow: inset 6px 0 0 var(--accent); }
-.field + .field, .pedals { padding-top: 0; }
+.field + .field { padding-top: 0; }
 .dial { box-shadow: 8px 8px 0 var(--accent); }
-.on-now { justify-content: flex-start; }
-.on-now .plain { color: #55554f; opacity: 1; }
 .status { text-align: left; padding: 0; }
 .hint { padding: 0; }
 @media (max-width: 640px) {
-  .room { padding: 16px; box-shadow: 5px 5px 0 var(--ink); }
   .dial { box-shadow: 5px 5px 0 var(--accent); }
 }
-.pedal-head:has(.pr:empty) .led { grid-row: 1; }
-.pedal-head:has(.pr:empty) { min-height: 44px; }
-@media (max-width: 640px) { .rooms { gap: 0 14px; flex-wrap: nowrap; } .room-tab { font-size: 8.6vw; } }
-
 /* Lead-sheet layout: four bars to a line */
 .form { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 0; }
 .cell { flex: none; max-width: none; min-width: 0; padding: 0 0 0 0; border-left: 2px solid var(--ink); }
@@ -256,14 +148,8 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
 .chord { border-width: 0 0 1.5px 0; margin-right: 0; font-size: clamp(11px, 3.2vw, 15px); padding: 8px 2px; min-height: 44px; overflow: hidden; text-overflow: ellipsis; }
 .cell .pair .chord + .chord { border-left: 1.5px solid var(--ink); }
 .chord.on { outline-offset: -3px; }
-
 /* ---- Tune room ---- */
-.rooms { gap: 0 20px; }
-.room-tab { font-size: clamp(30px, 5.2vw, 52px); }
-@media (max-width: 640px) { .rooms { flex-wrap: wrap; gap: 0 14px; } .room-tab { font-size: 7.4vw; } }
-
 .lens-field .segs { width: 100%; }
-
 /* Now / next: big enough to read from a music stand. */
 .now-next { display: grid; grid-template-columns: 3fr 2fr; gap: 10px; }
 .nn-card { border: 1.5px solid var(--ink); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; min-width: 0; background: var(--bg); }
@@ -283,7 +169,6 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
 .nn-beats { display: flex; gap: 6px; margin-top: 2px; }
 .nn-beats i { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid currentColor; }
 .nn-beats i.on { background: var(--accent); border-color: var(--accent); }
-
 /* Chart cells under each lens */
 .half { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; position: relative; }
 .pair { align-items: stretch; }
@@ -317,7 +202,6 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
 .nn-card.now .fret .dl.n { fill: var(--ink); }
 .fret .fn { font-size: 8px; fill: currentColor; }
 .fret .sn { font-size: 6.5px; fill: currentColor; opacity: 0.7; }
-
 /* What the tune shares */
 .dna { border-top: 1.5px solid var(--ink); padding-top: 18px; display: flex; flex-direction: column; gap: 12px; }
 .dna-body { display: flex; flex-direction: column; gap: 12px; }
@@ -330,34 +214,120 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
 .dna-who { font-size: 12px; }
 .dna-tune { border: 0; padding: 0; background: none; font: inherit; text-decoration: underline; cursor: pointer; color: var(--ink); }
 .dna-tune:hover { color: var(--accent); }
-@media (max-width: 640px) { .now-next { grid-template-columns: 1fr; } .nn-card.next .nn-chord { font-size: 26px; } }
+@media (max-width: 640px) {
+  .now-next { grid-template-columns: 1fr; }
+  .nn-card.next .nn-chord { font-size: 26px; }
+}
 .form[data-lens="function"] .half::after { content: ""; display: block; height: 5px; margin-top: 3px; background: transparent; }
 .form[data-lens="function"] .half[data-cad]::after { background: var(--accent); }
 .half[data-cad]::after { content: none; }
 .form[data-lens="function"] .half[data-cad]::after { content: ""; }
 .fret { max-width: 70px; }
-
 /* The click is the metronome: its own control, under the tempo, whatever the band does. */
 .click-mode { width: 100%; display: flex; flex-direction: column; gap: 6px; }
 .click-mode .segs { width: 100%; }
 .click-mode .seg { flex: 1 1 0; }
 .click-mode .note { margin: 0; min-height: 3.1em; }
-
 /* A small lit dot on a room means something in it is switched on. */
-.room-tab .count { min-width: 12px; width: 12px; height: 12px; padding: 0; line-height: 0; font-size: 0; right: -6px; top: 0; }
 #write-text, #save-name { width: 100%; font: inherit; font-size: 14px; padding: 10px; border: 1.5px solid var(--ink); background: #fff; color: var(--ink); border-radius: 0; }
 #write-text { resize: vertical; line-height: 1.5; }
 #delete-go[hidden] { display: none; }
-
 /* ---- Intents: what do you want to do? ---- */
-[data-modes][hidden] { display: none !important; }
-.intents { display: flex; flex-wrap: wrap; gap: 10px; }
-.intent {
-  font: inherit; font-weight: 700; font-size: 17px; cursor: pointer;
-  padding: 10px 18px; border: 2px solid var(--ink); background: var(--bg); color: var(--ink);
-  box-shadow: 3px 3px 0 var(--ink);
+/* ================= One page, one column ================= */
+.metro-page { display: block; padding: 64px 24px 140px 80px; }
+.flow { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+
+/* Tempo head: the dial, and what belongs to it */
+.top { display: flex; flex-wrap: wrap; align-items: center; gap: 24px 32px; }
+.dial { flex: none; width: min(64vw, 240px); }
+.top-side { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+.quiet-row { display: flex; gap: 8px; }
+.quiet-row .btn { flex: 0 1 140px; }
+.hint { margin: 0; }
+
+/* Sections */
+.block { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.block h2 { margin: 0; font-size: clamp(34px, 6vw, 52px); font-weight: 700; line-height: 1.05; letter-spacing: -0.03em; }
+.lede { margin: 0; max-width: 54ch; font-size: 14px; color: #3a3a37; }
+.sentence {
+  margin: 0; padding: 12px 14px; min-height: 3.4em; max-width: none;
+  background: #fbfbf9; border: 1.5px solid var(--ink); border-left: 6px solid var(--accent);
+  font-size: 15px; font-weight: 700; line-height: 1.45;
 }
-.intent[aria-pressed="true"] { background: var(--ink); color: var(--bg); box-shadow: none; transform: translate(3px, 3px); }
-.intent:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
-.intent-note { margin: -10px 0 0; max-width: 52ch; font-size: 15px; }
-@media (max-width: 640px) { .intent { flex: 1 1 auto; padding: 10px 12px; font-size: 15px; } }
+
+/* Chips: each shows its own state. A switch (if any) sits glued to the left edge. */
+.chips { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+.cg { display: flex; min-width: 0; }
+.chip {
+  flex: 1 1 auto; min-width: 0; min-height: 60px; padding: 8px 12px; text-align: left;
+  display: flex; flex-direction: column; justify-content: center; gap: 2px;
+  border: 1.5px solid var(--ink); background: #fbfbf9; color: var(--ink); font: inherit; cursor: pointer;
+}
+
+.chip .cn { font-size: 14px; font-weight: 700; }
+.chip .cv { font-size: 12px; color: #55554f; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip:hover { background: color-mix(in srgb, var(--accent) 30%, #fbfbf9); }
+.chip[aria-expanded="true"] { background: var(--ink); color: var(--bg); }
+.chip[aria-expanded="true"] .cv { color: var(--bg); opacity: 0.85; }
+.chip.lit { box-shadow: inset 5px 0 0 var(--accent); padding-left: 16px; }
+.sw {
+  flex: none; width: 52px; min-height: 60px; border: 1.5px solid var(--ink); border-right: 0; background: #fbfbf9; color: var(--ink);
+  font: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.sw[aria-pressed="true"] { background: var(--accent); }
+.chip:focus-visible, .sw:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; z-index: 1; position: relative; }
+
+/* Detail panel: opens under its chips, one at a time */
+.detail:empty { display: none; }
+.panel {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 12px; min-width: 0;
+  padding: 18px; background: #fbfbf9; border: 1.5px solid var(--ink); border-top-width: 6px; box-shadow: 6px 6px 0 var(--ink);
+}
+.panel[hidden] { display: none; }
+.panel-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; width: 100%; }
+.panel-head h3 { margin: 0; font-size: 18px; }
+.panel .segs { width: 100%; }
+.panel input[type="range"] { margin-bottom: 4px; }
+.detail { padding-right: 6px; }
+
+/* Disclosures */
+.more { border: 1.5px solid var(--ink); background: #fbfbf9; width: 100%; }
+.more > summary { cursor: pointer; padding: 12px 14px; font-size: 14px; font-weight: 700; min-height: 44px; display: flex; align-items: center; }
+.more > summary:focus-visible { outline: 3px solid var(--ink); outline-offset: -3px; }
+.more-body { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 4px 14px 16px; }
+.more[open] > summary { border-bottom: 1.5px solid var(--ink); }
+.more .dna { border-top: 0; padding: 14px; }
+.chart-note { margin: 0; padding: 10px 12px; font-size: 14px; font-weight: 700; background: #ffe9a8; border: 1.5px solid var(--ink); }
+.chart-note[hidden] { display: none; }
+.editor { display: flex; flex-direction: column; gap: 10px; padding: 14px; border: 1.5px solid var(--ink); background: #fbfbf9; }
+.editor[hidden] { display: none; }
+.style-row { align-items: flex-start; }
+#notice .undo { margin-left: 6px; min-height: 32px; }
+
+/* Transport: always at the bottom, big enough for a thumb */
+.transport {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; width: auto; gap: 8px; justify-content: center;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); background: var(--bg); border-top: 1.5px solid var(--ink);
+}
+.transport .btn { flex: 0 0 auto; min-height: 52px; min-width: 52px; font-weight: 700; }
+.transport .go { flex: 0 1 200px; min-width: 110px; order: 1; font-size: 17px; }
+.transport #bpm-down { order: 2; }
+.transport .bpm-mini { order: 3; display: flex; align-items: center; justify-content: center; min-width: 64px; font-size: 22px; font-weight: 700; }
+.transport #bpm-up { order: 4; }
+.transport #tap { order: 5; padding-inline: 18px; }
+@media (max-width: 640px) {
+  .metro-page { padding: 72px 16px 130px 56px; }
+  .flow { gap: 34px; }
+  .top { gap: 16px; }
+  .dial { width: min(52vw, 200px); }
+  .chips { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .panel { padding: 14px; box-shadow: 4px 4px 0 var(--ink); }
+  .transport { gap: 6px; padding-inline: 10px; }
+  .transport .go { flex: 1 1 0; }
+  .transport .bpm-mini { min-width: 52px; }
+}
+.slider-wrap { display: block; width: 100%; padding: 6px 0; }
+#chips-sound { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+#chips-practice { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 900px) { #chips-sound, #chips-practice { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.chip .cv { white-space: normal; }
