@@ -1,0 +1,91 @@
+{
+ "id": "strings",
+ "name": "Strings",
+ "kind": "keys",
+ "sampleRate": 44100,
+ "release": 0.7,
+ "license": "CC0 1.0",
+ "credit": "VS Chamber Orchestra CE (CC0): cello, viola and violin sections, sustained with vibrato",
+ "notes": [
+  {
+   "midi": 35.975,
+   "file": "n36.mp3"
+  },
+  {
+   "midi": 39.976,
+   "file": "n40.mp3"
+  },
+  {
+   "midi": 42.979,
+   "file": "n43.mp3"
+  },
+  {
+   "midi": 47.004,
+   "file": "n47.mp3"
+  },
+  {
+   "midi": 49.996,
+   "file": "n50.mp3"
+  },
+  {
+   "midi": 52.018,
+   "file": "n52.mp3"
+  },
+  {
+   "midi": 53.022,
+   "file": "n53.mp3"
+  },
+  {
+   "midi": 54.961,
+   "file": "n55.mp3"
+  },
+  {
+   "midi": 56.989,
+   "file": "n57.mp3"
+  },
+  {
+   "midi": 59.02,
+   "file": "n59.mp3"
+  },
+  {
+   "midi": 59.968,
+   "file": "n60.mp3"
+  },
+  {
+   "midi": 61.998,
+   "file": "n62.mp3"
+  },
+  {
+   "midi": 64.005,
+   "file": "n64.mp3"
+  },
+  {
+   "midi": 65.027,
+   "file": "n65.mp3"
+  },
+  {
+   "midi": 65.968,
+   "file": "n66.mp3"
+  },
+  {
+   "midi": 67.011,
+   "file": "n67.mp3"
+  },
+  {
+   "midi": 69.02,
+   "file": "n69.mp3"
+  },
+  {
+   "midi": 74.005,
+   "file": "n74.mp3"
+  },
+  {
+   "midi": 76.001,
+   "file": "n76.mp3"
+  },
+  {
+   "midi": 83.005,
+   "file": "n83.mp3"
+  }
+ ]
+}

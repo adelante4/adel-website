@@ -1,0 +1,63 @@
+{
+ "id": "trumpet",
+ "name": "Trumpet",
+ "kind": "keys",
+ "sampleRate": 44100,
+ "release": 0.4,
+ "license": "CC0 1.0",
+ "credit": "VS Chamber Orchestra CE (CC0): trumpet, sustained with vibrato",
+ "notes": [
+  {
+   "midi": 39.085,
+   "file": "n39.mp3"
+  },
+  {
+   "midi": 40.925,
+   "file": "n41.mp3"
+  },
+  {
+   "midi": 45.993,
+   "file": "n46.mp3"
+  },
+  {
+   "midi": 49.935,
+   "file": "n50.mp3"
+  },
+  {
+   "midi": 50.996,
+   "file": "n51.mp3"
+  },
+  {
+   "midi": 52.874,
+   "file": "n53.mp3"
+  },
+  {
+   "midi": 57.034,
+   "file": "n57.mp3"
+  },
+  {
+   "midi": 59.959,
+   "file": "n60.mp3"
+  },
+  {
+   "midi": 65.112,
+   "file": "n65.mp3"
+  },
+  {
+   "midi": 66.982,
+   "file": "n67.mp3"
+  },
+  {
+   "midi": 73.971,
+   "file": "n74.mp3"
+  },
+  {
+   "midi": 77.003,
+   "file": "n77.mp3"
+  },
+  {
+   "midi": 80.997,
+   "file": "n81.mp3"
+  }
+ ]
+}

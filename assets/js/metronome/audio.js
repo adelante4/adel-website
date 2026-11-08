@@ -26,11 +26,11 @@ const SOUNDS = {
 };
 
 // Recorded hits (Versilian Community Sample Library, CC0). Each voice has three files.
-import { rhodes, bass, bassSynth, organ, pad, juno, drone, glass, supersaw, strings, brass, choir, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261108l";
-import { createSampler } from "./sampler.js?v=20261108l";
-import { KEYS, BASSES, trimOf, drumTrim } from "./instruments.js?v=20261108l";
+import { rhodes, bass, bassSynth, organ, pad, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261108m";
+import { createSampler } from "./sampler.js?v=20261108m";
+import { KEYS, BASSES, trimOf, drumTrim } from "./instruments.js?v=20261108m";
 
-const SYNTH_KEYS = new Set(["rhodes", "organ", "pad", "juno", "drone", "glass", "supersaw", "strings", "brass", "choir"]);
+const SYNTH_KEYS = new Set(["rhodes", "organ", "pad"]);
 const SYNTH_BASS = new Set(["round", "moog", "sub", "reese", "acid", "fmbass", "dub"]);
 const SAMPLE_VOICES = ["woodblock", "claves", "log", "frame", "brake"];
 const FILE = { woodblock: "wood", claves: "claves", log: "log", frame: "frame", brake: "brake" };
@@ -264,13 +264,6 @@ export function createAudio() {
       const out = via(run, "chords", trimOf(KEYS, id));
       if (id === "organ") return organ(ctx, out, when, notes, seconds, gain);
       if (id === "pad") return pad(ctx, out, when, notes, seconds, gain);
-      if (id === "juno") return juno(ctx, out, when, notes, seconds, gain);
-      if (id === "drone") return drone(ctx, out, when, notes, seconds, gain);
-      if (id === "glass") return glass(ctx, out, when, notes, seconds, gain);
-      if (id === "strings") return strings(ctx, out, when, notes, seconds, gain);
-      if (id === "brass") return brass(ctx, out, when, notes, seconds, gain);
-      if (id === "choir") return choir(ctx, out, when, notes, seconds, gain);
-      if (id === "supersaw") return supersaw(ctx, out, when, notes, seconds, gain);
       if (id !== "rhodes") {
         // A recorded instrument plays each note on its own; the strum is a few milliseconds.
         let ok = true;

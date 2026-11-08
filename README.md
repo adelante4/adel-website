@@ -23,7 +23,7 @@ Every three posts make a new vinyl.
 
 ## Metronome
 
-`metronome.html` is a practice metronome: odd meters, swing, chance, gap trainer, tempo ladder, count-in, share links, a chord progression builder with an electric piano, and a band you build in layers: chords (24 chord sounds: sampled pianos, strumstick, pipe organ and bells, plus synths, strings, horns and choir made in code), bass (walking, two-feel, bossa, lofi and more, 10 sounds), and drums (16 grooves, 10 kits), each with its own volume. A few standards are included as changes only (typical changes, check against your own chart). Every sound has a synth fallback. It has no build step. The code is plain ES modules in `assets/js/metronome/`. The timing logic (`timeline`, `pattern`, `overlay`, `chords`, `comping`, `groove`, `transport`, `share`) does not touch Web Audio, so it runs under Node.
+`metronome.html` is a practice metronome: odd meters, swing, chance, gap trainer, tempo ladder, count-in, share links, a chord progression builder with an electric piano, and a band you build in layers: chords (16 chord sounds: sampled pianos, strings, horn, trumpet and organs, plus three synths made in code), bass (walking, two-feel, bossa, lofi and more, 10 sounds), and drums (16 grooves, 10 kits), each with its own volume. A few standards are included as changes only (typical changes, check against your own chart). Every sound has a synth fallback. It has no build step. The code is plain ES modules in `assets/js/metronome/`. The timing logic (`timeline`, `pattern`, `overlay`, `chords`, `comping`, `groove`, `transport`, `share`) does not touch Web Audio, so it runs under Node.
 
 ```
 npm test
@@ -35,7 +35,7 @@ The recorded instruments in `assets/audio/inst/` and drum kits in `assets/audio/
 
 The kit `bebop` (a jazz kit played with sticks) is cut from Versilian Studios' Virtuosity Drums (CC0) by the same script (clone `sfzinstruments/virtuosity_drums` next to the others). The kits `tr808` and `tr909` are generated in code by `tools/build-electro.py`, so they are original sounds. The kits `gogoroom`, `gogoretro`, `swirly` and `hands` are cut from the Karoryfer libraries by `tools/build-kits.py` (needs numpy and scipy, and local clones of `karoryfer.swirly-drums` and `karoryfer.gogodze-phu-vol-ii` from sfzinstruments on GitHub). Per-sound loudness trims live in `instruments.js`. `tools/measure-levels.html` renders every sound through the real audio engine so the trims can be re-measured after any change.
 
-The instruments `grand`, `kawai`, `harpsichord`, `harp`, `marimba`, `kalimba`, `strumstick`, `pipeorgan`, `tubular` and `glock` are cut from the VCSL library (CC0) by `tools/build-keys.py` (needs numpy and scipy and a local clone of `sgossner/vcsl`). They load on first use.
+The instruments `grand`, `kawai`, `harpsichord`, `harp`, `marimba`, `kalimba` and `pipeorgan` are cut from the VCSL library (CC0) by `tools/build-keys.py` (needs numpy, scipy and a local clone of `sgossner/vcsl`). The `strings` (cello, viola and violin sections), `horn` and `trumpet` are cut from VS Chamber Orchestra: Community Edition (CC0) by `tools/build-orchestra.py` (a clone of `sgossner/VSCO-2-CE`). Instruments load on first use.
 
 ## Run locally
 
