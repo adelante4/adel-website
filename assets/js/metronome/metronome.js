@@ -4,26 +4,26 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261108t";
-import { createTransport } from "./transport.js?v=20261108t";
-import { barPlays } from "./overlay.js?v=20261108t";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261108t";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261108t";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261108t";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261108t";
-import { COMP_STYLES } from "./comping.js?v=20261108t";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits, grooveMeter } from "./groove.js?v=20261108t";
-import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261108t";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261108t";
-import { BAND_STYLES } from "./bands.js?v=20261108t";
-import { createTuneView } from "./tune.js?v=20261108t";
-import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261108t";
-import { initRooms } from "./rooms.js?v=20261108t";
-import { initOffline, holdScreen, releaseScreen } from "./offline.js?v=20261108t";
-import { initExport } from "./export.js?v=20261108t";
-import { TOP_100 } from "./top100.js?v=20261108t";
-import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261108t";
-import { MAX_FORM_BARS } from "./share.js?v=20261108t";
+import { createAudio } from "./audio.js?v=20261108u";
+import { createTransport } from "./transport.js?v=20261108u";
+import { barPlays } from "./overlay.js?v=20261108u";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261108u";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261108u";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261108u";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261108u";
+import { COMP_STYLES } from "./comping.js?v=20261108u";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits, grooveMeter } from "./groove.js?v=20261108u";
+import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261108u";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261108u";
+import { BAND_STYLES } from "./bands.js?v=20261108u";
+import { createTuneView } from "./tune.js?v=20261108u";
+import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261108u";
+import { initRooms } from "./rooms.js?v=20261108u";
+import { initOffline, holdScreen, releaseScreen } from "./offline.js?v=20261108u";
+import { initExport } from "./export.js?v=20261108u";
+import { TOP_100 } from "./top100.js?v=20261108u";
+import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261108u";
+import { MAX_FORM_BARS } from "./share.js?v=20261108u";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -413,10 +413,11 @@ const COMP_NOTES = {
   charleston: "Beat 1, then the & of 2. The classic jazz comping rhythm.",
   push: "Anticipates each chord by an eighth note, then answers on 3.",
   twofeel: "Beats 1 and 3.",
+  bossa: "The bossa guitar clave over two bars: 1, the & of 2 and 4, then 2 and 3. Short, soft stabs.",
   arp: "Eighth notes running up and down through the chord.",
   mixed: "A different rhythm each bar. The choice is seeded, so it repeats the same way each time.",
 };
-const COMP_LABELS = { sustain: "Sustain", on1: "On 1", charleston: "Charleston", push: "Push", twofeel: "Two-feel", arp: "Arpeggio", mixed: "Mixed" };
+const COMP_LABELS = { sustain: "Sustain", on1: "On 1", charleston: "Charleston", push: "Push", twofeel: "Two-feel", bossa: "Bossa", arp: "Arpeggio", mixed: "Mixed" };
 const BASS_NOTES = {
   roots: "The root, held for the whole chord.",
   twofeel: "Root on 1, fifth on 3.",

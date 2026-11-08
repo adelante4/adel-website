@@ -9,7 +9,7 @@ export const BAND_STYLES = [
   { id: "halftime", name: "Halftime", bpm: 70, meter: [4, 4], groove: { style: "halftime", kit: "synth", dust: false }, bass: { style: "sub", sound: "sub" }, keys: { sound: "pad", comp: "sustain" } },
   { id: "swing", name: "Medium swing", bpm: 132, meter: [4, 4], groove: { style: "jazz", kit: "bebop", dust: false }, bass: { style: "walking", sound: "doublebass" }, keys: { sound: "upright", comp: "charleston" } },
   { id: "ballad", name: "Ballad", bpm: 60, meter: [4, 4], groove: { style: "brushes", kit: "rusty", dust: false }, bass: { style: "twofeel", sound: "doublebass" }, keys: { sound: "vibes", comp: "arp" } },
-  { id: "bossa", name: "Bossa nova", bpm: 118, meter: [4, 4], groove: { style: "bossa", kit: "hands", dust: false }, bass: { style: "bossa", sound: "fashionbass" }, keys: { sound: "rhodes", comp: "push" } },
+  { id: "bossa", name: "Bossa nova", bpm: 118, meter: [4, 4], groove: { style: "bossa", kit: "hands", dust: false }, bass: { style: "bossa", sound: "fashionbass" }, keys: { sound: "rhodes", comp: "bossa" } },
   { id: "shuffle", name: "Blues shuffle", bpm: 104, meter: [4, 4], groove: { style: "shuffle", kit: "rusty", dust: false }, bass: { style: "walking", sound: "doublebass" }, keys: { sound: "organ", comp: "on1" } },
   { id: "funk", name: "Funk", bpm: 100, meter: [4, 4], groove: { style: "funk", kit: "swirly", dust: false }, bass: { style: "funk", sound: "fashionbass" }, keys: { sound: "clavisynth", comp: "push" } },
   { id: "trap", name: "Trap", bpm: 140, meter: [4, 4], groove: { style: "trap", kit: "tr808", dust: false }, bass: { style: "sub", sound: "sub" }, keys: { sound: "pad", comp: "sustain" } },

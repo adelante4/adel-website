@@ -3,16 +3,16 @@
 // generateHarmony(harmony, pattern, practice, fromBeat, toBeat) returns the events whose
 // position falls in [fromBeat, toBeat). Like the click generator it works in beats and is
 // repeatable: the same range gives the same events, and splitting a range changes nothing.
-import { slotRng } from "./prng.js?v=20261108t";
-import { barPlays } from "./overlay.js?v=20261108t";
-import { voiceChords } from "./chords.js?v=20261108t";
+import { slotRng } from "./prng.js?v=20261108u";
+import { barPlays } from "./overlay.js?v=20261108u";
+import { voiceChords } from "./chords.js?v=20261108u";
 
-export const COMP_STYLES = ["sustain", "on1", "charleston", "push", "twofeel", "arp", "mixed"];
+export const COMP_STYLES = ["sustain", "on1", "charleston", "push", "twofeel", "bossa", "arp", "mixed"];
 const MIXED_POOL = ["on1", "charleston", "push", "twofeel"];
 const MAX_NUDGE_BEATS = 0.04;
 
 /** Hits inside one chord that lasts `span` beats. `at` can be negative: a push before the chord. */
-export function styleHits(style, span) {
+export function styleHits(style, span, bar = 0) {
   const long = span >= 3;
   switch (style) {
     case "sustain":
@@ -27,6 +27,12 @@ export function styleHits(style, span) {
       return long
         ? [{ at: -0.5, dur: 1.5, vel: 0.95 }, { at: 2, dur: Math.min(1, span - 2), vel: 0.7 }]
         : [{ at: -0.5, dur: span + 0.5, vel: 0.9 }];
+    case "bossa": {
+      // The violao clave, two bars long: beat 1, the & of 2 and beat 4, then beats 2 and 3. Short, soft stabs.
+      const pick = bar % 2 === 0 ? [[0, 0.9, 0.85], [1.5, 0.45, 0.7], [3, 0.9, 0.75]] : [[1, 0.9, 0.7], [2, 0.9, 0.8]];
+      const hits = pick.filter(([at]) => at < span).map(([at, dur, vel]) => ({ at, dur: Math.min(dur, span - at), vel }));
+      return hits.length ? hits : [{ at: 0, dur: Math.min(span, 0.9), vel: 0.8 }];
+    }
     case "arp": {
       // Eighth notes running up and down through the chord, one note at a time.
       const run = [0, 1, 2, 3, 2, 1];
@@ -90,7 +96,7 @@ export function generateHarmony(harmony, pattern, practice, fromBeat, toBeat) {
       harmony.comp === "mixed" ? MIXED_POOL[Math.floor(slotRng(pattern.seed, bar, 90, 0)() * MIXED_POOL.length)] : harmony.comp;
     for (const [s, idx] of byBar[fb]) {
       const base = bar * beats + s.start;
-      styleHits(style, s.span).forEach((h, n) => {
+      styleHits(style, s.span, pb).forEach((h, n) => {
         const rng = slotRng(pattern.seed, bar, idx, n + 40);
         const nudge = rng();
         const loud = rng();

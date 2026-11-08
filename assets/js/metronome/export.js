@@ -1,12 +1,12 @@
 // Export: the band as loop-ready WAV stems (for an Akai MPC, Ableton or any sampler), as a MIDI file, and the
 // drum kit as one-shots for pads. Renders with the same audio engine as playback, into memory.
-import { createAudio } from "./audio.js?v=20261108t";
-import { createTransport } from "./transport.js?v=20261108t";
-import { compileTimeline, timeAtBeat } from "./timeline.js?v=20261108t";
-import { encodeWav, foldTail, peakOf } from "./wav.js?v=20261108t";
-import { makeZip } from "./zip.js?v=20261108t";
-import { buildMidi } from "./midi.js?v=20261108t";
-import { DRUM_VOICES } from "./groove.js?v=20261108t";
+import { createAudio } from "./audio.js?v=20261108u";
+import { createTransport } from "./transport.js?v=20261108u";
+import { compileTimeline, timeAtBeat } from "./timeline.js?v=20261108u";
+import { encodeWav, foldTail, peakOf } from "./wav.js?v=20261108u";
+import { makeZip } from "./zip.js?v=20261108u";
+import { buildMidi } from "./midi.js?v=20261108u";
+import { DRUM_VOICES } from "./groove.js?v=20261108u";
 
 const RATE = 44100;
 const TAIL = 3; // seconds of ring-out folded back onto the start, so loops repeat seamlessly

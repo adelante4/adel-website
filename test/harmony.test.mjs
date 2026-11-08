@@ -381,3 +381,9 @@ test("intensity thins and fills the groove; defaults keep the old sound", () => 
   assert.ok(next.some((h) => h.voice === "ohat"), "lands on the downbeat");
   assert.equal(n({}), n({ intensity: 0.5, fills: true, pocket: true }));
 });
+
+test("bossa comping plays the two-bar clave", () => {
+  assert.deepEqual(styleHits("bossa", 4, 0).map((h) => h.at), [0, 1.5, 3]);
+  assert.deepEqual(styleHits("bossa", 4, 1).map((h) => h.at), [1, 2]);
+  assert.ok(styleHits("bossa", 2, 1).length >= 1);
+});
