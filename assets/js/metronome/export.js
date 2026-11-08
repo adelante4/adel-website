@@ -8,6 +8,7 @@ import { makeZip } from "./zip.js?v=20261109c";
 import { buildMidi } from "./midi.js?v=20261109c";
 import { DRUM_VOICES } from "./groove.js?v=20261109c";
 import { drumLevel, drumTrim } from "./instruments.js?v=20261109c";
+import { trimTail, masterProject } from "./mpcdsp.js?v=20261109c";
 import { projectName, decodeSkeleton, decodeXpj, buildPayload, encodeXpj, wavFrames } from "./mpc.js?v=20261109c";
 
 const RATE = 44100;
@@ -90,10 +91,12 @@ export async function renderLoops(state, o) {
   const fullPeak = peakOf(await renderStem(cfg, events, seconds, stems.full));
   const gain = Math.min(8, 0.891 / Math.max(fullPeak, 1e-4));
   const files = [];
+  const raw = {};
   const base = `${slug(o.name) || "metronome"}-${cfg.pattern.bpm}bpm-${o.bars}bars`;
   for (const part of wanted) {
     o.onStep?.(`Rendering ${part === "full" ? "full mix" : part}...`);
     const ch = await renderStem(cfg, events, seconds, stems[part]);
+    if (o.keepRaw) raw[part] = ch;
     files.push({ name: `${base}-${part === "click" ? "metronome" : part}.wav`, data: encodeWav(ch.map((c) => c.map((x) => x * gain)), RATE, o.bits) });
   }
   const sec = seconds.toFixed(3);
@@ -106,7 +109,7 @@ export async function renderLoops(state, o) {
     "Set each sample to loop, or chop it to the bars. The tempo is in the file name.",
   ].join("\n");
   files.push({ name: "README.txt", data: new TextEncoder().encode(readme) });
-  return { files, zip: makeZip(files), base, gain };
+  return { files, zip: makeZip(files), base, gain, raw, seconds };
 }
 
 export function renderMidi(state, o) {
@@ -189,7 +192,30 @@ async function loadTemplate(own) {
   return decodeSkeleton(new Uint8Array(await res.arrayBuffer()));
 }
 
-/** One WAV per drum voice for the pads: the hardest velocity layer, at the level it has in the band mix. */
+const CYMBAL = new Set(["hat", "ohat", "foot", "ride", "brush"]);
+
+/** The page plays cymbals through a 11 kHz low-pass; the sampler does not, so do it here, where the pad gets the sound. */
+async function lowpass(chans, hz) {
+  const ctx = new OfflineAudioContext(chans.length, chans[0].length, RATE);
+  const buf = ctx.createBuffer(chans.length, chans[0].length, RATE);
+  chans.forEach((c, i) => buf.copyToChannel(c, i));
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const lp = ctx.createBiquadFilter();
+  lp.type = "lowpass";
+  lp.frequency.value = hz;
+  lp.Q.value = 0.5;
+  src.connect(lp).connect(ctx.destination);
+  src.start();
+  const out = await ctx.startRendering();
+  return chans.map((_, i) => out.getChannelData(i).slice());
+}
+
+/**
+ * One sound per drum voice for the pads: the hardest velocity layer, at the level it has in the band mix, with the
+ * cymbals filtered as on the page and the dead air after each hit cut off. Float channels at RATE.
+ * @returns {Promise<{voice: string, chans: Float32Array[]}[]>}
+ */
 async function projectShots(cfg, voices, gain) {
   const { kit, style } = cfg.groove;
   const bus = cfg.mix.groove;
@@ -199,20 +225,19 @@ async function projectShots(cfg, voices, gain) {
   if (kit !== "synth") {
     dir = new URL(`${kit}/`, KIT_DIR);
     man = await (await fetch(new URL("manifest.json", dir))).json();
-    dec = new OfflineAudioContext(2, 44100, 44100);
+    dec = new OfflineAudioContext(2, RATE, RATE); // decodes at RATE, so every sound shares one rate
   }
   const out = [];
   for (const voice of voices) {
     let chans;
-    let rate = RATE;
     let scale;
     const v = man?.voices[voice];
     if (v) {
       const top = Math.max(...v.hits.map((h) => h.layer));
       const hit = v.hits.find((h) => h.layer === top);
       const buf = await dec.decodeAudioData(await (await fetch(new URL(hit.file, dir))).arrayBuffer());
-      chans = Array.from({ length: buf.numberOfChannels }, (_, c) => buf.getChannelData(c));
-      rate = buf.sampleRate;
+      chans = Array.from({ length: buf.numberOfChannels }, (_, c) => buf.getChannelData(c).slice());
+      if (CYMBAL.has(voice)) chans = await lowpass(chans, 11000);
       scale = drumLevel(kit, voice) * drumTrim(kit, style);
     } else {
       // The synth kit, or a voice this kit does not have (the band falls back to the synth for it too).
@@ -222,10 +247,13 @@ async function projectShots(cfg, voices, gain) {
     scale *= bus * gain;
     const peak = peakOf(chans);
     if (peak * scale > 0.98) scale = 0.98 / peak;
-    out.push({ voice, data: encodeWav(chans.map((c) => c.map((x) => x * scale)), rate, 16) });
+    out.push({ voice, chans: trimTail(chans.map((c) => c.map((x) => x * scale)), RATE) });
   }
   return out;
 }
+
+/** Pad velocity for a hit. The page plays a hit at 0.55 + 0.6 * gain of full level, so the softest is about half the loudest. */
+const padVelocity = (g) => 0.48 + 0.52 * Math.min(1, Math.max(0, g));
 
 /**
  * The band as an Akai MPC Sample project: the drum kit as one-shots on pads A1 to A13, the band's drum pattern as
@@ -243,28 +271,44 @@ export async function renderMpcProject(state, o) {
   const name = projectName(o.name, p.bpm);
   const tpl = o.template ?? (await loadTemplate());
 
-  const loops = await renderLoops(state, { bars: o.bars, parts: ["chords", "bass"], bits: 16, name: o.name, onStep: o.onStep, gainOnly: true });
-  const pads = [];
-  const data = [];
-  const add = (pad, label, file, bytes, loop) => {
-    pads.push({ pad, name: label, file, frames: wavFrames(bytes), loop });
-    data.push({ name: `${name}_[ProjectData]/${file}`, data: bytes });
-  };
+  const loud = o.loud !== false;
+  const loops = await renderLoops(state, { bars: o.bars, parts: ["chords", "bass"], bits: 16, name: o.name, onStep: o.onStep, gainOnly: true, keepRaw: true });
+  const bedPads = [];
+  if (hasChords && loops.raw.chords) bedPads.push({ pad: CHORDS_PAD, label: "Chords loop", file: "Chords.wav", chans: loops.raw.chords });
+  if (hasBass && loops.raw.bass) bedPads.push({ pad: BASS_PAD, label: "Bass loop", file: "Bass.wav", chans: loops.raw.bass });
+  const n = bedPads[0]?.chans[0].length ?? Math.round(loops.seconds * RATE);
   const padOf = {};
+  const shots = new Map();
+  const names = new Map();
   if (hasDrums) {
     const voices = DRUM_VOICES.filter((v) => events.drums.some((e) => e.voice === v));
     o.onStep?.("Collecting drum sounds...");
     for (const s of await projectShots(cfg, voices, loops.gain)) {
-      padOf[s.voice] = DRUM_VOICES.indexOf(s.voice);
-      add(padOf[s.voice], PAD_NAMES[s.voice] ?? s.voice, `${s.voice}.wav`, s.data, false);
+      const pad = DRUM_VOICES.indexOf(s.voice);
+      padOf[s.voice] = pad;
+      shots.set(pad, s.chans);
+      names.set(pad, { label: PAD_NAMES[s.voice] ?? s.voice, file: `${s.voice}.wav` });
     }
   }
-  const stem = (part) => loops.files.find((f) => f.name.endsWith(`-${part}.wav`))?.data;
-  if (hasChords && stem("chords")) add(CHORDS_PAD, "Chords loop", "Chords.wav", stem("chords"), true);
-  if (hasBass && stem("bass")) add(BASS_PAD, "Bass loop", "Bass.wav", stem("bass"), true);
+  const secPerBeat = 60 / p.bpm;
+  const hits = events.drums
+    .filter((e) => padOf[e.voice] !== undefined)
+    .map((e) => ({ beat: e.beat, pad: padOf[e.voice], gain: padVelocity(e.voice === "ghost" ? Math.min(e.gain, 0.4) : e.gain) }));
+
+  o.onStep?.(loud ? "Setting the levels..." : "Writing the sounds...");
+  const bed = bedPads.map((b) => b.chans.map((c) => c.map((x) => x * loops.gain)));
+  const mastered = masterProject({ n, rate: RATE, shots, hits: hits.map((h) => ({ time: h.beat * secPerBeat, pad: h.pad, vel: h.gain })), bed, loud });
+  const pads = [];
+  const data = [];
+  const add = (pad, label, file, chans, loop) => {
+    const bytes = encodeWav(chans, RATE, 16);
+    pads.push({ pad, name: label, file, frames: wavFrames(bytes), loop });
+    data.push({ name: `${name}_[ProjectData]/${file}`, data: bytes });
+  };
+  for (const [pad, chans] of mastered.shots) add(pad, names.get(pad).label, names.get(pad).file, chans, false);
+  bedPads.forEach((b, i) => add(b.pad, b.label, b.file, mastered.bed[i], true));
 
   o.onStep?.("Writing the project...");
-  const hits = events.drums.filter((e) => padOf[e.voice] !== undefined).map((e) => ({ beat: e.beat, pad: padOf[e.voice], gain: e.voice === "ghost" ? Math.min(e.gain, 0.4) : e.gain }));
   const built = buildPayload(tpl.payload, { name, bpm: p.bpm, beats: p.beats, den: p.den, bars: o.bars, pads, hits });
   const xpj = await encodeXpj(tpl.header, built.payload);
   const layout = pads.map((x) => `  A${x.pad + 1}: ${x.name}${x.loop ? " (loops)" : ""}`);
@@ -281,10 +325,10 @@ export async function renderMpcProject(state, o) {
     "",
     `The sequence has ${built.events} notes: the drum pattern on the drum pads, and one long note on each loop pad so the chords and the bass play from bar 1.`,
     "The loops are cut to whole bars at the project tempo and repeat with no gap.",
-    "Levels follow the band mix on the page. Adjust them on the MPC if you like.",
+    loud ? `Levels: the sounds are made louder than the page plays them (about ${(mastered.stats.afterRmsDb - mastered.stats.beforeRmsDb).toFixed(0)} dB), with the peaks held at ${mastered.stats.peakDb.toFixed(1)} dBFS, so the whole project plays at a healthy volume. Drum pads follow the velocity of each hit.` : "Levels follow the band mix on the page. Adjust them on the MPC if you like.",
   ].join("\n");
   const files = [{ name: `${name}.xpj`, data: xpj }, ...data, { name: "README.txt", data: new TextEncoder().encode(readme) }];
-  return { files, zip: makeZip(files), name, events: built.events, pads: pads.length };
+  return { files, zip: makeZip(files), name, events: built.events, pads: pads.length, stats: mastered.stats };
 }
 
 // ---- The panel ---------------------------------------------------------------------------------------------
@@ -341,7 +385,7 @@ export function initExport({ getState, getTuneName }) {
     run(async () => {
       const file = $("ex-mpc-template").files?.[0];
       const template = file ? await decodeXpj(new Uint8Array(await file.arrayBuffer())) : undefined;
-      const r = await renderMpcProject(getState(), { bars: Number(bars.value), name: getTuneName(), template, onStep: (m) => (status.textContent = m) });
+      const r = await renderMpcProject(getState(), { bars: Number(bars.value), name: getTuneName(), template, loud: $("ex-mpc-loud").value !== "page", onStep: (m) => (status.textContent = m) });
       save(`${r.name}.zip`, r.zip, "application/zip");
       status.textContent = `Saved ${r.name}.zip: ${r.pads} sounds and a sequence with ${r.events} notes. Copy the .xpj and its _[ProjectData] folder to the MPC's card.`;
     }),

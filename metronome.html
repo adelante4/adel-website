@@ -314,7 +314,9 @@
             <button class="btn" id="ex-shots" type="button">Drum kit as one-shots (zip)</button>
           </div>
           <p class="note" id="ex-status" role="status" aria-live="polite"></p>
-          <p class="note"><b>MPC Sample project:</b> one zip with a project the MPC opens as it is. The drum kit is on pads A1 to A13 as one-shots, the band's drum pattern is the sequence, and the chords and the bass are loops on A15 and A16. It uses the band as it sounds now and the length above. Copy the .xpj and its _[ProjectData] folder to the MPC's card.</p>
+          <p class="note"><b>MPC Sample project:</b> one zip with a project the MPC opens as it is. The drum kit is on pads A1 to A13 as one-shots, the band's drum pattern is the sequence, and the chords and the bass are loops on A15 and A16. It uses the band as it sounds now and the length above. The sounds are trimmed of dead air and limited, so they are clean and loud. Copy the .xpj and its _[ProjectData] folder to the MPC's card.</p>
+          <label class="label" for="ex-mpc-loud">MPC project level</label>
+          <select id="ex-mpc-loud" aria-label="Level of the MPC project"><option value="loud">Loud (limited, recommended)</option><option value="page">As the page plays it</option></select>
           <label class="label" for="ex-mpc-template">Template for the MPC project (optional)</label>
           <input type="file" id="ex-mpc-template" accept=".xpj" aria-label="A project saved on your own MPC, used as the template">
           <p class="note">Leave this empty to use the built-in template. If a project does not open on your MPC, save any project on it (one drum program, one sample on a pad, one sequence), pick that .xpj here and export again.</p>
