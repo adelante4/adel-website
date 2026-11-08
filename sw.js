@@ -49,13 +49,15 @@ self.addEventListener("fetch", (event) => {
   } else if (req.mode === "navigate" || url.pathname.endsWith(".html") || url.pathname.endsWith("offline-manifest.json")) {
     event.respondWith(networkFirst(req));
   } else {
-    event.respondWith(cacheFirst(req, APP));
+    event.respondWith(cacheFirst(req, APP, false));
   }
 });
 
-async function cacheFirst(req, name) {
+// App files carry the version in their address (?v=TAG), so they match exactly: a new version is a cache miss and
+// comes from the network. Sounds never change under one name, so they match by path.
+async function cacheFirst(req, name, ignoreSearch = true) {
   const cache = await caches.open(name);
-  const hit = await cache.match(req, { ignoreSearch: true });
+  const hit = await cache.match(req, { ignoreSearch });
   if (hit) return hit;
   const res = await fetch(req);
   if (res.ok) cache.put(req, res.clone());
@@ -65,7 +67,7 @@ async function cacheFirst(req, name) {
 async function networkFirst(req) {
   const cache = await caches.open(APP);
   try {
-    const res = await fetch(req);
+    const res = await fetch(req, { cache: "no-cache" });
     if (res.ok) cache.put(req, res.clone());
     return res;
   } catch {

@@ -7,8 +7,8 @@
 // Patterns are lists of entries. An entry has a grid step, a voice, a gain, and an optional
 // chance (for ghost notes). Chances come from a seeded generator keyed by bar, step and voice,
 // so a ghost note that plays in bar 3 plays in bar 3 every time.
-import { slotRng } from "./prng.js?v=20261108w";
-import { barPlays } from "./overlay.js?v=20261108w";
+import { slotRng } from "./prng.js?v=20261108x";
+import { barPlays } from "./overlay.js?v=20261108x";
 
 export const GROOVE_STYLES = ["off", "lofi", "dilla", "halftime", "boombap", "jazz", "brushes", "bossa", "shuffle", "funk", "waltz", "trap", "house", "techno", "twostep", "idm", "minimal", "five4", "five8", "seven223", "seven322", "nine", "eleven", "teental", "rupak", "jhaptal", "keharwa", "dadra"];
 export const GROOVE_NAMES = {
