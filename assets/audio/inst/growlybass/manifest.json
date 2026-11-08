@@ -1,0 +1,55 @@
+{
+ "id": "growlybass",
+ "name": "Jazz bass",
+ "kind": "bass",
+ "sampleRate": 44100,
+ "release": 0.15,
+ "license": "CC0 1.0",
+ "credit": "Karoryfer Samples, Growlybass",
+ "notes": [
+  {
+   "midi": 28.29,
+   "file": "n28.wav"
+  },
+  {
+   "midi": 30.083,
+   "file": "n30.wav"
+  },
+  {
+   "midi": 32.99,
+   "file": "n33.wav"
+  },
+  {
+   "midi": 35.93,
+   "file": "n36.wav"
+  },
+  {
+   "midi": 38.98,
+   "file": "n39.wav"
+  },
+  {
+   "midi": 42.023,
+   "file": "n42.wav"
+  },
+  {
+   "midi": 45.011,
+   "file": "n45.wav"
+  },
+  {
+   "midi": 48.1,
+   "file": "n48.wav"
+  },
+  {
+   "midi": 51.075,
+   "file": "n51.wav"
+  },
+  {
+   "midi": 53.928,
+   "file": "n54.wav"
+  },
+  {
+   "midi": 57.057,
+   "file": "n57.wav"
+  }
+ ]
+}

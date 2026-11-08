@@ -2,7 +2,7 @@
  "id": "fashionbass",
  "name": "Round bass",
  "kind": "bass",
- "sampleRate": 24000,
+ "sampleRate": 44100,
  "release": 0.15,
  "license": "CC0 1.0",
  "credit": "Karoryfer Samples, Fashionbass",

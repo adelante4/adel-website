@@ -9,7 +9,7 @@ export const GM_KEYS = {
   rhodes: 4, grand: 0, kawai: 0, fmpiano: 5, upright: 0, vibes: 11, clavisynth: 7, organ: 19, harpsichord: 6, harp: 46,
   marimba: 12, kalimba: 108, strings: 48, horn: 60, trumpet: 56, pipeorgan: 19, pad: 89, juno: 90, supersaw: 81, drone: 94, glass: 98,
 };
-export const GM_BASS = { doublebass: 32, fashionbass: 33, swagbass: 33, moog: 38, sub: 38, round: 39, reese: 38, acid: 87, fmbass: 38, dub: 38 };
+export const GM_BASS = { doublebass: 32, fashionbass: 33, swagbass: 33, fingerbass: 33, growlybass: 34, moog: 38, sub: 38, round: 39, reese: 38, acid: 87, fmbass: 38, dub: 38 };
 
 const vlq = (n) => {
   const b = [n & 127];

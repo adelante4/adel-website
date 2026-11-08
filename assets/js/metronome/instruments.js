@@ -29,9 +29,11 @@ export const KEYS = [
 ];
 
 export const BASSES = [
-  { id: "doublebass", name: "Double bass", trim: 0.269, note: "A 1958 Otto Rubner upright bass, plucked. Woody, with a short decay." },
-  { id: "fashionbass", name: "Round bass", trim: 0.623, note: "A roundwound bass, direct. Clear and punchy." },
-  { id: "swagbass", name: "Fabric bass", trim: 0.599, note: "A bass in a fabric finish. Soft and thumpy, good for lofi." },
+  { id: "doublebass", name: "Double bass", trim: 0.307, note: "A 1958 Otto Rubner upright bass, plucked. Woody, with a short decay." },
+  { id: "fashionbass", name: "Round bass", trim: 0.627, note: "A roundwound bass, direct. Clear and punchy." },
+  { id: "swagbass", name: "Fabric bass", trim: 0.602, note: "A bass in a fabric finish. Soft and thumpy, good for lofi." },
+  { id: "fingerbass", name: "Flatwound bass", trim: 0.421, note: "A Squier Bass VI with flatwound strings, fingered on the neck pickup. Warm and dark, the classic sound for ballads, bossa and soul." },
+  { id: "growlybass", name: "Jazz bass", trim: 0.763, note: "A Squier Jazz Bass, roundwound, both pickups. Bright with a growl, good for funk." },
   { id: "moog", name: "Synth bass", trim: 0.458, synth: true, note: "Sawtooth through a closing filter." },
   { id: "sub", name: "Sub 808", trim: 0.18, synth: true, note: "A long, driven sine with an octave layer. Use with Halftime or Sub." },
   { id: "reese", name: "Reese", trim: 0.287, synth: true, note: "Detuned saws that beat against each other over a sub. Deep and moving, for dnb, garage and techno." },

@@ -1,0 +1,59 @@
+{
+ "id": "fingerbass",
+ "name": "Flatwound bass",
+ "kind": "bass",
+ "sampleRate": 44100,
+ "release": 0.15,
+ "license": "CC0 1.0",
+ "credit": "Karoryfer Samples, Pastabass (fingered, flatwound)",
+ "notes": [
+  {
+   "midi": 28.01,
+   "file": "n28.wav"
+  },
+  {
+   "midi": 30.922,
+   "file": "n31.wav"
+  },
+  {
+   "midi": 33.937,
+   "file": "n34.wav"
+  },
+  {
+   "midi": 36.995,
+   "file": "n37.wav"
+  },
+  {
+   "midi": 39.987,
+   "file": "n40.wav"
+  },
+  {
+   "midi": 43.043,
+   "file": "n43.wav"
+  },
+  {
+   "midi": 46.031,
+   "file": "n46.wav"
+  },
+  {
+   "midi": 48.982,
+   "file": "n49.wav"
+  },
+  {
+   "midi": 52.03,
+   "file": "n52.wav"
+  },
+  {
+   "midi": 54.972,
+   "file": "n55.wav"
+  },
+  {
+   "midi": 57.965,
+   "file": "n58.wav"
+  },
+  {
+   "midi": 61.002,
+   "file": "n61.wav"
+  }
+ ]
+}
