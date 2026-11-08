@@ -5,10 +5,10 @@
 //
 // Notes are written as chord tones (root, third, fifth, approach) and placed in a low window,
 // E1 to D#2 for the roots. The recorded basses fold by octave if a note is out of their range.
-import { slotRng } from "./prng.js?v=20261108s";
-import { barPlays } from "./overlay.js?v=20261108s";
-import { chordTones, parseChord } from "./chords.js?v=20261108s";
-import { flattenForm } from "./comping.js?v=20261108s";
+import { slotRng } from "./prng.js?v=20261108t";
+import { barPlays } from "./overlay.js?v=20261108t";
+import { chordTones, parseChord } from "./chords.js?v=20261108t";
+import { flattenForm } from "./comping.js?v=20261108t";
 
 export const BASS_STYLES = ["roots", "twofeel", "walking", "lofi", "bossa", "funk", "sub"];
 export const BASS_STYLE_NAMES = {
@@ -109,6 +109,9 @@ function resolve(info, tone, nextRoot, rng) {
       return r + info.third;
     case "fifth":
       return r + info.fifth;
+    case "fifthLow":
+      // below the root when the root is above F#1, else above, so the bass stays in its best octave
+      return r + info.fifth - (r > 34 ? 12 : 0);
     case "seventh":
       return r + (info.seventh ?? 12);
     case "next":
@@ -187,15 +190,21 @@ function pattern(style, span, rng) {
             { at: 3, dur: 0.85, tone: "fifth", vel: 0.8, chance: 0.6 },
           ]
         : [{ at: 0, dur: span - 0.1, tone: "root", vel: 1 }];
-    case "bossa":
-      return long
-        ? [
-            { at: 0, dur: 1.4, tone: "root", vel: 1 },
-            { at: 1.5, dur: 0.45, tone: "fifth", vel: 0.8 },
-            { at: 2, dur: 1.4, tone: "root", vel: 0.95 },
-            { at: 3.5, dur: 0.45, tone: "fifth", vel: 0.75 },
-          ]
-        : [{ at: 0, dur: 1.4, tone: "root", vel: 1 }, { at: Math.max(1.5, span - 0.5), dur: 0.45, tone: "fifth", vel: 0.8 }].filter((n) => n.at < span);
+    case "bossa": {
+      // The baixo of a bossa: root on 1 (held), the fifth on the "and" of 2 (anticipating 3), the root again on 3,
+      // and on the "and" of 4 either the fifth or a push into the next chord. The fifth sits an octave below the
+      // root when the root is high, so the line rocks between two registers instead of leaping up.
+      if (span >= 3) {
+        const push = rng() < 0.45;
+        return [
+          { at: 0, dur: 1.45, tone: "root", vel: 1 },
+          { at: 1.5, dur: 0.5, tone: "fifthLow", vel: 0.78 },
+          { at: 2, dur: 1.45, tone: rng() < 0.2 ? "fifthLow" : "root", vel: 0.92 },
+          { at: 3.5, dur: 0.45, tone: push ? "approach" : "fifthLow", vel: push ? 0.7 : 0.75 },
+        ];
+      }
+      return [{ at: 0, dur: 1.45, tone: "root", vel: 1 }, { at: 1.5, dur: 0.45, tone: "fifthLow", vel: 0.78 }].filter((n) => n.at < span);
+    }
     case "sub":
       return long
         ? [{ at: 0, dur: span - 0.15, tone: "root", vel: 1 }, { at: 3.5, dur: 0.4, tone: "root", vel: 0.6, chance: 0.3 }]
