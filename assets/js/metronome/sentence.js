@@ -5,6 +5,8 @@ import { KEYS, BASSES } from "./instruments.js?v=20261108r";
 export const GROOVE_NAMES = {
   lofi: "Lofi", dilla: "Neo-soul", halftime: "Halftime", boombap: "Boom-bap", jazz: "Jazz swing",
   brushes: "Brushes", bossa: "Bossa", shuffle: "Shuffle", funk: "Funk", waltz: "Jazz waltz", trap: "Trap", house: "House", techno: "Techno", twostep: "2-step", idm: "IDM", minimal: "Minimal clicks",
+  five4: "5/4 jazz", five8: "5/8 (3+2)", seven223: "7/8 (2+2+3)", seven322: "7/8 (3+2+2)", nine: "9/8 (2+2+2+3)", eleven: "11/8 (3+3+3+2)",
+  teental: "Teental (16)", rupak: "Rupak (7)", jhaptal: "Jhaptal (10)", keharwa: "Keharwa (8)", dadra: "Dadra (6)",
 };
 
 const nameOf = (list, id) => list.find((x) => x.id === id)?.name ?? id;

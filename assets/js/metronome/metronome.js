@@ -12,7 +12,7 @@ import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrou
 import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261108r";
 import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261108r";
 import { COMP_STYLES } from "./comping.js?v=20261108r";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261108r";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits, grooveMeter } from "./groove.js?v=20261108r";
 import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261108r";
 import { KEYS, BASSES, KITS } from "./instruments.js?v=20261108r";
 import { BAND_STYLES } from "./bands.js?v=20261108r";
@@ -481,7 +481,7 @@ function renderHarmony() {
     state.groove.style = v;
     // A groove only plays in its own meter, so choosing one moves the meter there.
     if (v !== "off" && !grooveFits(state.pattern, v)) {
-      const [beats, den] = v === "waltz" ? [3, 4] : [4, 4];
+      const [beats, den] = grooveMeter(v);
       const p = state.pattern;
       p.beats = beats;
       p.den = den;
@@ -496,7 +496,7 @@ function renderHarmony() {
   $("groove-note").textContent =
     g.style === "off" || grooveFits(state.pattern, g.style)
       ? ""
-      : `${GROOVE_NAMES[g.style]} is written for ${g.style === "waltz" ? "3/4" : "4/4"}. Choose that under Pulse to hear it.`;
+      : `${GROOVE_NAMES[g.style]} is written for ${grooveMeter(g.style).join("/")}. Choose that under Pulse to hear it.`;
   makeSeg($("kit"), KITS.map((x) => [x.id, x.name]), (v) => {
     state.groove.kit = v;
     commit();

@@ -10,7 +10,7 @@
 import { slotRng } from "./prng.js?v=20261108r";
 import { barPlays } from "./overlay.js?v=20261108r";
 
-export const GROOVE_STYLES = ["off", "lofi", "dilla", "halftime", "boombap", "jazz", "brushes", "bossa", "shuffle", "funk", "waltz", "trap", "house", "techno", "twostep", "idm", "minimal"];
+export const GROOVE_STYLES = ["off", "lofi", "dilla", "halftime", "boombap", "jazz", "brushes", "bossa", "shuffle", "funk", "waltz", "trap", "house", "techno", "twostep", "idm", "minimal", "five4", "five8", "seven223", "seven322", "nine", "eleven", "teental", "rupak", "jhaptal", "keharwa", "dadra"];
 export const GROOVE_NAMES = {
   off: "Off",
   lofi: "Lofi",
@@ -29,6 +29,17 @@ export const GROOVE_NAMES = {
   twostep: "2-step",
   idm: "IDM",
   minimal: "Minimal clicks",
+  five4: "5/4 jazz",
+  five8: "5/8 (3+2)",
+  seven223: "7/8 (2+2+3)",
+  seven322: "7/8 (3+2+2)",
+  nine: "9/8 (2+2+2+3)",
+  eleven: "11/8 (3+3+3+2)",
+  teental: "Teental (16)",
+  rupak: "Rupak (7)",
+  jhaptal: "Jhaptal (10)",
+  keharwa: "Keharwa (8)",
+  dadra: "Dadra (6)",
 };
 const VOICES = ["kick", "snare", "ghost", "rim", "hat", "ohat", "foot", "ride", "brush"];
 export const DRUM_VOICES = VOICES;
@@ -155,6 +166,44 @@ const WALTZ = [
   e(0, "kick", 0.2, 0.85), e(3, "ghost", 0.3, 0.25), e(8, "ghost", 0.28, 0.25),
 ];
 
+// ---- Odd meters and Indian taals -------------------------------------------------------------------------
+// One step per beat (the eighth in x/8, the matra in a taal) unless noted. Strokes use the existing drum voices:
+// a bayan stroke (open bass) is the kick, a dayan stroke is the rim, a closed or "khali" stroke is a ghost.
+const dha = (s, g = 1) => [e(s, "kick", 0.75 * g), e(s, "rim", 0.7 * g)];
+const dhin = (s, g = 1) => [e(s, "kick", 0.5 * g), e(s, "rim", 0.6 * g)];
+const na = (s, g = 1) => [e(s, "rim", 0.55 * g)];
+const tin = (s, g = 1) => [e(s, "ghost", 0.6 * g), e(s, "rim", 0.4 * g)];
+const eighths = (n, hi, lo = 0.3) => Array.from({ length: n }, (_, s) => e(s, "hat", hi.includes(s) ? 0.6 : lo));
+/** 5/4 jazz in a triplet grid, 15 steps: ride on every beat with the skip note, feet on 2 and 4. */
+const FIVE4 = [
+  ...[0, 3, 6, 9, 12].map((s) => e(s, "ride", s === 0 ? 0.85 : 0.7)),
+  ...[5, 8, 11, 14].map((s) => e(s, "ride", 0.45)),
+  e(3, "foot", 0.55), e(9, "foot", 0.55),
+  e(0, "kick", 0.25, 0.85), e(6, "kick", 0.2, 0.5), e(8, "ghost", 0.3, 0.3), e(13, "ghost", 0.28, 0.3),
+];
+const FIVE8 = [e(0, "kick", 1), e(3, "snare", 0.95), ...eighths(5, [0, 3]), e(2, "ghost", 0.3, 0.4)];
+const SEVEN223 = [e(0, "kick", 1), e(2, "snare", 0.95), e(4, "kick", 0.85), e(6, "ghost", 0.3, 0.5), ...eighths(7, [0, 2, 4])];
+const SEVEN322 = [e(0, "kick", 1), e(3, "snare", 0.95), e(5, "kick", 0.7), e(6, "snare", 0.4, 0.5), ...eighths(7, [0, 3, 5])];
+const NINE = [e(0, "kick", 1), e(2, "snare", 0.9), e(4, "kick", 0.8), e(6, "snare", 0.9), e(8, "ghost", 0.45), e(7, "ghost", 0.3, 0.4), ...eighths(9, [0, 2, 4, 6])];
+const ELEVEN = [e(0, "kick", 1), e(3, "snare", 0.95), e(6, "kick", 0.85), e(9, "snare", 0.85), e(10, "ghost", 0.35, 0.5), ...eighths(11, [0, 3, 6, 9])];
+/** Teental, 16 matras, 4+4+4+4: Dha Dhin Dhin Dha | Dha Dhin Dhin Dha | Dha Tin Tin Ta | Ta Dhin Dhin Dha. */
+const TEENTAL = [
+  ...dha(0, 1.1), ...dhin(1), ...dhin(2), ...dha(3), ...dha(4), ...dhin(5), ...dhin(6), ...dha(7),
+  ...tin(8), ...tin(9), ...na(10), ...na(11), ...tin(12, 0.9), ...dhin(13), ...dhin(14), ...dha(15),
+];
+/** Rupak, 7 matras, 3+2+2, opens on the empty beat: Tin Tin Na | Dhin Na | Dhin Na. */
+const RUPAK = [...tin(0), ...tin(1), ...na(2), ...dhin(3, 1.1), ...na(4), ...dhin(5), ...na(6)];
+/** Jhaptal, 10 matras, 2+3+2+3: Dhi Na | Dhi Dhi Na | Ti Na | Dhi Dhi Na. */
+const JHAPTAL = [
+  ...dhin(0, 1.1), ...na(1), ...dhin(2), ...dhin(3), ...na(4), ...tin(5), ...na(6), ...dhin(7), ...dhin(8), ...na(9),
+];
+/** Keharwa, 8 matras, 4+4: Dha Ge Na Ti | Na Ka Dhi Na. */
+const KEHARWA = [...dha(0, 1.1), ...dhin(1, 0.7), ...na(2), ...tin(3), ...na(4), ...tin(5, 0.7), ...dhin(6), ...na(7)];
+/** Dadra, 6 matras, 3+3: Dha Dhi Na | Dha Tu Na. */
+const DADRA = [...dha(0, 1.1), ...dhin(1), ...na(2), ...dha(3), ...tin(4), ...na(5)];
+
+const GRID = { fill: false, swing: null };
+
 /** looseness: random timing in beats. swing: the fraction of a pair that the first note takes. */
 const STYLE = {
   lofi: { entries: LOFI, steps: 16, swing: 0.6, loose: 0.015, fill: true },
@@ -173,7 +222,21 @@ const STYLE = {
   idm: { entries: IDM, steps: 16, swing: 0.5, loose: 0.006, fill: true },
   minimal: { entries: MINIMAL, steps: 16, swing: 0.5, loose: 0.003, fill: false },
   brushes: { entries: BRUSHES, steps: 12, swing: null, loose: 0.012, fill: false },
+  five4: { entries: FIVE4, steps: 15, swing: null, loose: 0.01, fill: false, beats: 5 },
+  five8: { entries: FIVE8, steps: 5, per: 1, swing: 0.5, loose: 0.005, fill: false, beats: 5, den: 8 },
+  seven223: { entries: SEVEN223, steps: 7, per: 1, swing: 0.5, loose: 0.005, fill: false, beats: 7, den: 8 },
+  seven322: { entries: SEVEN322, steps: 7, per: 1, swing: 0.5, loose: 0.005, fill: false, beats: 7, den: 8 },
+  nine: { entries: NINE, steps: 9, per: 1, swing: 0.5, loose: 0.005, fill: false, beats: 9, den: 8 },
+  eleven: { entries: ELEVEN, steps: 11, per: 1, swing: 0.5, loose: 0.005, fill: false, beats: 11, den: 8 },
+  teental: { entries: TEENTAL, steps: 16, per: 1, swing: 0.5, loose: 0.008, fill: false, beats: 16 },
+  rupak: { entries: RUPAK, steps: 7, per: 1, swing: 0.5, loose: 0.008, fill: false, beats: 7 },
+  jhaptal: { entries: JHAPTAL, steps: 10, per: 1, swing: 0.5, loose: 0.008, fill: false, beats: 10 },
+  keharwa: { entries: KEHARWA, steps: 8, per: 1, swing: 0.5, loose: 0.008, fill: false, beats: 8 },
+  dadra: { entries: DADRA, steps: 6, per: 1, swing: 0.5, loose: 0.008, fill: false, beats: 6 },
 };
+
+/** The meter a style is written for. */
+export const grooveMeter = (style) => [STYLE[style]?.beats ?? 4, STYLE[style]?.den ?? 4];
 
 /** The swing ratio of a style's own feel: where the off-beat eighth sits in the beat (0.5 straight, 0.667 triplet). */
 export function styleFeel(style, bpm) {
@@ -204,7 +267,8 @@ export function swingBeat(pos, ratio) {
 /** Position of a grid step within a bar, in beats. `ratio` overrides the style's own swing. */
 export function stepBeat(style, step, bpm, ratio = null) {
   const s = STYLE[style];
-  if (s.steps === 12 || s.steps === 9) {
+  if (s.per === 1) return step;
+  if (s.steps === 12 || s.steps === 9 || s.steps === 15) {
     // Triplet grid: the third triplet of a beat sits at the swing ratio.
     ratio = ratio ?? styleFeel(style, bpm);
     const beat = Math.floor(step / 3);
@@ -215,8 +279,8 @@ export function stepBeat(style, step, bpm, ratio = null) {
   return pair * 0.5 + (step % 2 ? (ratio ?? s.swing) * 0.5 : 0);
 }
 
-/** Whether a groove can play in this meter. Grooves are written for 4/4; the waltz for 3/4. */
-export const grooveFits = (pattern, style) => pattern.den === 4 && pattern.beats === (STYLE[style]?.beats ?? 4);
+/** Whether a groove can play in this meter. Each groove is written for one meter, 4/4 unless it says otherwise. */
+export const grooveFits = (pattern, style) => pattern.den === (STYLE[style]?.den ?? 4) && pattern.beats === (STYLE[style]?.beats ?? 4);
 
 /** Whether the drums are sounding in a given bar. */
 export const grooveSounds = (groove, pattern, practice, bar) =>

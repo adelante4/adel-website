@@ -67,3 +67,7 @@ The page is one column: Sound (Metronome, Chords, Bass, Drums and Feel as chips,
 ## Export
 
 "Export to your MPC, Ableton or any sampler" renders the band offline, in the page, with the same engine as playback: loop-ready WAV stems (full mix, chords, bass, drums, metronome; 16 or 24-bit, 44.1 kHz, exact bar lengths, seamless tails, shared level so the stems add up), a MIDI file (chords, bass, drums, metronome on separate tracks, tempo and meter included), and the current drum kit as one-shot WAVs. Akai MPC Sample imports WAV, not MIDI files.
+
+## Odd meters and taals
+
+Choosing 5/4 jazz, 5/8, 7/8 (2+2+3 or 3+2+2), 9/8, 11/8, Teental (16), Rupak (7), Jhaptal (10), Keharwa (8) or Dadra (6) moves the meter to match. The taal grooves play the theka (the standard bol pattern) on the existing drum voices: open bass strokes as kick, dayan strokes as rim, closed strokes as ghost notes. They are approximations, best on the Hand percussion kit. They are unheard by the author's ear.

@@ -36,7 +36,7 @@ window.band=async function(id,only){
 window.measure=async function(cfg){
   const audio=createAudio();
   const st=defaultState();
-  st.pattern.bpm=100;if(cfg.click)st.pattern.sound=cfg.click;if(cfg.beats){st.pattern.beats=cfg.beats;}
+  st.pattern.bpm=100;if(cfg.click)st.pattern.sound=cfg.click;if(cfg.beats){st.pattern.beats=cfg.beats;}if(cfg.den){st.pattern.den=cfg.den;}
   st.harmony.form=FORM;
   st.harmony.on=!!cfg.keys;if(cfg.keys)st.harmony.sound=cfg.keys;
   st.bass.on=!!cfg.bass;if(cfg.bass)st.bass.sound=cfg.bass;

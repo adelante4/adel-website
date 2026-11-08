@@ -19,4 +19,8 @@ export const BAND_STYLES = [
   { id: "idm", name: "IDM", bpm: 146, meter: [4, 4], groove: { style: "idm", kit: "tr909", dust: false }, bass: { style: "sub", sound: "sub" }, keys: { sound: "fmpiano", comp: "arp" } },
   { id: "minimal", name: "Minimal clicks", bpm: 118, meter: [4, 4], groove: { style: "minimal", kit: "tr808", dust: false }, bass: { style: "roots", sound: "sub" }, keys: { sound: "marimba", comp: "arp" } },
   { id: "waltz", name: "Jazz waltz", bpm: 138, meter: [3, 4], groove: { style: "waltz", kit: "bebop", dust: false }, bass: { style: "twofeel", sound: "doublebass" }, keys: { sound: "upright", comp: "charleston" } },
+  { id: "teental", name: "Teental (tabla)", bpm: 90, meter: [16, 4], groove: { style: "teental", kit: "hands", dust: false }, bass: { style: "roots", sound: "sub" }, keys: { sound: "drone", comp: "sustain" } },
+  { id: "rupak", name: "Rupak (7)", bpm: 100, meter: [7, 4], groove: { style: "rupak", kit: "hands", dust: false }, bass: { style: "roots", sound: "sub" }, keys: { sound: "drone", comp: "sustain" } },
+  { id: "seven", name: "7/8 groove", bpm: 150, meter: [7, 8], groove: { style: "seven223", kit: "swirly", dust: false }, bass: { style: "funk", sound: "fashionbass" }, keys: { sound: "clavisynth", comp: "push" } },
+  { id: "five4", name: "5/4 jazz", bpm: 172, meter: [5, 4], groove: { style: "five4", kit: "bebop", dust: false }, bass: { style: "walking", sound: "doublebass" }, keys: { sound: "upright", comp: "charleston" } },
 ];

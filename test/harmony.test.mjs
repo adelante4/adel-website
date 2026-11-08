@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { parseChord, cleanChord, transposeChord, formatChord, chordPitchClasses, voiceChord, voiceChords, bassNote, PRESETS, QUALITIES } from "../assets/js/metronome/chords.js";
 import { styleHits, flattenForm, generateHarmony } from "../assets/js/metronome/comping.js";
 import { createTransport } from "../assets/js/metronome/transport.js";
-import { generateGroove, stepBeat, GROOVE_STYLES, grooveFits, grooveSounds } from "../assets/js/metronome/groove.js";
+import { generateGroove, stepBeat, GROOVE_STYLES, grooveFits, grooveSounds, grooveMeter } from "../assets/js/metronome/groove.js";
 import { generateBass, BASS_STYLES } from "../assets/js/metronome/bassline.js";
 import { TOP_100 } from "../assets/js/metronome/top100.js";
 import { STANDARDS, MY_STANDARDS } from "../assets/js/metronome/standards.js";
@@ -136,7 +136,8 @@ test("groove: off and odd meters give nothing", () => {
 
 test("groove: every style plays kick or ride on the downbeat region and stays inside the bar", () => {
   for (const style of GROOVE_STYLES.filter((s) => s !== "off")) {
-    const p = style === "waltz" ? { ...pattern, beats: 3 } : pattern;
+    const [mb, md] = grooveMeter(style);
+    const p = { ...pattern, beats: mb, den: md };
     const ev = generateGroove({ style }, p, practice(), 0, p.beats);
     assert.ok(ev.length >= 5, style);
     assert.ok(ev.every((e) => e.beat >= 0 && e.beat < p.beats && e.gain > 0 && e.gain <= 1), style);
@@ -352,5 +353,16 @@ test("Top 100: 100 tunes, valid chords, fit a share link", () => {
     const link = encodeShare(st);
     assert.ok(link.length < 3500, `${t.id} link is ${link.length}`);
     assert.equal(decodeShare(link).harmony.form.length, t.form.length, t.id);
+  }
+});
+
+test("every groove stays inside its own bar and matches only its own meter", () => {
+  for (const style of GROOVE_STYLES.filter((s) => s !== "off")) {
+    const [beats, den] = grooveMeter(style);
+    const p = { ...defaultState().pattern, beats, den };
+    assert.ok(grooveFits(p, style), style);
+    const hits = generateGroove({ style }, p, { countIn: 0, gap: null, trade: 0, ladder: null }, 0, beats);
+    assert.ok(hits.length >= 4, `${style} has hits`);
+    assert.ok(hits.every((h) => h.beat >= 0 && h.beat < beats + 0.05), `${style} hits fall in the bar`);
   }
 });
