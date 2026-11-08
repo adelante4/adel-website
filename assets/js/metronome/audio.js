@@ -26,9 +26,9 @@ const SOUNDS = {
 };
 
 // Recorded hits (Versilian Community Sample Library, CC0). Each voice has three files.
-import { rhodes, bass, bassSynth, organ, pad, juno, drone, glass, supersaw, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261108q";
-import { createSampler } from "./sampler.js?v=20261108q";
-import { KEYS, BASSES, trimOf, drumTrim } from "./instruments.js?v=20261108q";
+import { rhodes, bass, bassSynth, organ, pad, juno, drone, glass, supersaw, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261108r";
+import { createSampler } from "./sampler.js?v=20261108r";
+import { KEYS, BASSES, trimOf, drumTrim } from "./instruments.js?v=20261108r";
 
 const SYNTH_KEYS = new Set(["rhodes", "organ", "pad", "juno", "drone", "glass", "supersaw"]);
 const SYNTH_BASS = new Set(["round", "moog", "sub", "reese", "acid", "fmbass", "dub"]);
@@ -37,7 +37,8 @@ const FILE = { woodblock: "wood", claves: "claves", log: "log", frame: "frame", 
 const KINDS = ["accent", "beat", "sub"];
 const SAMPLE_DIR = new URL("../../audio/clicks/", import.meta.url);
 
-export function createAudio() {
+/** @param {{context?: BaseAudioContext}} [options] pass an OfflineAudioContext to render to memory instead of playing */
+export function createAudio(options = {}) {
   let ctx = null;
   let master = null;
   let reverbIn = null;
@@ -104,9 +105,12 @@ export function createAudio() {
 
   function ensure() {
     if (ctx) return ctx;
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) throw new Error("This browser has no Web Audio.");
-    ctx = new AC({ latencyHint: "interactive" });
+    if (options.context) ctx = options.context;
+    else {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) throw new Error("This browser has no Web Audio.");
+      ctx = new AC({ latencyHint: "interactive" });
+    }
     master = ctx.createGain();
     master.gain.value = 0.8;
     const comp = ctx.createDynamicsCompressor();

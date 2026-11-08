@@ -12,8 +12,8 @@
 <meta name="apple-mobile-web-app-title" content="Metronome">
 <meta name="description" content="A practice metronome with odd meters, swing, chance, gap trainer and tempo ladder. Runs in the browser.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="assets/css/site.css?v=20261108q">
-<link rel="stylesheet" href="assets/css/metronome.css?v=20261108q">
+<link rel="stylesheet" href="assets/css/site.css?v=20261108r">
+<link rel="stylesheet" href="assets/css/metronome.css?v=20261108r">
 </head>
 <body>
 <div class="moire soft" aria-hidden="true"><i></i><i></i></div>
@@ -282,6 +282,34 @@
       </details>
     </section>
 
+    <section id="export" aria-label="Export">
+      <details class="more" id="more-export">
+        <summary>Export to your MPC, Ableton or any sampler</summary>
+        <div class="export-body">
+          <p class="note">Takes the band exactly as it sounds now. The loops are cut to whole bars, so they repeat with no gap.</p>
+          <label class="label" for="ex-bars">Length</label>
+          <select id="ex-bars" aria-label="Length of the loop"></select>
+          <fieldset class="ex-parts">
+            <legend class="label">Files to make</legend>
+            <label><input type="checkbox" id="ex-full" checked> Full mix</label>
+            <label><input type="checkbox" id="ex-chords" checked> Chords</label>
+            <label><input type="checkbox" id="ex-bass" checked> Bass</label>
+            <label><input type="checkbox" id="ex-drums" checked> Drums</label>
+            <label><input type="checkbox" id="ex-click"> Metronome</label>
+          </fieldset>
+          <label class="label" for="ex-bits">WAV quality</label>
+          <select id="ex-bits" aria-label="WAV bit depth"><option value="16">16-bit, 44.1 kHz</option><option value="24">24-bit, 44.1 kHz</option></select>
+          <div class="row">
+            <button class="btn" id="ex-loops" type="button">Loops as WAV (zip)</button>
+            <button class="btn" id="ex-midi" type="button">MIDI file</button>
+            <button class="btn" id="ex-shots" type="button">Drum kit as one-shots (zip)</button>
+          </div>
+          <p class="note" id="ex-status" role="status" aria-live="polite"></p>
+          <p class="note">Akai MPC Sample reads WAV (16 or 24-bit) from USB or SD, so use the loops and the one-shots. It does not list MIDI file import. Ableton and the MPC software take the MIDI file too.</p>
+        </div>
+      </details>
+    </section>
+
     <section id="offline" aria-label="Offline and install">
       <details class="more" id="more-offline">
         <summary>Use offline or install as an app</summary>
@@ -306,6 +334,6 @@
     <button class="btn" id="tap" type="button">Tap</button>
   </div>
 </div>
-<script type="module" src="assets/js/metronome/metronome.js?v=20261108q"></script>
+<script type="module" src="assets/js/metronome/metronome.js?v=20261108r"></script>
 </body>
 </html>

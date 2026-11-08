@@ -63,3 +63,7 @@ The page is one column: Sound (Metronome, Chords, Bass, Drums and Feel as chips,
 ## Offline and install
 
 `manifest.webmanifest`, `sw.js` and `assets/js/metronome/offline.js` make the metronome an installable app that works with no connection. The service worker saves the app files when the page first loads. A button under "Use offline or install as an app" saves all the sounds (about 47 MB). `offline-manifest.json` lists every file with a content hash. After adding or rebuilding any file under `assets/`, run `node tools/offline-manifest.mjs`; a test fails if it is out of date. The screen stays awake while the metronome plays, where the browser allows it.
+
+## Export
+
+"Export to your MPC, Ableton or any sampler" renders the band offline, in the page, with the same engine as playback: loop-ready WAV stems (full mix, chords, bass, drums, metronome; 16 or 24-bit, 44.1 kHz, exact bar lengths, seamless tails, shared level so the stems add up), a MIDI file (chords, bass, drums, metronome on separate tracks, tempo and meter included), and the current drum kit as one-shot WAVs. Akai MPC Sample imports WAV, not MIDI files.
