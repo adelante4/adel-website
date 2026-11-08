@@ -7,8 +7,8 @@
 // Patterns are lists of entries. An entry has a grid step, a voice, a gain, and an optional
 // chance (for ghost notes). Chances come from a seeded generator keyed by bar, step and voice,
 // so a ghost note that plays in bar 3 plays in bar 3 every time.
-import { slotRng } from "./prng.js?v=20261107r";
-import { barPlays } from "./overlay.js?v=20261107r";
+import { slotRng } from "./prng.js?v=20261108a";
+import { barPlays } from "./overlay.js?v=20261108a";
 
 export const GROOVE_STYLES = ["off", "lofi", "dilla", "halftime", "boombap", "jazz", "brushes", "bossa", "shuffle", "funk", "waltz"];
 export const GROOVE_NAMES = {
@@ -119,18 +119,44 @@ const STYLE = {
   brushes: { entries: BRUSHES, steps: 12, swing: null, loose: 0.012, fill: false },
 };
 
-/** Position of a grid step within a bar, in beats. */
-export function stepBeat(style, step, bpm) {
+/** The swing ratio of a style's own feel: where the off-beat eighth sits in the beat (0.5 straight, 0.667 triplet). */
+export function styleFeel(style, bpm) {
+  const s = STYLE[style];
+  if (!s) return 0.5;
+  if (s.swing !== null) return s.swing;
+  // Triplet grids. Fast tempos play flatter.
+  return bpm <= 120 ? 0.667 : 0.667 - Math.min(0.09, ((bpm - 120) / 120) * 0.09);
+}
+
+/**
+ * The swing the whole band plays with: the swing control when it is set, else the drum style's own feel,
+ * else straight. Keys, bass and drums all follow it, so they swing together.
+ */
+export function bandFeel(groove, pattern) {
+  if (pattern.swing > 0.5) return pattern.swing;
+  return groove && groove.style !== "off" ? styleFeel(groove.style, pattern.bpm) : 0.5;
+}
+
+/** Moves a position so straight eighths (and the sixteenths around them) land on the swing ratio. */
+export function swingBeat(pos, ratio) {
+  if (ratio === 0.5) return pos;
+  const i = Math.floor(pos);
+  const f = pos - i;
+  return i + (f < 0.5 ? (f * ratio) / 0.5 : ratio + ((f - 0.5) * (1 - ratio)) / 0.5);
+}
+
+/** Position of a grid step within a bar, in beats. `ratio` overrides the style's own swing. */
+export function stepBeat(style, step, bpm, ratio = null) {
   const s = STYLE[style];
   if (s.steps === 12 || s.steps === 9) {
-    // Triplet grid: the third triplet of a beat sits at the swing ratio. Fast tempos play flatter.
-    const ratio = bpm <= 120 ? 0.667 : 0.667 - Math.min(0.09, ((bpm - 120) / 120) * 0.09);
+    // Triplet grid: the third triplet of a beat sits at the swing ratio.
+    ratio = ratio ?? styleFeel(style, bpm);
     const beat = Math.floor(step / 3);
     const inBeat = step % 3;
     return beat + (inBeat === 0 ? 0 : inBeat === 1 ? ratio / 2 : ratio);
   }
   const pair = Math.floor(step / 2);
-  return pair * 0.5 + (step % 2 ? s.swing * 0.5 : 0);
+  return pair * 0.5 + (step % 2 ? (ratio ?? s.swing) * 0.5 : 0);
 }
 
 /** Whether a groove can play in this meter. Grooves are written for 4/4; the waltz for 3/4. */
@@ -160,7 +186,7 @@ export function generateGroove(groove, pattern, practice, fromBeat, toBeat) {
       const nudge = rng();
       const loud = rng();
       if (!plays) return;
-      let pos = bar * beats + stepBeat(groove.style, en.step, pattern.bpm) + en.late;
+      let pos = bar * beats + stepBeat(groove.style, en.step, pattern.bpm, pattern.swing > 0.5 ? pattern.swing : null) + en.late;
       pos += (nudge - 0.5) * 2 * (style.loose + pattern.humanize * 0.03);
       let gain = en.gain * (0.9 + loud * 0.2);
       if (pos < 0 || pos < fromBeat || pos >= toBeat) return;

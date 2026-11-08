@@ -7,7 +7,7 @@
 <meta name="description" content="A practice metronome with odd meters, swing, chance, gap trainer and tempo ladder. Runs in the browser.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
 <link rel="stylesheet" href="assets/css/site.css?v=20261106">
-<link rel="stylesheet" href="assets/css/metronome.css?v=20261107r">
+<link rel="stylesheet" href="assets/css/metronome.css?v=20261108a">
 </head>
 <body>
 <div class="moire soft" aria-hidden="true"><i></i><i></i></div>
@@ -33,7 +33,7 @@
       <button class="btn" id="bpm-down" type="button" aria-label="Slower">&minus;</button>
       <button class="btn" id="bpm-up" type="button" aria-label="Faster">+</button>
     </div>
-    <div class="click-mode">
+    <div class="click-mode" data-modes="band learn">
       <span class="label" id="click-label">Click</span>
       <div class="segs" id="click-mode" role="group" aria-labelledby="click-label"></div>
       <p class="note" id="click-note"></p>
@@ -49,7 +49,9 @@
   </section>
 
   <div class="stage">
-    <div class="rooms" id="rooms" role="tablist" aria-label="Rooms"></div>
+    <div class="intents" id="intents" role="group" aria-label="What do you want to do?"></div>
+    <p class="intent-note" id="intent-note"></p>
+    <div class="rooms" id="rooms" role="tablist" aria-label="Settings"></div>
 
     <section class="room" id="room-beat" role="tabpanel" aria-label="Beat">
       <div class="field">
@@ -83,7 +85,7 @@
           <label class="sr" for="swing">Swing</label>
           <input id="swing" type="range" min="0.5" max="0.8" step="0.005" value="0.5">
           <span class="hide-val" id="swing-val">straight</span>
-          <p class="note">Needs two or four clicks per beat to be heard.</p>
+          <p class="note">Swings the click (with two or four clicks per beat) and the whole band: keys, bass and drums. Left at straight, the band plays its style's own feel.</p>
         </div>
         <div class="pedal" data-pedal="humanize" data-name="Human feel">
           <label class="sr" for="humanize">Human feel</label>
@@ -120,9 +122,9 @@
         <button class="btn small" id="tune-new" type="button">New progression</button>
       </div>
 
-      <div class="now-next" id="now-next" aria-live="off"></div>
+      <div class="now-next" id="now-next" aria-live="off" data-modes="learn"></div>
 
-      <div class="field lens-field">
+      <div class="field lens-field" data-modes="learn">
         <span class="label" id="lens-label">Show on the chart</span>
         <div class="segs" id="lens" role="group" aria-labelledby="lens-label"></div>
         <p class="note" id="lens-note"></p>
@@ -130,13 +132,13 @@
       <div class="form" id="form" role="group" aria-label="Chord form"></div>
 
       <div class="pedals">
-        <div class="pedal" data-pedal="write" data-name="Write chords">
+        <div class="pedal" data-pedal="write" data-name="Write chords" data-modes="learn">
           <label class="note" for="write-text">One bar per segment, bars separated by |. Two chords in a bar: Dm7 G7. % repeats the bar before.</label>
           <textarea id="write-text" rows="4" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
           <button class="btn small" id="write-apply" type="button">Use these chords</button>
           <p class="note" id="write-note" role="status" aria-live="polite"></p>
         </div>
-        <div class="pedal" data-pedal="save" data-name="Save as mine">
+        <div class="pedal" data-pedal="save" data-name="Save as mine" data-modes="learn">
           <label class="label" for="save-name">Name</label>
           <input id="save-name" type="text" maxlength="60" autocomplete="off" placeholder="My ii–V–I in Eb">
           <div class="inline">
@@ -160,7 +162,7 @@
         </div>
       </div>
 
-      <div class="dna" id="dna" aria-label="What is in this tune"></div>
+      <div class="dna" id="dna" aria-label="What is in this tune" data-modes="learn"></div>
     </section>
 
     <section class="room" id="room-band" role="tabpanel" aria-label="Band" hidden>
@@ -256,6 +258,6 @@
     </section>
   </div>
 </div>
-<script type="module" src="assets/js/metronome/metronome.js?v=20261107r"></script>
+<script type="module" src="assets/js/metronome/metronome.js?v=20261108a"></script>
 </body>
 </html>

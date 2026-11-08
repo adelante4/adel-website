@@ -268,7 +268,7 @@ export function createTuneView({ chart, nowNext, lensBar, lensNote, dna, library
     const b = el("button", "seg", name);
     b.type = "button";
     b.addEventListener("click", () => {
-      lens = id;
+      lens = userLens = id;
       try {
         localStorage.setItem("metro-lens", id);
       } catch {
@@ -281,8 +281,15 @@ export function createTuneView({ chart, nowNext, lensBar, lensNote, dna, library
     return b;
   });
 
+  let userLens = lens;
   const api = {
     last: null,
+    /** Show a fixed lens (or null to go back to the one the player chose) without remembering it. */
+    force(id) {
+      lens = id ?? userLens;
+      chartKey = "";
+      if (api.last) api.render(api.last);
+    },
     /** Draw everything for the current form. */
     render(ctx) {
       api.last = ctx;

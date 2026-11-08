@@ -6,6 +6,13 @@
 const $ = (id) => document.getElementById(id);
 const ROOMS = [["beat", "Beat"], ["band", "Band"], ["tune", "Tune"], ["train", "Train"]];
 
+// What the player wants to do. Each intent shows only the rooms (and parts of rooms) that serve it.
+export const INTENTS = [
+  ["metronome", "Metronome", "A click to play with. Set the tempo, meter and feel, then press Start.", ["beat", "train"]],
+  ["band", "Band", "Keys, bass and drums play a tune's chords. Pick a style, then pick a tune.", ["band", "tune", "beat", "train"]],
+  ["learn", "Learn a tune", "The band plus a chart that shows what each chord does and how to play it.", ["tune", "band", "beat", "train"]],
+];
+
 const pressed = (id) => $(id).querySelector('[aria-pressed="true"]')?.textContent ?? "";
 
 // name: shown on the tile. on: is it changing the sound? read: the short value on the tile.
@@ -51,8 +58,9 @@ const LAYERS = [
   ["drums", "Drums", (s) => s.groove.style !== "off"],
 ];
 
-export function initRooms({ getState, commit }) {
+export function initRooms({ getState, commit, onIntent }) {
   let room = "beat";
+  let intent = "metronome";
   let first = true;
   let chipKey = "";
   const pedalEls = new Map();
@@ -72,17 +80,20 @@ export function initRooms({ getState, commit }) {
     $(`room-${id}`).setAttribute("aria-labelledby", b.id);
     return b;
   });
+  const visibleRooms = () => INTENTS.find(([id]) => id === intent)[3];
   bar.addEventListener("keydown", (e) => {
-    const i = ROOMS.findIndex(([id]) => id === room);
-    const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: ROOMS.length - 1 }[e.key];
+    const list = visibleRooms();
+    const i = list.indexOf(room);
+    const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: list.length - 1 }[e.key];
     if (next === undefined) return;
     e.preventDefault();
-    const n = (next + ROOMS.length) % ROOMS.length;
-    show(ROOMS[n][0]);
-    tabs[n].focus();
+    const id = list[(next + list.length) % list.length];
+    show(id);
+    tabs[ROOMS.findIndex(([r]) => r === id)].focus();
   });
 
   function show(id) {
+    if (!visibleRooms().includes(id)) return;
     room = id;
     ROOMS.forEach(([r], i) => {
       const on = r === id;
@@ -90,6 +101,39 @@ export function initRooms({ getState, commit }) {
       tabs[i].setAttribute("aria-selected", String(on));
       tabs[i].tabIndex = on ? 0 : -1;
     });
+  }
+
+  // ---- intents ----
+  const intentBar = $("intents");
+  const intentBtns = INTENTS.map(([id, name]) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "intent";
+    b.setAttribute("aria-pressed", "false");
+    b.textContent = name;
+    b.addEventListener("click", () => setIntent(id));
+    intentBar.append(b);
+    return b;
+  });
+
+  /** Show the rooms and parts that belong to what the player wants to do. */
+  function applyIntent(id) {
+    intent = id;
+    const [, , note, list] = INTENTS.find(([x]) => x === id);
+    INTENTS.forEach(([x], i) => intentBtns[i].setAttribute("aria-pressed", String(x === id)));
+    $("intent-note").textContent = note;
+    // Tabs in this intent's order; the others go away.
+    ROOMS.forEach(([r], i) => (tabs[i].hidden = !list.includes(r)));
+    for (const r of list) bar.append(tabs[ROOMS.findIndex(([x]) => x === r)]);
+    for (const el of document.querySelectorAll("[data-modes]")) el.hidden = !el.dataset.modes.split(" ").includes(id);
+    for (const [r] of ROOMS) if (!list.includes(r)) $(`room-${r}`).hidden = true;
+    show(list[0]);
+    $("rooms").hidden = list.length < 2;
+  }
+  function setIntent(id) {
+    if (id === intent) return;
+    applyIntent(id);
+    onIntent?.(id);
   }
 
   // ---- pedals ----
@@ -135,6 +179,7 @@ export function initRooms({ getState, commit }) {
   const toggle = (id) => open(id, pedalEls.get(id).body.hidden);
 
   function jump(roomId, pedalId) {
+    if (!visibleRooms().includes(roomId)) return;
     show(roomId);
     if (!pedalId) return;
     open(pedalId, true);
@@ -188,6 +233,7 @@ export function initRooms({ getState, commit }) {
     $("trade-hint").hidden = s.groove.style !== "off";
     $("freeze").hidden = !(s.pattern.density < 1 || s.pattern.freeze);
 
+    // Parts that only one intent shows stay hidden in the others (re-applied after pedals are built).
     tabs.forEach((t, i) => {
       const n = counts[ROOMS[i][0]];
       const c = t.querySelector(".count");
@@ -217,6 +263,16 @@ export function initRooms({ getState, commit }) {
     first = false;
   }
 
-  show("beat");
-  return { sync, show, open: (id) => { show(PEDALS[id].room); open(id, true); } };
+  applyIntent("metronome");
+  return {
+    sync,
+    show,
+    get intent() {
+      return intent;
+    },
+    /** Switch without telling the page (it is already in that state). */
+    quietIntent: applyIntent,
+    setIntent,
+    open: (id) => { show(PEDALS[id].room); open(id, true); },
+  };
 }

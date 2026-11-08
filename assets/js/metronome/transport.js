@@ -6,12 +6,12 @@
 //
 // A smooth tempo change (retempo) moves the anchor to the first beat not yet handed out,
 // so the beat that was already queued keeps its time and the next one follows at the new tempo.
-import { compileTimeline, timeAtBeat, beatAtTime, bpmAtBeat } from "./timeline.js?v=20261107r";
-import { generateEvents } from "./pattern.js?v=20261107r";
-import { ladderMap } from "./overlay.js?v=20261107r";
-import { generateHarmony } from "./comping.js?v=20261107r";
-import { generateGroove, grooveSounds } from "./groove.js?v=20261107r";
-import { generateBass } from "./bassline.js?v=20261107r";
+import { compileTimeline, timeAtBeat, beatAtTime, bpmAtBeat } from "./timeline.js?v=20261108a";
+import { generateEvents } from "./pattern.js?v=20261108a";
+import { ladderMap } from "./overlay.js?v=20261108a";
+import { generateHarmony } from "./comping.js?v=20261108a";
+import { generateGroove, grooveSounds, bandFeel, swingBeat } from "./groove.js?v=20261108a";
+import { generateBass } from "./bassline.js?v=20261108a";
 
 /** @param {() => {pattern: import("./pattern.js").Pattern, practice: import("./overlay.js").Practice}} getConfig */
 export function createTransport(getConfig) {
@@ -56,6 +56,9 @@ export function createTransport(getConfig) {
       if (horizon <= cursor) return none;
       const { pattern, practice, harmony, groove, bass, mix } = getConfig();
       const at = (e) => ({ ...e, time: ctxTimeOfBeat(e.beat) });
+      // The band swings together: keys and bass follow the drums' feel, or the swing control when it is set.
+      const feel = bandFeel(groove, pattern);
+      const swung = (e) => ({ ...e, beat: swingBeat(e.beat, feel) });
       // While the drums play, the click steps aside. It returns in count-in bars and in the
       // bars where trade fours takes the drums out.
       const quiet = mix?.autoMute ? (bar) => grooveSounds(groove, pattern, practice, bar) : () => false;
@@ -63,13 +66,13 @@ export function createTransport(getConfig) {
         .filter((e) => !quiet(e.bar))
         .map(at);
       const chords = harmony?.on
-        ? generateHarmony(harmony, pattern, practice, cursor, horizon).map((e) => ({
+        ? generateHarmony(harmony, pattern, practice, cursor, horizon).map(swung).map((e) => ({
             ...at(e),
             seconds: ctxTimeOfBeat(e.beat + e.dur) - ctxTimeOfBeat(e.beat),
           }))
         : [];
       const bassNotes = bass?.on
-        ? generateBass(bass, harmony, pattern, practice, cursor, horizon).map((e) => ({
+        ? generateBass(bass, harmony, pattern, practice, cursor, horizon).map(swung).map((e) => ({
             ...at(e),
             seconds: ctxTimeOfBeat(e.beat + e.dur) - ctxTimeOfBeat(e.beat),
           }))
