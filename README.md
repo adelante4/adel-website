@@ -37,6 +37,10 @@ The kit `bebop` (a jazz kit played with sticks) is cut from Versilian Studios' V
 
 The instruments `grand`, `kawai`, `harpsichord`, `harp`, `marimba`, `kalimba` and `pipeorgan` are cut from the VCSL library (CC0) by `tools/build-keys.py` (needs numpy, scipy and a local clone of `sgossner/vcsl`). The `strings` (cello, viola and violin sections), `horn` and `trumpet` are cut from VS Chamber Orchestra: Community Edition (CC0) by `tools/build-orchestra.py` (a clone of `sgossner/VSCO-2-CE`). Instruments load on first use.
 
+## MPC export
+
+The export panel has an "MPC Sample project (zip)" button. It makes an Akai MPC Sample project (`.xpj` plus a `_[ProjectData]` folder) with the drum kit as one-shots on pads A1 to A13, the band's drum pattern as the sequence, and the chords and the bass as loops on A15 and A16. `mpc.js` writes the project (pure code, tested with `npm test`). The `.xpj` format is closed, so the project is built from a template saved by a device: `assets/mpc/skeleton.json.gz` (see `assets/mpc/NOTICE.md` for where it comes from and its licence). You can pick a project saved on your own MPC as the template in the panel, or rebuild the bundled one with `node tools/build-mpc-template.mjs <project.xpj>`.
+
 ## Run locally
 
 Modules and `fetch` need a server, not `file://`:

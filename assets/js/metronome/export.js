@@ -1,14 +1,17 @@
 // Export: the band as loop-ready WAV stems (for an Akai MPC, Ableton or any sampler), as a MIDI file, and the
 // drum kit as one-shots for pads. Renders with the same audio engine as playback, into memory.
-import { createAudio } from "./audio.js?v=20261109b";
-import { createTransport } from "./transport.js?v=20261109b";
-import { compileTimeline, timeAtBeat } from "./timeline.js?v=20261109b";
-import { encodeWav, foldTail, peakOf } from "./wav.js?v=20261109b";
-import { makeZip } from "./zip.js?v=20261109b";
-import { buildMidi } from "./midi.js?v=20261109b";
-import { DRUM_VOICES } from "./groove.js?v=20261109b";
+import { createAudio } from "./audio.js?v=20261109c";
+import { createTransport } from "./transport.js?v=20261109c";
+import { compileTimeline, timeAtBeat } from "./timeline.js?v=20261109c";
+import { encodeWav, foldTail, peakOf } from "./wav.js?v=20261109c";
+import { makeZip } from "./zip.js?v=20261109c";
+import { buildMidi } from "./midi.js?v=20261109c";
+import { DRUM_VOICES } from "./groove.js?v=20261109c";
+import { drumLevel, drumTrim } from "./instruments.js?v=20261109c";
+import { projectName, decodeSkeleton, decodeXpj, buildPayload, encodeXpj, wavFrames } from "./mpc.js?v=20261109c";
 
 const RATE = 44100;
+const SKELETON_URL = new URL("../../mpc/skeleton.json.gz", import.meta.url);
 const TAIL = 3; // seconds of ring-out folded back onto the start, so loops repeat seamlessly
 const KIT_DIR = new URL("../../audio/kits/", import.meta.url);
 
@@ -81,7 +84,7 @@ export async function renderLoops(state, o) {
   };
   const has = { full: true, chords: cfg.harmony.on && events.chords.length > 0, bass: cfg.bass.on && events.bass.length > 0, drums: cfg.groove.style !== "off" && events.drums.length > 0, click: events.clicks.length > 0 };
   const wanted = ["full", "chords", "bass", "drums", "click"].filter((k) => o.parts.includes(k) && has[k]);
-  if (!wanted.length) throw new Error("Nothing to export: turn on chords, bass or drums, or pick the metronome.");
+  if (!wanted.length && !o.gainOnly) throw new Error("Nothing to export: turn on chords, bass or drums, or pick the metronome.");
   // One gain for every stem, set by the full mix, so the stems still add up to it and nothing clips.
   o.onStep?.("Measuring the mix...");
   const fullPeak = peakOf(await renderStem(cfg, events, seconds, stems.full));
@@ -103,7 +106,7 @@ export async function renderLoops(state, o) {
     "Set each sample to loop, or chop it to the bars. The tempo is in the file name.",
   ].join("\n");
   files.push({ name: "README.txt", data: new TextEncoder().encode(readme) });
-  return { files, zip: makeZip(files), base };
+  return { files, zip: makeZip(files), base, gain };
 }
 
 export function renderMidi(state, o) {
@@ -172,6 +175,118 @@ export async function drumShots(state, o = {}) {
   return { files, zip: makeZip(files), kit };
 }
 
+// ---- MPC project -------------------------------------------------------------------------------------------
+
+const PAD_NAMES = { kick: "Kick", snare: "Snare", ghost: "Ghost snare", rim: "Rim", hat: "Closed hat", ohat: "Open hat", foot: "Pedal hat", ride: "Ride", brush: "Brush", tom1: "Tom high", tom2: "Tom mid", tom3: "Tom low", crash: "Crash" };
+// Fixed pads, so every project has the same layout: drums on A1 to A13 in the order of DRUM_VOICES, loops on A15 and A16.
+const CHORDS_PAD = 14;
+const BASS_PAD = 15;
+
+async function loadTemplate(own) {
+  if (own) return decodeXpj(own);
+  const res = await fetch(SKELETON_URL);
+  if (!res.ok) throw new Error("Could not load the MPC project template.");
+  return decodeSkeleton(new Uint8Array(await res.arrayBuffer()));
+}
+
+/** One WAV per drum voice for the pads: the hardest velocity layer, at the level it has in the band mix. */
+async function projectShots(cfg, voices, gain) {
+  const { kit, style } = cfg.groove;
+  const bus = cfg.mix.groove;
+  let man = null;
+  let dir = null;
+  let dec = null;
+  if (kit !== "synth") {
+    dir = new URL(`${kit}/`, KIT_DIR);
+    man = await (await fetch(new URL("manifest.json", dir))).json();
+    dec = new OfflineAudioContext(2, 44100, 44100);
+  }
+  const out = [];
+  for (const voice of voices) {
+    let chans;
+    let rate = RATE;
+    let scale;
+    const v = man?.voices[voice];
+    if (v) {
+      const top = Math.max(...v.hits.map((h) => h.layer));
+      const hit = v.hits.find((h) => h.layer === top);
+      const buf = await dec.decodeAudioData(await (await fetch(new URL(hit.file, dir))).arrayBuffer());
+      chans = Array.from({ length: buf.numberOfChannels }, (_, c) => buf.getChannelData(c));
+      rate = buf.sampleRate;
+      scale = drumLevel(kit, voice) * drumTrim(kit, style);
+    } else {
+      // The synth kit, or a voice this kit does not have (the band falls back to the synth for it too).
+      chans = [await renderSynthShot(voice, 1, kit === "synth" ? style : "")];
+      scale = kit === "synth" ? 1 : drumTrim(kit, style);
+    }
+    scale *= bus * gain;
+    const peak = peakOf(chans);
+    if (peak * scale > 0.98) scale = 0.98 / peak;
+    out.push({ voice, data: encodeWav(chans.map((c) => c.map((x) => x * scale)), rate, 16) });
+  }
+  return out;
+}
+
+/**
+ * The band as an Akai MPC Sample project: the drum kit as one-shots on pads A1 to A13, the band's drum pattern as
+ * a sequence, and the chords and the bass as loops on A15 and A16 that play from the first bar.
+ * @param {object} state @param {{bars: number, name?: string, template?: {header: string[], payload: object}, onStep?: (msg: string) => void}} o
+ */
+export async function renderMpcProject(state, o) {
+  o.onStep?.("Gathering the band...");
+  const { cfg, events } = gatherEvents(state, o.bars);
+  const hasChords = cfg.harmony.on && events.chords.length > 0;
+  const hasBass = cfg.bass.on && events.bass.length > 0;
+  const hasDrums = cfg.groove.style !== "off" && events.drums.length > 0;
+  if (!hasChords && !hasBass && !hasDrums) throw new Error("Nothing to export: turn on chords, bass or drums.");
+  const p = cfg.pattern;
+  const name = projectName(o.name, p.bpm);
+  const tpl = o.template ?? (await loadTemplate());
+
+  const loops = await renderLoops(state, { bars: o.bars, parts: ["chords", "bass"], bits: 16, name: o.name, onStep: o.onStep, gainOnly: true });
+  const pads = [];
+  const data = [];
+  const add = (pad, label, file, bytes, loop) => {
+    pads.push({ pad, name: label, file, frames: wavFrames(bytes), loop });
+    data.push({ name: `${name}_[ProjectData]/${file}`, data: bytes });
+  };
+  const padOf = {};
+  if (hasDrums) {
+    const voices = DRUM_VOICES.filter((v) => events.drums.some((e) => e.voice === v));
+    o.onStep?.("Collecting drum sounds...");
+    for (const s of await projectShots(cfg, voices, loops.gain)) {
+      padOf[s.voice] = DRUM_VOICES.indexOf(s.voice);
+      add(padOf[s.voice], PAD_NAMES[s.voice] ?? s.voice, `${s.voice}.wav`, s.data, false);
+    }
+  }
+  const stem = (part) => loops.files.find((f) => f.name.endsWith(`-${part}.wav`))?.data;
+  if (hasChords && stem("chords")) add(CHORDS_PAD, "Chords loop", "Chords.wav", stem("chords"), true);
+  if (hasBass && stem("bass")) add(BASS_PAD, "Bass loop", "Bass.wav", stem("bass"), true);
+
+  o.onStep?.("Writing the project...");
+  const hits = events.drums.filter((e) => padOf[e.voice] !== undefined).map((e) => ({ beat: e.beat, pad: padOf[e.voice], gain: e.voice === "ghost" ? Math.min(e.gain, 0.4) : e.gain }));
+  const built = buildPayload(tpl.payload, { name, bpm: p.bpm, beats: p.beats, den: p.den, bars: o.bars, pads, hits });
+  const xpj = await encodeXpj(tpl.header, built.payload);
+  const layout = pads.map((x) => `  A${x.pad + 1}: ${x.name}${x.loop ? " (loops)" : ""}`);
+  const readme = [
+    `${name}: ${p.bpm} BPM, ${p.beats}/${p.den}, ${o.bars} bars. An Akai MPC Sample project.`,
+    "",
+    "To open it: copy BOTH of these to the Projects folder on the MPC's microSD card, next to your saved projects:",
+    `  ${name}.xpj`,
+    `  ${name}_[ProjectData]  (the folder with the sounds)`,
+    "Then load it on the MPC like any saved project.",
+    "",
+    "Pads (bank A):",
+    ...layout,
+    "",
+    `The sequence has ${built.events} notes: the drum pattern on the drum pads, and one long note on each loop pad so the chords and the bass play from bar 1.`,
+    "The loops are cut to whole bars at the project tempo and repeat with no gap.",
+    "Levels follow the band mix on the page. Adjust them on the MPC if you like.",
+  ].join("\n");
+  const files = [{ name: `${name}.xpj`, data: xpj }, ...data, { name: "README.txt", data: new TextEncoder().encode(readme) }];
+  return { files, zip: makeZip(files), name, events: built.events, pads: pads.length };
+}
+
 // ---- The panel ---------------------------------------------------------------------------------------------
 
 function save(name, data, type) {
@@ -191,7 +306,7 @@ export function initExport({ getState, getTuneName }) {
   const $ = (id) => document.getElementById(id);
   const bars = $("ex-bars");
   const status = $("ex-status");
-  const buttons = ["ex-loops", "ex-midi", "ex-shots"].map($);
+  const buttons = ["ex-mpc", "ex-loops", "ex-midi", "ex-shots"].map($);
 
   const fillBars = () => {
     const s = getState();
@@ -221,6 +336,16 @@ export function initExport({ getState, getTuneName }) {
     }
   };
 
+  $("ex-mpc").addEventListener(
+    "click",
+    run(async () => {
+      const file = $("ex-mpc-template").files?.[0];
+      const template = file ? await decodeXpj(new Uint8Array(await file.arrayBuffer())) : undefined;
+      const r = await renderMpcProject(getState(), { bars: Number(bars.value), name: getTuneName(), template, onStep: (m) => (status.textContent = m) });
+      save(`${r.name}.zip`, r.zip, "application/zip");
+      status.textContent = `Saved ${r.name}.zip: ${r.pads} sounds and a sequence with ${r.events} notes. Copy the .xpj and its _[ProjectData] folder to the MPC's card.`;
+    }),
+  );
   $("ex-loops").addEventListener(
     "click",
     run(async () => {
