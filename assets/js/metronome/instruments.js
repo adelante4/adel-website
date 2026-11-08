@@ -21,6 +21,10 @@ export const KEYS = [
   { id: "horn", name: "French horn", trim: 1.659, note: "A solo French horn, warm and round. Best with Sustain on slow tunes." },
   { id: "trumpet", name: "Trumpet", trim: 0.96, note: "A trumpet with a little vibrato. Bright. Best with Push or On 1." },
   { id: "pipeorgan", name: "Pipe organ", trim: 1.568, note: "A church pipe organ, quiet stops. Big and still. Use with Sustain." },
+  { id: "juno", name: "Analog poly", trim: 0.555, synth: true, note: "A warm 80s polysynth: saw, pulse and sub oscillators that drift a little, a 24 dB filter that opens on each note, and a stereo chorus. Pairs with Sustain or Push." },
+  { id: "supersaw", name: "Supersaw", trim: 1.353, synth: true, note: "Seven detuned saws spread across both ears. Bright and huge. For stabs in house, trance and IDM." },
+  { id: "drone", name: "Dark drone", trim: 0.328, synth: true, note: "A deep, slow pad whose filter breathes by itself, with a slow chorus. Ambient and Hecker-like. Use with Sustain." },
+  { id: "glass", name: "Glass bells", trim: 1.925, synth: true, note: "FM bells that ring and fade, spread across the stereo field by pitch. Cold and bright, an octave up. Good with Arp." },
   { id: "pad", name: "Pad", trim: 0.778, synth: true, note: "A slow, warm synth pad. Pairs with Sustain." },
 ];
 

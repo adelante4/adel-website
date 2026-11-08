@@ -2,7 +2,7 @@
 //
 // Every function takes the audio context, a destination node, and a start time, builds a few
 // short-lived nodes, and lets them clean up after themselves. Nothing here keeps state.
-import { midiToHz } from "./chords.js?v=20261108m";
+import { midiToHz } from "./chords.js?v=20261108n";
 
 /** One second of white noise, shared by all drum voices. */
 export function makeNoise(ctx, seconds = 2) {
@@ -520,5 +520,223 @@ export function pad(ctx, dest, when, midis, seconds, gain) {
       o.start(when);
       o.stop(end + 0.8);
     }
+  });
+}
+
+// ---- Synth keys -------------------------------------------------------------------------------
+// Built the way the hardware was: several slightly detuned oscillators that drift a little, a steep (24 dB) filter
+// that opens with the note, and a chorus that spreads the sound across both ears.
+
+const pan = (ctx, node, value, dest) => {
+  if (!ctx.createStereoPanner) {
+    node.connect(dest);
+    return;
+  }
+  const p = ctx.createStereoPanner();
+  p.pan.value = value;
+  node.connect(p);
+  p.connect(dest);
+};
+
+/** A steep low-pass: two filters in series, 24 dB per octave. Returns [input, output, filters]. */
+function ladder(ctx, q = 1) {
+  const a = ctx.createBiquadFilter();
+  const b = ctx.createBiquadFilter();
+  a.type = b.type = "lowpass";
+  a.Q.value = q;
+  b.Q.value = 0.6;
+  a.connect(b);
+  return [a, b, [a, b]];
+}
+
+/**
+ * Stereo chorus: two short delays swept in opposite directions, one panned left and one right, mixed with the
+ * dry sound. Returns the node to feed. `end` is when the notes stop, after which the sweeps stop too.
+ */
+function chorus(ctx, dest, when, end, { rate = 0.6, depth = 0.0035, base = 0.016, wet = 0.7 } = {}) {
+  const input = ctx.createGain();
+  const dry = ctx.createGain();
+  dry.gain.value = 1;
+  input.connect(dry);
+  dry.connect(dest);
+  [-1, 1].forEach((side) => {
+    const d = ctx.createDelay(0.05);
+    d.delayTime.value = base;
+    const lfo = ctx.createOscillator();
+    const lg = ctx.createGain();
+    lfo.frequency.value = rate * (side < 0 ? 1 : 1.13);
+    lg.gain.value = depth * side;
+    lfo.connect(lg);
+    lg.connect(d.delayTime);
+    const w = ctx.createGain();
+    w.gain.value = wet;
+    input.connect(d);
+    d.connect(w);
+    pan(ctx, w, side * 0.85, dest);
+    lfo.start(when);
+    lfo.stop(end);
+  });
+  return input;
+}
+
+const drift = (cents = 4) => (Math.random() * 2 - 1) * cents;
+
+/** Warm analogue polysynth: saw and pulse oscillators with a sub, a 24 dB filter that opens on each note, a chorus. */
+export function juno(ctx, dest, when, midis, seconds, gain) {
+  const n = midis.length;
+  const end = when + Math.max(0.3, seconds);
+  const tail = end + 0.7;
+  const bus = chorus(ctx, dest, when, tail + 0.2, { rate: 0.55, depth: 0.0032, base: 0.015, wet: 0.65 });
+  midis.forEach((m, i) => {
+    const f = midiToHz(m);
+    const t0 = when + i * 0.003;
+    const [fin, fout] = ladder(ctx, 2.2);
+    fin.frequency.setValueAtTime(Math.min(1400, f * 2.5), t0);
+    fin.frequency.exponentialRampToValueAtTime(Math.min(4800, f * 9), t0 + 0.22);
+    fin.frequency.exponentialRampToValueAtTime(Math.min(2200, f * 4.2), end);
+    fout.frequency.setValueAtTime(Math.min(9000, f * 14), t0);
+    const out = ctx.createGain();
+    const peak = (0.15 * gain) / Math.sqrt(n);
+    out.gain.setValueAtTime(0.0001, t0);
+    out.gain.exponentialRampToValueAtTime(peak, t0 + 0.035);
+    out.gain.setTargetAtTime(peak * 0.78, t0 + 0.06, 0.5);
+    out.gain.setValueAtTime(peak * 0.78, end);
+    out.gain.exponentialRampToValueAtTime(0.0001, end + 0.5);
+    fout.connect(out);
+    out.connect(bus);
+    // saw, pulse (a square), a saw a hair away for width, and a sub an octave down
+    [["sawtooth", 1, 1, drift(5)], ["sawtooth", 1, 0.8, 7 + drift(3)], ["square", 1, 0.5, -5 + drift(3)], ["square", 0.5, 0.55, drift(2)]].forEach(([type, mult, a, d]) => {
+      const o = ctx.createOscillator();
+      const og = ctx.createGain();
+      o.type = type;
+      o.frequency.value = f * mult;
+      o.detune.value = d;
+      og.gain.value = a;
+      o.connect(og);
+      og.connect(fin);
+      o.start(t0);
+      o.stop(tail);
+    });
+  });
+}
+
+/** Supersaw: seven detuned saws spread across the stereo field, high-passed so low notes stay clean. */
+export function supersaw(ctx, dest, when, midis, seconds, gain) {
+  const n = midis.length;
+  const end = when + Math.max(0.2, seconds);
+  const tail = end + 0.35;
+  midis.forEach((m, i) => {
+    const f = midiToHz(m);
+    const t0 = when + i * 0.002;
+    const hp = ctx.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.value = Math.max(60, f * 0.6);
+    const [fin, fout] = ladder(ctx, 0.8);
+    fin.frequency.setValueAtTime(Math.min(9000, f * 16), t0);
+    fin.frequency.exponentialRampToValueAtTime(Math.min(3600, f * 7), t0 + 0.3);
+    fout.frequency.value = Math.min(11000, f * 20);
+    const out = ctx.createGain();
+    const peak = (0.075 * gain) / Math.sqrt(n);
+    out.gain.setValueAtTime(0.0001, t0);
+    out.gain.exponentialRampToValueAtTime(peak, t0 + 0.012);
+    out.gain.setValueAtTime(peak * 0.85, end);
+    out.gain.exponentialRampToValueAtTime(0.0001, end + 0.3);
+    hp.connect(fin);
+    fout.connect(out);
+    out.connect(dest);
+    [-36, -23, -11, 0, 11, 23, 36].forEach((d, k) => {
+      const o = ctx.createOscillator();
+      const og = ctx.createGain();
+      o.type = "sawtooth";
+      o.frequency.value = f;
+      o.detune.value = d + drift(1.5);
+      og.gain.value = d === 0 ? 1 : 0.72;
+      o.connect(og);
+      pan(ctx, og, (k - 3) / 3.4, hp);
+      // staggered starts stand in for random oscillator phase, so the saws do not line up into a click
+      o.start(t0 + k * 0.0007);
+      o.stop(tail);
+    });
+  });
+}
+
+/** A dark, slow drone: detuned saws and a deep sine under a 24 dB filter that breathes, with a slow chorus. */
+export function drone(ctx, dest, when, midis, seconds, gain) {
+  const n = midis.length;
+  const hold = Math.max(1, seconds);
+  const end = when + hold;
+  const tail = end + 2;
+  const bus = chorus(ctx, dest, when, tail + 0.2, { rate: 0.18, depth: 0.006, base: 0.02, wet: 0.8 });
+  midis.forEach((m, i) => {
+    const f = midiToHz(m);
+    const [fin, fout] = ladder(ctx, 2.6);
+    const base = Math.min(800, f * 2.4);
+    fin.frequency.value = base;
+    fout.frequency.value = Math.min(2400, f * 5);
+    const lfo = ctx.createOscillator();
+    const lg = ctx.createGain();
+    lfo.frequency.value = 0.07 + 0.025 * i;
+    lg.gain.value = base * 0.7;
+    lfo.connect(lg);
+    lg.connect(fin.frequency);
+    const out = ctx.createGain();
+    const peak = (0.18 * gain) / Math.sqrt(n);
+    const rise = Math.min(1.1, hold * 0.45);
+    out.gain.setValueAtTime(0.0001, when);
+    out.gain.exponentialRampToValueAtTime(peak, when + rise);
+    out.gain.setValueAtTime(peak, end);
+    out.gain.exponentialRampToValueAtTime(0.0001, tail);
+    fout.connect(out);
+    out.connect(bus);
+    [["sawtooth", -9, 1, 1], ["sawtooth", 8, 1, 1], ["sawtooth", 0, 0.7, 0.5], ["sine", 0, 1.2, 0.5], ["triangle", 3, 0.4, 2]].forEach(([type, d, a, mult]) => {
+      const o = ctx.createOscillator();
+      const og = ctx.createGain();
+      o.type = type;
+      o.frequency.value = f * mult;
+      o.detune.value = d + drift(4);
+      og.gain.value = a;
+      o.connect(og);
+      og.connect(fin);
+      o.start(when);
+      o.stop(tail + 0.1);
+    });
+    lfo.start(when);
+    lfo.stop(tail + 0.1);
+  });
+}
+
+/** Glass bells: DX-style FM with inharmonic partials and a tiny strike of noise, each note placed by pitch in the stereo field. */
+export function glass(ctx, dest, when, midis, seconds, gain) {
+  const n = midis.length;
+  midis.forEach((m, i) => {
+    const f = midiToHz(m + 12);
+    const t = when + i * 0.012;
+    const ring = Math.max(1.8, Math.min(4, seconds * 1.6));
+    const out = ctx.createGain();
+    const peak = (0.2 * gain) / Math.sqrt(n);
+    out.gain.setValueAtTime(0.0001, t);
+    out.gain.exponentialRampToValueAtTime(peak, t + 0.003);
+    out.gain.exponentialRampToValueAtTime(peak * 0.25, t + 0.35);
+    out.gain.exponentialRampToValueAtTime(0.0001, t + ring);
+    pan(ctx, out, Math.max(-0.7, Math.min(0.7, (m - 72) / 24)), dest);
+    [[1, 3.5, 2.4, 1], [2.756, 5.4, 0.8, 0.28], [5.404, 1.0, 0.4, 0.1]].forEach(([mult, ratio, index, level]) => {
+      const car = ctx.createOscillator();
+      const mod = ctx.createOscillator();
+      const mg = ctx.createGain();
+      const cg = ctx.createGain();
+      car.frequency.value = f * mult;
+      mod.frequency.value = f * mult * ratio;
+      mg.gain.setValueAtTime(f * mult * index, t);
+      mg.gain.exponentialRampToValueAtTime(f * mult * 0.04, t + ring * 0.55);
+      cg.gain.value = level;
+      mod.connect(mg);
+      mg.connect(car.frequency);
+      car.connect(cg);
+      cg.connect(out);
+      car.start(t);
+      mod.start(t);
+      car.stop(t + ring + 0.1);
+      mod.stop(t + ring + 0.1);
+    });
   });
 }
