@@ -107,6 +107,16 @@ export function initOffline() {
     hint.textContent = "Installed. Open it from your home screen or app list.";
   });
 
+  // A new version of the app takes over: reload once so the page matches it, unless music is playing.
+  const hadWorker = Boolean(navigator.serviceWorker.controller);
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!hadWorker || reloaded) return;
+    reloaded = true;
+    const go = () => (wanted ? setTimeout(go, 3000) : location.reload());
+    go();
+  });
+
   navigator.serviceWorker
     .register(`sw.js?v=${TAG}`)
     .then(() => navigator.serviceWorker.ready)

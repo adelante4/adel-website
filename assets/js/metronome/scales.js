@@ -1,7 +1,7 @@
 // What to play over a chord: the scale that fits it, its arpeggio, and a tone to aim for.
 // Pure functions, no DOM, no audio. Semitones are counted up from the chord's root.
-import { parseChord } from "./chords.js?v=20261108v";
-import { classOf, noteName } from "./analysis.js?v=20261108v";
+import { parseChord } from "./chords.js?v=20261108w";
+import { classOf, noteName } from "./analysis.js?v=20261108w";
 
 const pc = (n) => ((n % 12) + 12) % 12;
 
