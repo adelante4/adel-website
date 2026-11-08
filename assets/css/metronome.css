@@ -359,3 +359,9 @@ input.bpm, input.bpm-mini {
 .transport input.bpm-mini { width: 3.2ch; min-width: 0; font-size: 22px; font-weight: 700; flex: 0 0 auto; }
 input.bpm:hover, input.bpm-mini:hover { text-decoration: underline dotted; text-underline-offset: 6px; }
 input.bpm:focus-visible, input.bpm-mini:focus-visible { outline: 3px solid var(--ink, #111); outline-offset: 3px; text-decoration: none; background: var(--bg, #fff); }
+
+/* Offline and install */
+#offline { margin: 8px 0 24px; }
+.offline-body { display: grid; gap: 12px; padding-top: 10px; }
+.offline-body .row { display: flex; flex-wrap: wrap; gap: 10px; }
+#offline-progress { width: 100%; height: 14px; accent-color: var(--accent); }

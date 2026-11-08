@@ -4,10 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Metronome | Adel Mostafavi</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#111111">
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Metronome">
 <meta name="description" content="A practice metronome with odd meters, swing, chance, gap trainer and tempo ladder. Runs in the browser.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="assets/css/site.css?v=20261108p">
-<link rel="stylesheet" href="assets/css/metronome.css?v=20261108p">
+<link rel="stylesheet" href="assets/css/site.css?v=20261108q">
+<link rel="stylesheet" href="assets/css/metronome.css?v=20261108q">
 </head>
 <body>
 <div class="moire soft" aria-hidden="true"><i></i><i></i></div>
@@ -275,6 +281,21 @@
         <div class="dna" id="dna" aria-label="What is in this tune"></div>
       </details>
     </section>
+
+    <section id="offline" aria-label="Offline and install">
+      <details class="more" id="more-offline">
+        <summary>Use offline or install as an app</summary>
+        <div class="offline-body">
+          <p class="note" id="offline-status" role="status" aria-live="polite">Checking...</p>
+          <progress id="offline-progress" hidden value="0" max="1"></progress>
+          <div class="row">
+            <button class="btn" id="offline-save" type="button">Save all sounds for offline</button>
+            <button class="btn" id="offline-install" type="button" hidden>Install as an app</button>
+          </div>
+          <p class="note" id="offline-hint"></p>
+        </div>
+      </details>
+    </section>
   </main>
 
   <div class="transport" role="group" aria-label="Transport">
@@ -285,6 +306,6 @@
     <button class="btn" id="tap" type="button">Tap</button>
   </div>
 </div>
-<script type="module" src="assets/js/metronome/metronome.js?v=20261108p"></script>
+<script type="module" src="assets/js/metronome/metronome.js?v=20261108q"></script>
 </body>
 </html>

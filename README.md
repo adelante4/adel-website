@@ -59,3 +59,7 @@ The "My standards" group (your Notion list) is built the same way from your own 
 ## The page and the Tune section
 
 The page is one column: Sound (Metronome, Chords, Bass, Drums and Feel as chips, each opening its settings in one panel, plus a plain sentence from `sentence.js` saying what you hear), Practice (count-in, gap, ladder, trade fours), then Tune, with Start and tempo fixed at the bottom. Every control exists once. The Tune section holds the chart. A lens changes what each bar shows: chord names, Roman numerals (`analysis.js` finds ii-V-I, ii-V-i, V-I and tritone-sub cadences and names each chord in the key it is working in), the 3rd and 7th of each chord (`tune.js`), or a four-string guitar shape per chord (`voicing.js` searches shapes and picks a path with the least hand movement). The Now/Next strip follows the playhead. Under the chart, `dna.js` lists the four-bar pieces the tune shares with the others in the library, matched by shape, not by key.
+
+## Offline and install
+
+`manifest.webmanifest`, `sw.js` and `assets/js/metronome/offline.js` make the metronome an installable app that works with no connection. The service worker saves the app files when the page first loads. A button under "Use offline or install as an app" saves all the sounds (about 47 MB). `offline-manifest.json` lists every file with a content hash. After adding or rebuilding any file under `assets/`, run `node tools/offline-manifest.mjs`; a test fails if it is out of date. The screen stays awake while the metronome plays, where the browser allows it.

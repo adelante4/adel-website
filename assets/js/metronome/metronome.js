@@ -4,24 +4,25 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261108p";
-import { createTransport } from "./transport.js?v=20261108p";
-import { barPlays } from "./overlay.js?v=20261108p";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261108p";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261108p";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261108p";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261108p";
-import { COMP_STYLES } from "./comping.js?v=20261108p";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261108p";
-import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261108p";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261108p";
-import { BAND_STYLES } from "./bands.js?v=20261108p";
-import { createTuneView } from "./tune.js?v=20261108p";
-import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261108p";
-import { initRooms } from "./rooms.js?v=20261108p";
-import { TOP_100 } from "./top100.js?v=20261108p";
-import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261108p";
-import { MAX_FORM_BARS } from "./share.js?v=20261108p";
+import { createAudio } from "./audio.js?v=20261108q";
+import { createTransport } from "./transport.js?v=20261108q";
+import { barPlays } from "./overlay.js?v=20261108q";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261108q";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261108q";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261108q";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261108q";
+import { COMP_STYLES } from "./comping.js?v=20261108q";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261108q";
+import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261108q";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261108q";
+import { BAND_STYLES } from "./bands.js?v=20261108q";
+import { createTuneView } from "./tune.js?v=20261108q";
+import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261108q";
+import { initRooms } from "./rooms.js?v=20261108q";
+import { initOffline, holdScreen, releaseScreen } from "./offline.js?v=20261108q";
+import { TOP_100 } from "./top100.js?v=20261108q";
+import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261108q";
+import { MAX_FORM_BARS } from "./share.js?v=20261108q";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -108,6 +109,7 @@ async function start() {
   timer = setInterval(tick, 25);
   tick();
   setPlaying(true);
+  holdScreen();
   raf = requestAnimationFrame(frame);
 }
 
@@ -119,6 +121,7 @@ function stop() {
   if (run) run.stop();
   run = null;
   setPlaying(false);
+  releaseScreen();
   clearPlayhead();
   renderTempo();
   $("status").textContent = "Ready";
@@ -1008,3 +1011,4 @@ renderAll();
 warm();
 if (linkProblem) notice("That shared link could not be read, so your last setup is shown.");
 
+initOffline();
