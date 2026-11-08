@@ -8,8 +8,35 @@
 
 const base = (sub) => new URL(`../../audio/${sub}/`, import.meta.url);
 
+const CYMBAL = new Set(["hat", "ohat", "foot", "ride", "brush"]);
+
 export function createSampler(ctx) {
   const loaded = new Map(); // key -> Promise | data | null
+  const rooms = new WeakMap(); // destination node -> its room reverb
+
+  /** A short, soft room made of decaying noise, different in each ear. One per destination. */
+  function roomFor(dest) {
+    let conv = rooms.get(dest);
+    if (conv) return conv;
+    const len = Math.floor(ctx.sampleRate * 0.4);
+    const ir = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let c = 0; c < 2; c++) {
+      const d = ir.getChannelData(c);
+      let seed = 12345 + c * 777;
+      let lp = 0;
+      for (let i = 0; i < len; i++) {
+        seed = (seed * 1664525 + 1013904223) >>> 0;
+        const n = seed / 2147483648 - 1;
+        lp += (n - lp) * (0.5 - 0.4 * (i / len)); // darker as it decays
+        d[i] = lp * Math.exp((-6.5 * i) / len) * (i < 40 ? i / 40 : 1);
+      }
+    }
+    conv = ctx.createConvolver();
+    conv.buffer = ir;
+    conv.connect(dest);
+    rooms.set(dest, conv);
+    return conv;
+  }
 
   async function fetchBuffer(url) {
     const res = await fetch(url);
@@ -88,21 +115,50 @@ export function createSampler(ctx) {
       src.stop(when + hold + release + 0.05);
       return true;
     },
-    /** One drum hit from a kit. Returns false if the kit or the voice is missing. */
-    drum(id, dest, when, voice, gain) {
+    /**
+     * One drum hit from a kit. Returns false if the kit or the voice is missing.
+     * Hits blend the two nearest velocity layers, so loudness moves the tone smoothly; each hit is a hair off in
+     * pitch so repeats are not identical; a short synthetic room gives the dry recordings some air and width;
+     * and cymbals lose the harshest top. `level` evens out the voices of a kit against each other.
+     */
+    drum(id, dest, when, voice, gain, level = 1) {
       const kit = get("kits", id);
       const v = kit?.voices[voice];
       if (!v) return false;
-      const layer = Math.min(v.layers - 1, Math.floor(Math.min(0.999, gain) * v.layers));
-      const pool = v.hits.filter((h) => h.layer === layer);
-      const hit = pool[v.next++ % pool.length];
-      const src = ctx.createBufferSource();
-      src.buffer = hit.buffer;
-      const g = ctx.createGain();
-      g.gain.value = Math.min(1.2, 0.55 + gain * 0.6);
-      src.connect(g);
-      g.connect(dest);
-      src.start(when);
+      const pos = Math.min(0.999, Math.max(0, gain)) * v.layers - 0.5;
+      const lo = Math.max(0, Math.min(v.layers - 1, Math.floor(pos)));
+      const hi = Math.min(v.layers - 1, lo + 1);
+      const f = lo === hi ? 0 : Math.min(1, Math.max(0, pos - lo));
+      const rate = 1 + (Math.random() - 0.5) * 0.008;
+      const out = ctx.createGain();
+      out.gain.value = Math.min(1.2, 0.55 + gain * 0.6) * level;
+      let head = out;
+      if (CYMBAL.has(voice)) {
+        const lp = ctx.createBiquadFilter();
+        lp.type = "lowpass";
+        lp.frequency.value = 11000;
+        lp.Q.value = 0.5;
+        lp.connect(out);
+        head = lp;
+      }
+      for (const [layer, w] of [[lo, Math.cos((f * Math.PI) / 2)], [hi, Math.sin((f * Math.PI) / 2)]]) {
+        if (w < 0.02) continue;
+        const pool = v.hits.filter((h) => h.layer === layer);
+        const hit = pool[v.next++ % pool.length];
+        const src = ctx.createBufferSource();
+        src.buffer = hit.buffer;
+        src.playbackRate.value = rate;
+        const g = ctx.createGain();
+        g.gain.value = w;
+        src.connect(g);
+        g.connect(head);
+        src.start(when);
+      }
+      out.connect(dest);
+      const send = ctx.createGain();
+      send.gain.value = CYMBAL.has(voice) ? 0.08 : 0.16;
+      out.connect(send);
+      send.connect(roomFor(dest));
       return true;
     },
   };

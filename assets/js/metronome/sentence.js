@@ -1,6 +1,6 @@
 // Says in plain words what the page is playing, from the same state the transport reads.
 // Pure functions: no DOM, no audio.
-import { KEYS, BASSES } from "./instruments.js?v=20261108x";
+import { KEYS, BASSES } from "./instruments.js?v=20261108z";
 
 export const GROOVE_NAMES = {
   lofi: "Lofi", dilla: "Neo-soul", halftime: "Halftime", boombap: "Boom-bap", jazz: "Jazz swing",

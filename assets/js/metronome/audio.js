@@ -26,9 +26,9 @@ const SOUNDS = {
 };
 
 // Recorded hits (Versilian Community Sample Library, CC0). Each voice has three files.
-import { rhodes, bass, bassSynth, organ, pad, juno, drone, glass, supersaw, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261108x";
-import { createSampler } from "./sampler.js?v=20261108x";
-import { KEYS, BASSES, trimOf, drumTrim } from "./instruments.js?v=20261108x";
+import { rhodes, bass, bassSynth, organ, pad, juno, drone, glass, supersaw, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261108z";
+import { createSampler } from "./sampler.js?v=20261108z";
+import { KEYS, BASSES, trimOf, drumTrim, drumLevel } from "./instruments.js?v=20261108z";
 
 const SYNTH_KEYS = new Set(["rhodes", "organ", "pad", "juno", "drone", "glass", "supersaw"]);
 const SYNTH_BASS = new Set(["round", "moog", "sub", "reese", "acid", "fmbass", "dub"]);
@@ -295,7 +295,7 @@ export function createAudio(options = {}) {
     },
     drum(run, when, voice, gain, style, kit = "synth") {
       const out = via(run, "groove", drumTrim(kit, style));
-      if (kit !== "synth" && sampler.drum(kit, out, when, voice, gain)) return;
+      if (kit !== "synth" && sampler.drum(kit, out, when, voice, gain, drumLevel(kit, voice))) return;
       drum(ctx, out, noise, when, voice, gain, kit === "synth" ? style : "");
     },
     /** Schedule one click at an audio-clock time. kind is "accent", "beat" or "sub". */

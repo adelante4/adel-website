@@ -6,12 +6,12 @@
 //
 // A smooth tempo change (retempo) moves the anchor to the first beat not yet handed out,
 // so the beat that was already queued keeps its time and the next one follows at the new tempo.
-import { compileTimeline, timeAtBeat, beatAtTime, bpmAtBeat } from "./timeline.js?v=20261108x";
-import { generateEvents } from "./pattern.js?v=20261108x";
-import { ladderMap } from "./overlay.js?v=20261108x";
-import { generateHarmony } from "./comping.js?v=20261108x";
-import { generateGroove, grooveSounds, bandFeel, swingBeat } from "./groove.js?v=20261108x";
-import { generateBass } from "./bassline.js?v=20261108x";
+import { compileTimeline, timeAtBeat, beatAtTime, bpmAtBeat } from "./timeline.js?v=20261108z";
+import { generateEvents } from "./pattern.js?v=20261108z";
+import { ladderMap } from "./overlay.js?v=20261108z";
+import { generateHarmony } from "./comping.js?v=20261108z";
+import { generateGroove, grooveSounds, bandFeel, swingBeat } from "./groove.js?v=20261108z";
+import { generateBass } from "./bassline.js?v=20261108z";
 
 /** @param {() => {pattern: import("./pattern.js").Pattern, practice: import("./overlay.js").Practice}} getConfig */
 export function createTransport(getConfig) {
@@ -79,7 +79,7 @@ export function createTransport(getConfig) {
         : [];
       // Pocket: the bass sits a touch behind the beat, the ride a touch on top. Small, in seconds.
       const pocket = groove?.pocket !== false && groove?.style !== "off";
-      const late = (e, ms) => (pocket ? { ...e, time: e.time + ms / 1000 } : e);
+      const late = (e, ms) => (pocket ? { ...e, time: Math.max(0, e.time + ms / 1000) } : e);
       const DRUM_POCKET = { ride: -5, snare: 5, ghost: 5, foot: 3 };
       const drums = groove && groove.style !== "off"
         ? generateGroove(groove, pattern, practice, cursor, horizon).map(at).map((e) => late(e, DRUM_POCKET[e.voice] ?? 0))
