@@ -7,10 +7,10 @@
 // Patterns are lists of entries. An entry has a grid step, a voice, a gain, and an optional
 // chance (for ghost notes). Chances come from a seeded generator keyed by bar, step and voice,
 // so a ghost note that plays in bar 3 plays in bar 3 every time.
-import { slotRng } from "./prng.js?v=20261108j";
-import { barPlays } from "./overlay.js?v=20261108j";
+import { slotRng } from "./prng.js?v=20261108k";
+import { barPlays } from "./overlay.js?v=20261108k";
 
-export const GROOVE_STYLES = ["off", "lofi", "dilla", "halftime", "boombap", "jazz", "brushes", "bossa", "shuffle", "funk", "waltz", "trap", "house", "techno", "twostep", "idm", "minimal", "ecm"];
+export const GROOVE_STYLES = ["off", "lofi", "dilla", "halftime", "boombap", "jazz", "brushes", "bossa", "shuffle", "funk", "waltz", "trap", "house", "techno", "twostep", "idm", "minimal"];
 export const GROOVE_NAMES = {
   off: "Off",
   lofi: "Lofi",
@@ -29,7 +29,6 @@ export const GROOVE_NAMES = {
   twostep: "2-step",
   idm: "IDM",
   minimal: "Minimal clicks",
-  ecm: "ECM pulse",
 };
 const VOICES = ["kick", "snare", "ghost", "rim", "hat", "ohat", "foot", "ride", "brush"];
 export const DRUM_VOICES = VOICES;
@@ -118,12 +117,6 @@ const MINIMAL = [
   ...[2, 6, 10, 14].map((s) => e(s, "rim", 0.35, 0.5)),
   e(9, "ghost", 0.3, 0.3), e(15, "ohat", 0.25, 0.2), e(1, "hat", 0.25, 0.3),
 ];
-const ECM = [
-  e(0, "ride", 0.5), e(8, "ride", 0.4), e(12, "ride", 0.3), e(5, "ride", 0.3, 0.4), e(14, "ride", 0.25, 0.3),
-  e(0, "kick", 0.25, 0.6), e(10, "kick", 0.2, 0.3),
-  e(4, "foot", 0.3), e(12, "foot", 0.3),
-  e(7, "ghost", 0.2, 0.3), e(15, "ghost", 0.2, 0.25),
-];
 
 const NEOSOUL = [
   e(0, "kick", 1), e(5, "kick", 0.55, 0.7), e(7, "kick", 0.7, 0.8), e(10, "kick", 0.9), e(13, "kick", 0.4, 0.45),
@@ -179,7 +172,6 @@ const STYLE = {
   twostep: { entries: TWOSTEP, steps: 16, swing: 0.6, loose: 0.006, fill: true },
   idm: { entries: IDM, steps: 16, swing: 0.5, loose: 0.006, fill: true },
   minimal: { entries: MINIMAL, steps: 16, swing: 0.5, loose: 0.003, fill: false },
-  ecm: { entries: ECM, steps: 16, swing: 0.5, loose: 0.02, fill: false },
   brushes: { entries: BRUSHES, steps: 12, swing: null, loose: 0.012, fill: false },
 };
 

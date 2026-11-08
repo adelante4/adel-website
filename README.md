@@ -23,7 +23,7 @@ Every three posts make a new vinyl.
 
 ## Metronome
 
-`metronome.html` is a practice metronome: odd meters, swing, chance, gap trainer, tempo ladder, count-in, share links, a chord progression builder with an electric piano, and a band you build in layers: chords (17 keys sounds, including two sampled grand pianos and four synths made in code), bass (walking, two-feel, bossa, lofi and more, 10 sounds), and drums (17 grooves, 10 kits), each with its own volume. A few standards are included as changes only (typical changes, check against your own chart). Every sound has a synth fallback. It has no build step. The code is plain ES modules in `assets/js/metronome/`. The timing logic (`timeline`, `pattern`, `overlay`, `chords`, `comping`, `groove`, `transport`, `share`) does not touch Web Audio, so it runs under Node.
+`metronome.html` is a practice metronome: odd meters, swing, chance, gap trainer, tempo ladder, count-in, share links, a chord progression builder with an electric piano, and a band you build in layers: chords (17 keys sounds, including two sampled grand pianos and four synths made in code), bass (walking, two-feel, bossa, lofi and more, 10 sounds), and drums (16 grooves, 10 kits), each with its own volume. A few standards are included as changes only (typical changes, check against your own chart). Every sound has a synth fallback. It has no build step. The code is plain ES modules in `assets/js/metronome/`. The timing logic (`timeline`, `pattern`, `overlay`, `chords`, `comping`, `groove`, `transport`, `share`) does not touch Web Audio, so it runs under Node.
 
 ```
 npm test
