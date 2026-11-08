@@ -2,62 +2,158 @@
  "id": "kawai",
  "name": "Studio grand",
  "kind": "keys",
- "sampleRate": 32000,
+ "sampleRate": 44100,
  "release": 0.5,
  "license": "CC0 1.0",
  "credit": "VCSL, Kawai grand",
  "notes": [
   {
    "midi": 21.05,
-   "file": "n21.wav"
+   "file": "n21.mp3"
+  },
+  {
+   "midi": 24.103,
+   "file": "n24.mp3"
+  },
+  {
+   "midi": 27.05,
+   "file": "n27.mp3"
   },
   {
    "midi": 29.962,
-   "file": "n30.wav"
+   "file": "n30.mp3"
+  },
+  {
+   "midi": 33.04,
+   "file": "n33.mp3"
+  },
+  {
+   "midi": 36.001,
+   "file": "n36.mp3"
   },
   {
    "midi": 38.919,
-   "file": "n39.wav"
+   "file": "n39.mp3"
+  },
+  {
+   "midi": 42.061,
+   "file": "n42.mp3"
+  },
+  {
+   "midi": 44.982,
+   "file": "n45.mp3"
   },
   {
    "midi": 48.014,
-   "file": "n48.wav"
+   "file": "n48.mp3"
+  },
+  {
+   "midi": 50.001,
+   "file": "n50.mp3"
+  },
+  {
+   "midi": 51.961,
+   "file": "n52.mp3"
   },
   {
    "midi": 54.035,
-   "file": "n54.wav"
+   "file": "n54.mp3"
+  },
+  {
+   "midi": 56.036,
+   "file": "n56.mp3"
+  },
+  {
+   "midi": 58.044,
+   "file": "n58.mp3"
   },
   {
    "midi": 60.008,
-   "file": "n60.wav"
+   "file": "n60.mp3"
+  },
+  {
+   "midi": 61.987,
+   "file": "n62.mp3"
+  },
+  {
+   "midi": 64.003,
+   "file": "n64.mp3"
   },
   {
    "midi": 65.951,
-   "file": "n66.wav"
+   "file": "n66.mp3"
+  },
+  {
+   "midi": 68.071,
+   "file": "n68.mp3"
+  },
+  {
+   "midi": 70.067,
+   "file": "n70.mp3"
   },
   {
    "midi": 72.008,
-   "file": "n72.wav"
+   "file": "n72.mp3"
+  },
+  {
+   "midi": 74.032,
+   "file": "n74.mp3"
+  },
+  {
+   "midi": 76.072,
+   "file": "n76.mp3"
   },
   {
    "midi": 78.096,
-   "file": "n78.wav"
+   "file": "n78.mp3"
+  },
+  {
+   "midi": 80.009,
+   "file": "n80.mp3"
+  },
+  {
+   "midi": 81.992,
+   "file": "n82.mp3"
   },
   {
    "midi": 83.038,
-   "file": "n83.wav"
+   "file": "n83.mp3"
+  },
+  {
+   "midi": 83.995,
+   "file": "n84.mp3"
+  },
+  {
+   "midi": 86.989,
+   "file": "n87.mp3"
   },
   {
    "midi": 89.991,
-   "file": "n90.wav"
+   "file": "n90.mp3"
+  },
+  {
+   "midi": 92.994,
+   "file": "n93.mp3"
+  },
+  {
+   "midi": 96.006,
+   "file": "n96.mp3"
   },
   {
    "midi": 99.0,
-   "file": "n99.wav"
+   "file": "n99.mp3"
+  },
+  {
+   "midi": 102.0,
+   "file": "n102.mp3"
+  },
+  {
+   "midi": 105.0,
+   "file": "n105.mp3"
   },
   {
    "midi": 108.0,
-   "file": "n108.wav"
+   "file": "n108.mp3"
   }
  ]
 }

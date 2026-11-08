@@ -7,9 +7,9 @@
 // Each click's random draws come from its own seeded generator (see prng.js), so asking
 // for the same range twice gives the same clicks, and splitting a range in two gives the
 // same clicks as one call.
-import { slotRng } from "./prng.js?v=20261108e";
-import { subFraction } from "./timeline.js?v=20261108e";
-import { barPlays } from "./overlay.js?v=20261108e";
+import { slotRng } from "./prng.js?v=20261108f";
+import { subFraction } from "./timeline.js?v=20261108f";
+import { barPlays } from "./overlay.js?v=20261108f";
 
 const LEVEL_GAIN = [0, 0.6, 1];
 const SUB_GAIN = 0.35;

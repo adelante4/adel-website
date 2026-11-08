@@ -3,7 +3,7 @@
 
 Usage: python3 tools/build-keys.py VCSL_DIR [id ...]
 VCSL_DIR is a clone of github.com/sgossner/VCSL. Output goes to assets/audio/inst/<id>/ as 32 kHz 16-bit mono
-WAV with a manifest (note pitches are measured, not read from file names).
+WAV (the two pianos: 44.1 kHz stereo MP3) with a manifest (note pitches are measured, not read from file names).
 """
 import glob, json, os, re, sys
 import numpy as np
@@ -22,6 +22,16 @@ def read(path):
     if x.ndim > 1:
         x = x.mean(axis=1)
     return resample_poly(x, SR, sr) if sr != SR else x
+
+
+def read_hq(path, sr_out=44100):
+    """Full-rate stereo, for the pianos (kept stereo: the width is a large part of why a piano sounds real)."""
+    sr, x = wav.read(path)
+    full = float(np.iinfo(x.dtype).max) + 1 if np.issubdtype(x.dtype, np.integer) else 1.0
+    x = x.astype(np.float64) / full
+    if x.ndim == 1:
+        x = np.stack([x, x], axis=1)
+    return resample_poly(x, sr_out, sr, axis=0) if sr != sr_out else x
 
 
 def f0_midi(x, guess):
@@ -59,7 +69,7 @@ def parse_midi(name, zero=12):
     return NAMES[m.group(1)] + (1 if m.group(2) else 0) + 12 * (int(m.group(3)) + 1) + (zero - 12)
 
 
-def build(inst_id, name, credit, files, seconds, release, thin=1, fade=0.5, peak=-3, shift=0):
+def build(inst_id, name, credit, files, seconds, release, thin=1, fade=0.5, peak=-3, shift=0, hq=False):
     """files: [(path, nominal midi)]. Thin: keep every `thin`th note by pitch."""
     files = sorted(files, key=lambda f: f[1])
     # file names use different octave numbering in different VCSL instruments; `shift` fixes it
@@ -77,6 +87,16 @@ def build(inst_id, name, credit, files, seconds, release, thin=1, fade=0.5, peak
     for path, guess in files:
         x = read(path)
         midi = f0_midi(x, guess)
+        if hq:
+            xm = x
+            x = read_hq(path)
+            pk = np.abs(x).max()
+            on = int(np.argmax(np.abs(x).max(axis=1) > pk * 0.02))
+            x = x[max(0, on - int(0.002 * 44100)) :][: int(seconds * 44100)].copy()
+            f = min(len(x), int(fade * 44100))
+            x[-f:] *= (np.linspace(1, 0, f) ** 2)[:, None]
+            items.append((midi, guess, x))
+            continue
         pk = np.abs(x).max()
         on = int(np.argmax(np.abs(x) > pk * 0.02))
         x = x[max(0, on - int(0.002 * SR)) :][: int(seconds * SR)].copy()
@@ -84,17 +104,26 @@ def build(inst_id, name, credit, files, seconds, release, thin=1, fade=0.5, peak
         x[-f:] *= np.linspace(1, 0, f) ** 2
         items.append((midi, guess, x))
     top = max(np.abs(x).max() for _, _, x in items)
+    ext = "mp3" if hq else "wav"
+    rate = 44100 if hq else SR
     scale = 10 ** (peak / 20) / top
     notes = []
     for midi, guess, x in items:
-        fn = f"n{round(midi)}.wav"
+        fn = f"n{round(midi)}.{ext}"
         if abs(midi - guess) >= 1.5:
             midi = float(guess)  # the measurement drifted (a thin or noisy note): trust the name
-        wav.write(os.path.join(d, fn), SR, (np.clip(x * scale, -1, 1) * 32767).astype(np.int16))
+        pcm = (np.clip(x * scale, -1, 1) * 32767).astype(np.int16)
+        if hq:
+            tmp = os.path.join(d, "_t.wav")
+            wav.write(tmp, rate, pcm)
+            os.system(f'ffmpeg -loglevel error -y -i "{tmp}" -codec:a libmp3lame -b:a 112k "{os.path.join(d, fn)}"')
+            os.remove(tmp)
+        else:
+            wav.write(os.path.join(d, fn), rate, pcm)
         notes.append({"midi": round(float(midi), 3), "file": fn})
         flag = "" if abs(midi - guess) < 1.5 else f"  (name said {guess})"
         print(f"  {fn} {midi:.2f}{flag}")
-    json.dump({"id": inst_id, "name": name, "kind": "keys", "sampleRate": SR, "release": release, "license": "CC0 1.0", "credit": credit, "notes": notes}, open(os.path.join(d, "manifest.json"), "w"), indent=1)
+    json.dump({"id": inst_id, "name": name, "kind": "keys", "sampleRate": rate, "release": release, "license": "CC0 1.0", "credit": credit, "notes": notes}, open(os.path.join(d, "manifest.json"), "w"), indent=1)
     size = sum(os.path.getsize(f) for f in glob.glob(os.path.join(d, "*")))
     print(f"{inst_id}: {len(notes)} notes, {size / 1e6:.2f} MB")
 
@@ -115,9 +144,9 @@ def main():
     Z = os.path.join(src, "Chordophones", "Zithers")
     jobs = {
         "grand": lambda: build("grand", "Grand piano", "VCSL, Steinway B grand (J. Hodges)",
-                               collect(os.path.join(Z, "Grand Piano, Steinway B", "Sus", "JHPiano_Sus_Close_*_vl3_rr1.wav")), 4.0, 0.5, thin=3, fade=1.2),
+                               collect(os.path.join(Z, "Grand Piano, Steinway B", "Sus", "JHPiano_Sus_Close_*_vl3_rr1.wav")), 5.0, 0.5, thin=1, fade=2.0, hq=True),
         "kawai": lambda: build("kawai", "Studio grand", "VCSL, Kawai grand",
-                               collect(os.path.join(Z, "Grand Piano, Kawai", "Sustains", "GPiano_sus_*_v3_rr1_Player.wav")), 4.0, 0.5, thin=3, fade=1.2, shift=12),
+                               collect(os.path.join(Z, "Grand Piano, Kawai", "Sustains", "GPiano_sus_*_v3_rr1_Player.wav")), 5.0, 0.5, thin=1, fade=2.0, shift=12, hq=True),
         "harpsichord": lambda: build("harpsichord", "Harpsichord", "VCSL, English harpsichord (Zuckermann)",
                                      collect(os.path.join(Z, "Harpsichord, English", "Sustains", "Normal", "*_rr1.wav")), 3.0, 0.15, thin=3, fade=0.6, shift=12),
         "harp": lambda: build("harp", "Concert harp", "VCSL, concert harp (K. Smith)",

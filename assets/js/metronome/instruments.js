@@ -6,8 +6,8 @@
 
 export const KEYS = [
   { id: "rhodes", name: "Rhodes", trim: 0.952, synth: true, note: "Electric piano made in code. Warm and round." },
-  { id: "grand", name: "Grand piano", trim: 1.561, note: "A Steinway B grand, recorded close. Full and natural: the normal piano." },
-  { id: "kawai", name: "Studio grand", trim: 1.257, note: "A Kawai grand. Softer and rounder than the Steinway, good for ballads." },
+  { id: "grand", name: "Grand piano", trim: 1.676, note: "A Steinway B grand, recorded close. Full and natural: the normal piano." },
+  { id: "kawai", name: "Studio grand", trim: 1.786, note: "A Kawai grand. Softer and rounder than the Steinway, good for ballads." },
   { id: "fmpiano", name: "FM piano", trim: 1.194, note: "A Yamaha TX81Z patch, recorded from the hardware. Glassy 80s electric piano." },
   { id: "upright", name: "Upright", trim: 1.163, note: "A Yamaha upright. Close and a little dusty." },
   { id: "vibes", name: "Vibraphone", trim: 1.007, note: "Soft mallets. Sits high, so voicings are lifted an octave." },

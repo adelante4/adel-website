@@ -2,66 +2,178 @@
  "id": "grand",
  "name": "Grand piano",
  "kind": "keys",
- "sampleRate": 32000,
+ "sampleRate": 44100,
  "release": 0.5,
  "license": "CC0 1.0",
  "credit": "VCSL, Steinway B grand (J. Hodges)",
  "notes": [
   {
    "midi": 22.095,
-   "file": "n22.wav"
+   "file": "n22.mp3"
+  },
+  {
+   "midi": 24.128,
+   "file": "n24.mp3"
+  },
+  {
+   "midi": 26.162,
+   "file": "n26.mp3"
   },
   {
    "midi": 27.888,
-   "file": "n28.wav"
+   "file": "n28.mp3"
+  },
+  {
+   "midi": 30.131,
+   "file": "n30.mp3"
+  },
+  {
+   "midi": 32.133,
+   "file": "n32.mp3"
   },
   {
    "midi": 34.156,
-   "file": "n34.wav"
+   "file": "n34.mp3"
+  },
+  {
+   "midi": 36.012,
+   "file": "n36.mp3"
+  },
+  {
+   "midi": 37.981,
+   "file": "n38.mp3"
   },
   {
    "midi": 40.072,
-   "file": "n40.wav"
+   "file": "n40.mp3"
+  },
+  {
+   "midi": 42.09,
+   "file": "n42.mp3"
+  },
+  {
+   "midi": 44.101,
+   "file": "n44.mp3"
   },
   {
    "midi": 46.019,
-   "file": "n46.wav"
+   "file": "n46.mp3"
+  },
+  {
+   "midi": 48.054,
+   "file": "n48.mp3"
+  },
+  {
+   "midi": 50.034,
+   "file": "n50.mp3"
   },
   {
    "midi": 52.047,
-   "file": "n52.wav"
+   "file": "n52.mp3"
+  },
+  {
+   "midi": 54.037,
+   "file": "n54.mp3"
+  },
+  {
+   "midi": 56.014,
+   "file": "n56.mp3"
   },
   {
    "midi": 58.141,
-   "file": "n58.wav"
+   "file": "n58.mp3"
+  },
+  {
+   "midi": 60.108,
+   "file": "n60.mp3"
+  },
+  {
+   "midi": 62.024,
+   "file": "n62.mp3"
   },
   {
    "midi": 64.047,
-   "file": "n64.wav"
+   "file": "n64.mp3"
+  },
+  {
+   "midi": 66.069,
+   "file": "n66.mp3"
+  },
+  {
+   "midi": 68.037,
+   "file": "n68.mp3"
   },
   {
    "midi": 70.034,
-   "file": "n70.wav"
+   "file": "n70.mp3"
+  },
+  {
+   "midi": 72.113,
+   "file": "n72.mp3"
+  },
+  {
+   "midi": 74.066,
+   "file": "n74.mp3"
   },
   {
    "midi": 76.004,
-   "file": "n76.wav"
+   "file": "n76.mp3"
+  },
+  {
+   "midi": 78.002,
+   "file": "n78.mp3"
+  },
+  {
+   "midi": 79.996,
+   "file": "n80.mp3"
   },
   {
    "midi": 82.023,
-   "file": "n82.wav"
+   "file": "n82.mp3"
+  },
+  {
+   "midi": 84.061,
+   "file": "n84.mp3"
+  },
+  {
+   "midi": 86.033,
+   "file": "n86.mp3"
   },
   {
    "midi": 88.027,
-   "file": "n88.wav"
+   "file": "n88.mp3"
+  },
+  {
+   "midi": 89.983,
+   "file": "n90.mp3"
+  },
+  {
+   "midi": 92.02,
+   "file": "n92.mp3"
   },
   {
    "midi": 93.97,
-   "file": "n94.wav"
+   "file": "n94.mp3"
+  },
+  {
+   "midi": 96.135,
+   "file": "n96.mp3"
+  },
+  {
+   "midi": 98.0,
+   "file": "n98.mp3"
   },
   {
    "midi": 100.0,
-   "file": "n100.wav"
+   "file": "n100.mp3"
+  },
+  {
+   "midi": 102.0,
+   "file": "n102.mp3"
+  },
+  {
+   "midi": 104.0,
+   "file": "n104.mp3"
   }
  ]
 }
