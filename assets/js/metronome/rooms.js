@@ -151,6 +151,7 @@ export function initRooms({ getState, commit }) {
     if (beats !== 4 || den !== 4) chips.push([`${beats}/${den}`, "beat", null]);
     if (bars > 1) chips.push([`${bars} bars`, "beat", null]);
     if (s.mix.click === 0) chips.push(["click off", "beat", null]);
+    else if (s.mix.autoMute && s.groove.style !== "off") chips.push(["click steps aside", "beat", null]);
 
     for (const [id, p] of pedalEls) {
       const def = PEDALS[id];

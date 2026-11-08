@@ -63,7 +63,7 @@ export function defaultState() {
     },
     bass: { on: false, style: "walking", sound: "doublebass" },
     groove: { style: "off", kit: "synth", dust: false },
-    mix: { click: 1, chords: 0.7, bass: 0.6, groove: 0.5, autoMute: true },
+    mix: { click: 1, chords: 0.7, bass: 0.6, groove: 0.5, autoMute: false },
   };
 }
 
@@ -103,7 +103,7 @@ export function normalizeMix(raw) {
     chords: level(r.chords, d.chords),
     bass: level(r.bass, d.bass),
     groove: level(r.groove, d.groove),
-    autoMute: r.autoMute !== false,
+    autoMute: r.autoMute === true,
   };
 }
 

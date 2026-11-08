@@ -4,23 +4,23 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261107p";
-import { createTransport } from "./transport.js?v=20261107p";
-import { barPlays } from "./overlay.js?v=20261107p";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261107p";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261107p";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261107p";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261107p";
-import { COMP_STYLES } from "./comping.js?v=20261107p";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261107p";
-import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261107p";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261107p";
-import { BAND_STYLES } from "./bands.js?v=20261107p";
-import { createTuneView } from "./tune.js?v=20261107p";
-import { initRooms } from "./rooms.js?v=20261107p";
-import { TOP_100 } from "./top100.js?v=20261107p";
-import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261107p";
-import { MAX_FORM_BARS } from "./share.js?v=20261107p";
+import { createAudio } from "./audio.js?v=20261107q";
+import { createTransport } from "./transport.js?v=20261107q";
+import { barPlays } from "./overlay.js?v=20261107q";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261107q";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261107q";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261107q";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261107q";
+import { COMP_STYLES } from "./comping.js?v=20261107q";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261107q";
+import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261107q";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261107q";
+import { BAND_STYLES } from "./bands.js?v=20261107q";
+import { createTuneView } from "./tune.js?v=20261107q";
+import { initRooms } from "./rooms.js?v=20261107q";
+import { TOP_100 } from "./top100.js?v=20261107q";
+import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261107q";
+import { MAX_FORM_BARS } from "./share.js?v=20261107q";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -40,7 +40,14 @@ let mode = "accent"; // what the beat bars set: "accent" or "chance"
     try {
       const saved = localStorage.getItem(STORE);
       const restored = saved ? decodeShare(saved) : null;
-      if (restored) state = restored;
+      if (restored) {
+        state = restored;
+        // Earlier versions silenced the click whenever drums played. Reset that once; the choice is now explicit.
+        if (!localStorage.getItem("adelClickMode2")) {
+          state.mix.autoMute = false;
+          localStorage.setItem("adelClickMode2", "1");
+        }
+      }
     } catch {
       /* storage blocked: start from defaults */
     }
@@ -481,9 +488,13 @@ function renderHarmony() {
   })(g.kit);
   $("kit-note").textContent = KITS.find((x) => x.id === g.kit)?.note ?? "";
   $("dust-toggle").setAttribute("aria-pressed", String(g.dust));
-  $("automute-toggle").setAttribute("aria-pressed", String(state.mix.autoMute));
-  $("click-toggle").setAttribute("aria-pressed", String(state.mix.click > 0));
-  $("click-toggle").textContent = state.mix.click > 0 ? "Click: on" : "Click: off";
+  const clickMode = state.mix.click === 0 ? "off" : state.mix.autoMute ? "auto" : "on";
+  makeSeg($("click-mode"), [["on", "On"], ["auto", "Auto"], ["off", "Off"]], setClickMode)(clickMode);
+  $("click-note").textContent = {
+    on: "The click plays all the time, over the band.",
+    auto: "The click goes quiet while the drums play. It comes back in the count-in and in trade-fours gaps.",
+    off: "No click. Only the band plays.",
+  }[clickMode];
   for (const k of ["click", "chords", "bass", "groove"]) {
     $(`mix-${k}`).value = String(state.mix[k]);
     $(`mix-${k}-val`).textContent = pct(state.mix[k]);
@@ -547,7 +558,6 @@ function applyBand(id) {
   state.harmony.on = true;
   state.harmony.sound = style.keys.sound;
   state.harmony.comp = style.keys.comp;
-  state.mix.autoMute = true;
   commit("restart");
   notice(`${style.name}: ${style.bpm} BPM. Change any layer below.`);
 }
@@ -813,17 +823,17 @@ $("dust-toggle").addEventListener("click", () => {
   commit();
 });
 let lastClickLevel = 1;
-$("click-toggle").addEventListener("click", () => {
-  if (state.mix.click > 0) {
-    lastClickLevel = state.mix.click;
-    state.mix.click = 0;
-  } else state.mix.click = lastClickLevel || 1;
+function setClickMode(mode) {
+  const m = state.mix;
+  if (mode === "off") {
+    if (m.click > 0) lastClickLevel = m.click;
+    m.click = 0;
+  } else {
+    if (m.click === 0) m.click = lastClickLevel || 1;
+    m.autoMute = mode === "auto";
+  }
   commit();
-});
-$("automute-toggle").addEventListener("click", () => {
-  state.mix.autoMute = !state.mix.autoMute;
-  commit();
-});
+}
 for (const k of ["click", "chords", "bass", "groove"]) {
   $(`mix-${k}`).addEventListener("input", (e) => {
     state.mix[k] = Number(e.target.value);

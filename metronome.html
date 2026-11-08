@@ -7,7 +7,7 @@
 <meta name="description" content="A practice metronome with odd meters, swing, chance, gap trainer and tempo ladder. Runs in the browser.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
 <link rel="stylesheet" href="assets/css/site.css?v=20261106">
-<link rel="stylesheet" href="assets/css/metronome.css?v=20261107p">
+<link rel="stylesheet" href="assets/css/metronome.css?v=20261107q">
 </head>
 <body>
 <div class="moire soft" aria-hidden="true"><i></i><i></i></div>
@@ -33,9 +33,13 @@
       <button class="btn" id="bpm-down" type="button" aria-label="Slower">&minus;</button>
       <button class="btn" id="bpm-up" type="button" aria-label="Faster">+</button>
     </div>
+    <div class="click-mode">
+      <span class="label" id="click-label">Click</span>
+      <div class="segs" id="click-mode" role="group" aria-labelledby="click-label"></div>
+      <p class="note" id="click-note"></p>
+    </div>
     <div class="on-now" id="on-now" aria-label="What is switched on"></div>
     <div class="quiet-row">
-      <button class="btn small" id="click-toggle" type="button" aria-pressed="true">Click: on</button>
       <button class="btn small" id="share-copy" type="button">Copy link</button>
       <button class="btn small" id="reset" type="button">Reset</button>
     </div>
@@ -194,10 +198,6 @@
             <input id="mix-bass" type="range" min="0" max="1" step="0.05" value="0.6"></div>
           <div class="lv" data-lv="groove"><label class="label" for="mix-groove">Drums <b id="mix-groove-val"></b></label>
             <input id="mix-groove" type="range" min="0" max="1" step="0.05" value="0.5"></div>
-          <div class="lv" data-lv="groove">
-            <button class="btn small" id="automute-toggle" type="button" aria-pressed="true">Click steps aside for the drums</button>
-            <p class="note">On: the click is silent while the drums play. It comes back in the count-in and in the bars where trade fours takes the drums out.</p>
-          </div>
         </div>
       </div>
     </section>
@@ -240,6 +240,6 @@
     </section>
   </div>
 </div>
-<script type="module" src="assets/js/metronome/metronome.js?v=20261107p"></script>
+<script type="module" src="assets/js/metronome/metronome.js?v=20261107q"></script>
 </body>
 </html>
