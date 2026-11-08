@@ -2,7 +2,7 @@
 //
 // Every function takes the audio context, a destination node, and a start time, builds a few
 // short-lived nodes, and lets them clean up after themselves. Nothing here keeps state.
-import { midiToHz } from "./chords.js?v=20261108z";
+import { midiToHz } from "./chords.js?v=20261109b";
 
 /** One second of white noise, shared by all drum voices. */
 export function makeNoise(ctx, seconds = 2) {
@@ -256,6 +256,18 @@ export function drum(ctx, dest, noise, when, voice, gain, style = "") {
       noiseHit(ctx, out, noise, when, { type: "bandpass", freq: 6000, q: 0.8, peak: 0.34 * v, decay: 0.05, low: 9000 });
       tone(ctx, out, when, { from: 190, to: 120, peak: 0.12 * v, decay: 0.05, drop: 0.02 });
       break;
+    case "tom1":
+    case "tom2":
+    case "tom3": {
+      const f = { tom1: 210, tom2: 150, tom3: 105 }[voice];
+      tone(ctx, out, when, { from: f * 1.35, to: f, peak: 0.9 * v, decay: 0.28, drop: 0.05 });
+      noiseHit(ctx, out, noise, when, { type: "bandpass", freq: 2400, q: 0.8, peak: 0.12 * v, decay: 0.02 });
+      break;
+    }
+    case "crash":
+      noiseHit(ctx, out, noise, when, { type: "highpass", freq: 4200, q: 0.5, peak: 0.5 * v, attack: 0.002, decay: 1.4 });
+      noiseHit(ctx, out, noise, when, { type: "bandpass", freq: 7500, q: 0.7, peak: 0.25 * v, decay: 0.5 });
+      break;
     case "ride": {
       const g = ctx.createGain();
       const hp = ctx.createBiquadFilter();
@@ -359,24 +371,28 @@ export function bassSynth(ctx, dest, when, midi, seconds, gain, kind = "round") 
     return;
   }
   if (kind === "acid") {
-    // A single saw into a resonant filter that snaps shut: short, squelchy, a little driven.
+    // A saw into a resonant 24 dB filter that snaps shut, driven before and after: short, squelchy, biting.
     const o = ctx.createOscillator();
-    const lp = ctx.createBiquadFilter();
     o.type = "sawtooth";
     o.frequency.value = f;
-    lp.type = "lowpass";
-    lp.Q.value = 15;
-    lp.frequency.setValueAtTime(Math.min(5000, f * 18), when);
-    lp.frequency.exponentialRampToValueAtTime(Math.max(90, f * 1.8), when + 0.22);
-    const shaper = softClip(ctx, 3);
+    const [fin, fout, filters] = ladder(ctx, 14);
+    const pre = softClip(ctx, 2.5);
+    const post = softClip(ctx, 2);
+    const top = Math.min(5200, f * 20 + 300);
+    const low = Math.max(90, f * 1.7);
+    for (const lp of filters) {
+      lp.frequency.setValueAtTime(top, when);
+      lp.frequency.exponentialRampToValueAtTime(low, when + 0.2);
+    }
     const len = Math.min(hold, 0.45);
     g.gain.setValueAtTime(0.0001, when);
-    g.gain.exponentialRampToValueAtTime(0.3 * gain, when + 0.004);
-    g.gain.setValueAtTime(0.26 * gain, when + len);
-    g.gain.exponentialRampToValueAtTime(0.0001, when + len + 0.06);
-    o.connect(lp);
-    lp.connect(shaper);
-    shaper.connect(g);
+    g.gain.exponentialRampToValueAtTime(0.26 * gain, when + 0.003);
+    g.gain.setValueAtTime(0.22 * gain, when + len);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + len + 0.05);
+    o.connect(pre);
+    pre.connect(fin);
+    fout.connect(post);
+    post.connect(g);
     g.connect(dest);
     o.start(when);
     o.stop(when + len + 0.1);
@@ -436,33 +452,42 @@ export function bassSynth(ctx, dest, when, midi, seconds, gain, kind = "round") 
     b.stop(when + hold + 0.3);
     return;
   }
-  const saw = ctx.createOscillator();
-  const sq = ctx.createOscillator();
-  const lp = ctx.createBiquadFilter();
-  saw.type = "sawtooth";
-  sq.type = "square";
-  saw.frequency.value = f;
-  sq.frequency.value = f / 2;
-  lp.type = "lowpass";
-  lp.Q.value = 7;
-  lp.frequency.setValueAtTime(Math.min(3000, f * 14), when);
-  lp.frequency.exponentialRampToValueAtTime(Math.max(120, f * 1.6), when + 0.28);
-  const sqg = ctx.createGain();
-  sqg.gain.value = 0.5;
+  // The classic mono bass: two slightly detuned saws and a square an octave down, through a 24 dB filter that
+  // opens on the attack and closes again, a little drive after it. The filter follows the note, so low and
+  // high notes keep the same colour.
+  const [fin, fout, filters] = ladder(ctx, 5);
+  const shaper = softClip(ctx, 1.8);
+  const peakHz = Math.min(4200, f * 12 + 400);
+  const restHz = Math.max(110, f * 2.2);
+  for (const lp of filters) {
+    lp.frequency.setValueAtTime(restHz, when);
+    lp.frequency.exponentialRampToValueAtTime(peakHz, when + 0.012);
+    lp.frequency.exponentialRampToValueAtTime(restHz * 1.3, when + 0.32);
+  }
+  const mix = ctx.createGain();
+  mix.gain.value = 0.5;
+  const end = when + hold + 0.25;
+  [[0, "sawtooth", 1, 1], [9, "sawtooth", 1, 0.9], [0, "square", 0.5, 0.55]].forEach(([det, type, mult, amp]) => {
+    const o = ctx.createOscillator();
+    const og = ctx.createGain();
+    o.type = type;
+    o.frequency.value = f * mult;
+    o.detune.value = det;
+    og.gain.value = amp;
+    o.connect(og);
+    og.connect(fin);
+    o.start(when);
+    o.stop(end);
+  });
+  fout.connect(mix);
+  mix.connect(shaper);
   g.gain.setValueAtTime(0.0001, when);
-  g.gain.exponentialRampToValueAtTime(0.38 * gain, when + 0.008);
-  g.gain.exponentialRampToValueAtTime(0.22 * gain, when + 0.5);
-  g.gain.setValueAtTime(0.2 * gain, when + hold);
-  g.gain.exponentialRampToValueAtTime(0.0001, when + hold + 0.12);
-  saw.connect(lp);
-  sq.connect(sqg);
-  sqg.connect(lp);
-  lp.connect(g);
+  g.gain.exponentialRampToValueAtTime(0.42 * gain, when + 0.006);
+  g.gain.exponentialRampToValueAtTime(0.3 * gain, when + 0.4);
+  g.gain.setValueAtTime(0.28 * gain, when + hold);
+  g.gain.exponentialRampToValueAtTime(0.0001, when + hold + 0.14);
+  shaper.connect(g);
   g.connect(dest);
-  saw.start(when);
-  sq.start(when);
-  saw.stop(when + hold + 0.2);
-  sq.stop(when + hold + 0.2);
 }
 
 /** Drawbar organ: a few sines with a soft click at the start. */

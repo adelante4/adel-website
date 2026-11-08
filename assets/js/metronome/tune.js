@@ -11,7 +11,7 @@ import { analyze, noteName, keyName } from "./analysis.js";
 import { voiceForm, degreeLabel, guideSemis, handMove } from "./voicing.js";
 import { buildIndex, sharedPieces, shortName } from "./dna.js";
 import { parseChord } from "./chords.js";
-import { playFor, targetFor } from "./scales.js?v=20261108z";
+import { playFor, targetFor } from "./scales.js?v=20261109b";
 
 const LENSES = [
   ["chords", "Chords", "Chord names only."],

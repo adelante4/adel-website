@@ -1,12 +1,12 @@
 // Export: the band as loop-ready WAV stems (for an Akai MPC, Ableton or any sampler), as a MIDI file, and the
 // drum kit as one-shots for pads. Renders with the same audio engine as playback, into memory.
-import { createAudio } from "./audio.js?v=20261108z";
-import { createTransport } from "./transport.js?v=20261108z";
-import { compileTimeline, timeAtBeat } from "./timeline.js?v=20261108z";
-import { encodeWav, foldTail, peakOf } from "./wav.js?v=20261108z";
-import { makeZip } from "./zip.js?v=20261108z";
-import { buildMidi } from "./midi.js?v=20261108z";
-import { DRUM_VOICES } from "./groove.js?v=20261108z";
+import { createAudio } from "./audio.js?v=20261109b";
+import { createTransport } from "./transport.js?v=20261109b";
+import { compileTimeline, timeAtBeat } from "./timeline.js?v=20261109b";
+import { encodeWav, foldTail, peakOf } from "./wav.js?v=20261109b";
+import { makeZip } from "./zip.js?v=20261109b";
+import { buildMidi } from "./midi.js?v=20261109b";
+import { DRUM_VOICES } from "./groove.js?v=20261109b";
 
 const RATE = 44100;
 const TAIL = 3; // seconds of ring-out folded back onto the start, so loops repeat seamlessly
@@ -140,11 +140,14 @@ export async function drumShots(state, o = {}) {
   if (kit !== "synth") {
     const dir = new URL(`${kit}/`, KIT_DIR);
     const man = await (await fetch(new URL("manifest.json", dir))).json();
+    const dec = new OfflineAudioContext(2, 44100, 44100);
     for (const [voice, v] of Object.entries(man.voices)) {
       for (const h of v.hits) {
-        const data = new Uint8Array(await (await fetch(new URL(h.file, dir))).arrayBuffer());
-        const m = h.file.match(/-(\d+)\.(\w+)$/);
-        files.push({ name: `${voice}-layer${h.layer + 1}of${v.layers}-${m?.[1] ?? "1"}.${m?.[2] ?? "wav"}`, data });
+        const raw = await (await fetch(new URL(h.file, dir))).arrayBuffer();
+        const buf = await dec.decodeAudioData(raw);
+        const chans = Array.from({ length: buf.numberOfChannels }, (_, c) => buf.getChannelData(c));
+        const n = h.file.match(/-(\d+)\.\w+$/)?.[1] ?? "1";
+        files.push({ name: `${voice}-layer${h.layer + 1}of${v.layers}-${n}.wav`, data: encodeWav(chans, buf.sampleRate, 16) });
       }
       lines.push(`${voice}: ${v.layers} velocity layers, ${v.hits.length} files`);
     }

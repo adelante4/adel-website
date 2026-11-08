@@ -2,64 +2,113 @@
  "id": "rusty",
  "name": "Rusty jazz kit",
  "license": "CC0 1.0",
- "credit": "Karoryfer Samples, Big Rusty Drums",
+ "credit": "Karoryfer Samples, Big Rusty Drums (stereo close and overhead mics)",
  "sampleRate": 44100,
+ "stereo": true,
  "voices": {
   "kick": {
-   "layers": 3,
+   "layers": 4,
    "hits": [
     {
      "layer": 0,
-     "file": "kick-0-1.wav"
+     "file": "kick-0-1.mp3"
     },
     {
      "layer": 0,
-     "file": "kick-0-2.wav"
+     "file": "kick-0-2.mp3"
+    },
+    {
+     "layer": 0,
+     "file": "kick-0-3.mp3"
     },
     {
      "layer": 1,
-     "file": "kick-1-1.wav"
+     "file": "kick-1-1.mp3"
     },
     {
      "layer": 1,
-     "file": "kick-1-2.wav"
+     "file": "kick-1-2.mp3"
+    },
+    {
+     "layer": 1,
+     "file": "kick-1-3.mp3"
     },
     {
      "layer": 2,
-     "file": "kick-2-1.wav"
+     "file": "kick-2-1.mp3"
     },
     {
      "layer": 2,
-     "file": "kick-2-2.wav"
+     "file": "kick-2-2.mp3"
+    },
+    {
+     "layer": 2,
+     "file": "kick-2-3.mp3"
+    },
+    {
+     "layer": 3,
+     "file": "kick-3-1.mp3"
+    },
+    {
+     "layer": 3,
+     "file": "kick-3-2.mp3"
+    },
+    {
+     "layer": 3,
+     "file": "kick-3-3.mp3"
     }
    ]
   },
   "snare": {
-   "layers": 3,
+   "layers": 4,
    "hits": [
     {
      "layer": 0,
-     "file": "snare-0-1.wav"
+     "file": "snare-0-1.mp3"
     },
     {
      "layer": 0,
-     "file": "snare-0-2.wav"
+     "file": "snare-0-2.mp3"
+    },
+    {
+     "layer": 0,
+     "file": "snare-0-3.mp3"
     },
     {
      "layer": 1,
-     "file": "snare-1-1.wav"
+     "file": "snare-1-1.mp3"
     },
     {
      "layer": 1,
-     "file": "snare-1-2.wav"
+     "file": "snare-1-2.mp3"
+    },
+    {
+     "layer": 1,
+     "file": "snare-1-3.mp3"
     },
     {
      "layer": 2,
-     "file": "snare-2-1.wav"
+     "file": "snare-2-1.mp3"
     },
     {
      "layer": 2,
-     "file": "snare-2-2.wav"
+     "file": "snare-2-2.mp3"
+    },
+    {
+     "layer": 2,
+     "file": "snare-2-3.mp3"
+    },
+    {
+     "layer": 3,
+     "file": "snare-3-1.mp3"
+    },
+    {
+     "layer": 3,
+     "file": "snare-3-2.mp3"
+    },
+    {
+     "layer": 3,
+     "file": "snare-3-3.mp3"
     }
    ]
   },
@@ -68,177 +117,373 @@
    "hits": [
     {
      "layer": 0,
-     "file": "ghost-0-1.wav"
+     "file": "ghost-0-1.mp3"
     },
     {
      "layer": 0,
-     "file": "ghost-0-2.wav"
+     "file": "ghost-0-2.mp3"
+    },
+    {
+     "layer": 0,
+     "file": "ghost-0-3.mp3"
     },
     {
      "layer": 1,
-     "file": "ghost-1-1.wav"
+     "file": "ghost-1-1.mp3"
     },
     {
      "layer": 1,
-     "file": "ghost-1-2.wav"
+     "file": "ghost-1-2.mp3"
+    },
+    {
+     "layer": 1,
+     "file": "ghost-1-3.mp3"
     }
    ]
   },
   "rim": {
-   "layers": 2,
+   "layers": 3,
    "hits": [
     {
      "layer": 0,
-     "file": "rim-0-1.wav"
+     "file": "rim-0-1.mp3"
     },
     {
      "layer": 0,
-     "file": "rim-0-2.wav"
+     "file": "rim-0-2.mp3"
+    },
+    {
+     "layer": 0,
+     "file": "rim-0-3.mp3"
     },
     {
      "layer": 1,
-     "file": "rim-1-1.wav"
+     "file": "rim-1-1.mp3"
     },
     {
      "layer": 1,
-     "file": "rim-1-2.wav"
+     "file": "rim-1-2.mp3"
+    },
+    {
+     "layer": 1,
+     "file": "rim-1-3.mp3"
+    },
+    {
+     "layer": 2,
+     "file": "rim-2-1.mp3"
+    },
+    {
+     "layer": 2,
+     "file": "rim-2-2.mp3"
+    },
+    {
+     "layer": 2,
+     "file": "rim-2-3.mp3"
     }
    ]
   },
   "hat": {
-   "layers": 3,
+   "layers": 4,
    "hits": [
     {
      "layer": 0,
-     "file": "hat-0-1.wav"
+     "file": "hat-0-1.mp3"
     },
     {
      "layer": 0,
-     "file": "hat-0-2.wav"
+     "file": "hat-0-2.mp3"
     },
     {
      "layer": 0,
-     "file": "hat-0-3.wav"
+     "file": "hat-0-3.mp3"
     },
     {
      "layer": 1,
-     "file": "hat-1-1.wav"
+     "file": "hat-1-1.mp3"
     },
     {
      "layer": 1,
-     "file": "hat-1-2.wav"
+     "file": "hat-1-2.mp3"
     },
     {
      "layer": 1,
-     "file": "hat-1-3.wav"
+     "file": "hat-1-3.mp3"
     },
     {
      "layer": 2,
-     "file": "hat-2-1.wav"
+     "file": "hat-2-1.mp3"
     },
     {
      "layer": 2,
-     "file": "hat-2-2.wav"
+     "file": "hat-2-2.mp3"
     },
     {
      "layer": 2,
-     "file": "hat-2-3.wav"
+     "file": "hat-2-3.mp3"
+    },
+    {
+     "layer": 3,
+     "file": "hat-3-1.mp3"
+    },
+    {
+     "layer": 3,
+     "file": "hat-3-2.mp3"
+    },
+    {
+     "layer": 3,
+     "file": "hat-3-3.mp3"
     }
    ]
   },
   "ohat": {
-   "layers": 2,
-   "hits": [
-    {
-     "layer": 0,
-     "file": "ohat-0-1.wav"
-    },
-    {
-     "layer": 0,
-     "file": "ohat-0-2.wav"
-    },
-    {
-     "layer": 1,
-     "file": "ohat-1-1.wav"
-    },
-    {
-     "layer": 1,
-     "file": "ohat-1-2.wav"
-    }
-   ]
-  },
-  "foot": {
-   "layers": 1,
-   "hits": [
-    {
-     "layer": 0,
-     "file": "foot-0-1.wav"
-    },
-    {
-     "layer": 0,
-     "file": "foot-0-2.wav"
-    },
-    {
-     "layer": 0,
-     "file": "foot-0-3.wav"
-    }
-   ]
-  },
-  "ride": {
    "layers": 3,
    "hits": [
     {
      "layer": 0,
-     "file": "ride-0-1.wav"
+     "file": "ohat-0-1.mp3"
     },
     {
      "layer": 0,
-     "file": "ride-0-2.wav"
+     "file": "ohat-0-2.mp3"
     },
     {
      "layer": 1,
-     "file": "ride-1-1.wav"
+     "file": "ohat-1-1.mp3"
     },
     {
      "layer": 1,
-     "file": "ride-1-2.wav"
+     "file": "ohat-1-2.mp3"
     },
     {
      "layer": 2,
-     "file": "ride-2-1.wav"
+     "file": "ohat-2-1.mp3"
     },
     {
      "layer": 2,
-     "file": "ride-2-2.wav"
+     "file": "ohat-2-2.mp3"
     }
    ]
   },
-  "brush": {
+  "foot": {
    "layers": 2,
    "hits": [
     {
      "layer": 0,
-     "file": "brush-0-1.wav"
+     "file": "foot-0-1.mp3"
     },
     {
      "layer": 0,
-     "file": "brush-0-2.wav"
+     "file": "foot-0-2.mp3"
     },
     {
      "layer": 0,
-     "file": "brush-0-3.wav"
+     "file": "foot-0-3.mp3"
     },
     {
      "layer": 1,
-     "file": "brush-1-1.wav"
+     "file": "foot-1-1.mp3"
     },
     {
      "layer": 1,
-     "file": "brush-1-2.wav"
+     "file": "foot-1-2.mp3"
     },
     {
      "layer": 1,
-     "file": "brush-1-3.wav"
+     "file": "foot-1-3.mp3"
+    }
+   ]
+  },
+  "ride": {
+   "layers": 4,
+   "hits": [
+    {
+     "layer": 0,
+     "file": "ride-0-1.mp3"
+    },
+    {
+     "layer": 0,
+     "file": "ride-0-2.mp3"
+    },
+    {
+     "layer": 1,
+     "file": "ride-1-1.mp3"
+    },
+    {
+     "layer": 1,
+     "file": "ride-1-2.mp3"
+    },
+    {
+     "layer": 2,
+     "file": "ride-2-1.mp3"
+    },
+    {
+     "layer": 2,
+     "file": "ride-2-2.mp3"
+    },
+    {
+     "layer": 3,
+     "file": "ride-3-1.mp3"
+    },
+    {
+     "layer": 3,
+     "file": "ride-3-2.mp3"
+    }
+   ]
+  },
+  "brush": {
+   "layers": 3,
+   "hits": [
+    {
+     "layer": 0,
+     "file": "brush-0-1.mp3"
+    },
+    {
+     "layer": 0,
+     "file": "brush-0-2.mp3"
+    },
+    {
+     "layer": 0,
+     "file": "brush-0-3.mp3"
+    },
+    {
+     "layer": 1,
+     "file": "brush-1-1.mp3"
+    },
+    {
+     "layer": 1,
+     "file": "brush-1-2.mp3"
+    },
+    {
+     "layer": 1,
+     "file": "brush-1-3.mp3"
+    },
+    {
+     "layer": 2,
+     "file": "brush-2-1.mp3"
+    },
+    {
+     "layer": 2,
+     "file": "brush-2-2.mp3"
+    },
+    {
+     "layer": 2,
+     "file": "brush-2-3.mp3"
+    }
+   ]
+  },
+  "tom1": {
+   "layers": 3,
+   "hits": [
+    {
+     "layer": 0,
+     "file": "tom1-0-1.mp3"
+    },
+    {
+     "layer": 0,
+     "file": "tom1-0-2.mp3"
+    },
+    {
+     "layer": 1,
+     "file": "tom1-1-1.mp3"
+    },
+    {
+     "layer": 1,
+     "file": "tom1-1-2.mp3"
+    },
+    {
+     "layer": 2,
+     "file": "tom1-2-1.mp3"
+    },
+    {
+     "layer": 2,
+     "file": "tom1-2-2.mp3"
+    }
+   ]
+  },
+  "tom2": {
+   "layers": 3,
+   "hits": [
+    {
+     "layer": 0,
+     "file": "tom2-0-1.mp3"
+    },
+    {
+     "layer": 0,
+     "file": "tom2-0-2.mp3"
+    },
+    {
+     "layer": 1,
+     "file": "tom2-1-1.mp3"
+    },
+    {
+     "layer": 1,
+     "file": "tom2-1-2.mp3"
+    },
+    {
+     "layer": 2,
+     "file": "tom2-2-1.mp3"
+    },
+    {
+     "layer": 2,
+     "file": "tom2-2-2.mp3"
+    }
+   ]
+  },
+  "tom3": {
+   "layers": 3,
+   "hits": [
+    {
+     "layer": 0,
+     "file": "tom3-0-1.mp3"
+    },
+    {
+     "layer": 0,
+     "file": "tom3-0-2.mp3"
+    },
+    {
+     "layer": 1,
+     "file": "tom3-1-1.mp3"
+    },
+    {
+     "layer": 1,
+     "file": "tom3-1-2.mp3"
+    },
+    {
+     "layer": 2,
+     "file": "tom3-2-1.mp3"
+    },
+    {
+     "layer": 2,
+     "file": "tom3-2-2.mp3"
+    }
+   ]
+  },
+  "crash": {
+   "layers": 3,
+   "hits": [
+    {
+     "layer": 0,
+     "file": "crash-0-1.mp3"
+    },
+    {
+     "layer": 0,
+     "file": "crash-0-2.mp3"
+    },
+    {
+     "layer": 1,
+     "file": "crash-1-1.mp3"
+    },
+    {
+     "layer": 1,
+     "file": "crash-1-2.mp3"
+    },
+    {
+     "layer": 2,
+     "file": "crash-2-1.mp3"
+    },
+    {
+     "layer": 2,
+     "file": "crash-2-2.mp3"
     }
    ]
   }

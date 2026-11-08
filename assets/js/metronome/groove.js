@@ -7,8 +7,8 @@
 // Patterns are lists of entries. An entry has a grid step, a voice, a gain, and an optional
 // chance (for ghost notes). Chances come from a seeded generator keyed by bar, step and voice,
 // so a ghost note that plays in bar 3 plays in bar 3 every time.
-import { slotRng } from "./prng.js?v=20261108z";
-import { barPlays } from "./overlay.js?v=20261108z";
+import { slotRng } from "./prng.js?v=20261109b";
+import { barPlays } from "./overlay.js?v=20261109b";
 
 export const GROOVE_STYLES = ["off", "lofi", "dilla", "halftime", "boombap", "jazz", "brushes", "bossa", "shuffle", "funk", "waltz", "trap", "house", "techno", "twostep", "idm", "minimal", "five4", "five8", "seven223", "seven322", "nine", "eleven", "teental", "rupak", "jhaptal", "keharwa", "dadra"];
 export const GROOVE_NAMES = {
@@ -41,7 +41,9 @@ export const GROOVE_NAMES = {
   keharwa: "Keharwa (8)",
   dadra: "Dadra (6)",
 };
-const VOICES = ["kick", "snare", "ghost", "rim", "hat", "ohat", "foot", "ride", "brush"];
+const VOICES = ["kick", "snare", "ghost", "rim", "hat", "ohat", "foot", "ride", "brush", "tom1", "tom2", "tom3", "crash"];
+/** Kits with real toms and a crash, so fills can use them. The others fill on the snare. */
+const TOM_KITS = new Set(["synth", "rusty", "bebop", "swirly"]);
 export const DRUM_VOICES = VOICES;
 
 const e = (step, voice, gain, chance = 1, late = 0) => ({ step, voice, gain, chance, late });
@@ -307,11 +309,13 @@ export function generateGroove(groove, pattern, practice, fromBeat, toBeat) {
     const fillIn = (q) => fillAt > 0 && q >= 0 && (style.fill || grid12) && q % fillAt === fillAt - 1;
     let entries = style.entries;
     if (fillIn(pb)) {
-      const pool = (grid12 ? FILLS12 : FILLS16).filter((f) => !f.long || level > 0.6);
+      const toms = TOM_KITS.has(groove.kit ?? "synth");
+      const set = grid12 ? (toms ? FILLS12_TOMS : FILLS12) : toms ? FILLS16_TOMS : FILLS16;
+      const pool = set.filter((f) => !f.long || level > 0.6);
       const f = pool[Math.floor(slotRng(pattern.seed, bar, 999, 71)() * pool.length)];
       entries = entries.filter((x) => x.step < f.from).concat(f.hits.map((h) => ({ ...h, chance: 1, late: 0 })));
     } else if (fillIn(pb - 1)) {
-      entries = entries.concat(LANDING.map((h) => ({ ...h, chance: 1, late: 0 })));
+      entries = entries.concat((TOM_KITS.has(groove.kit ?? "synth") ? LANDING_CRASH : LANDING).map((h) => ({ ...h, chance: 1, late: 0 })));
     }
     const volume = 0.8 + 0.4 * level;
     entries.forEach((en, n) => {
@@ -336,7 +340,7 @@ export function generateGroove(groove, pattern, practice, fromBeat, toBeat) {
 
 /**
  * Fills, written out the way a drummer plays them: each starts at `from`, replaces what the groove would play from
- * there, builds in loudness, and lands on the next bar's downbeat with an open hat over the kick.
+ * there, builds in loudness, and lands on the next bar's downbeat with a crash (or an open hat) over the kick.
  */
 const FILLS16 = [
   { from: 12, long: false, hits: [e(12, "snare", 0.5), e(13, "snare", 0.55), e(14, "snare", 0.72), e(15, "snare", 0.9)] },
@@ -344,10 +348,23 @@ const FILLS16 = [
   { from: 8, long: true, hits: [e(8, "kick", 0.85), e(10, "snare", 0.55), e(12, "snare", 0.65), e(13, "snare", 0.7), e(14, "snare", 0.82), e(15, "snare", 0.95)] },
   { from: 8, long: true, hits: [e(8, "snare", 0.6), e(9, "ghost", 0.4), e(10, "snare", 0.65), e(12, "kick", 0.85), e(13, "snare", 0.7), e(14, "snare", 0.85), e(15, "snare", 1)] },
 ];
+/** With toms: the same shapes, moving down the kit. */
+const FILLS16_TOMS = [
+  { from: 12, long: false, hits: [e(12, "tom1", 0.65), e(13, "tom1", 0.7), e(14, "tom2", 0.8), e(15, "tom3", 0.9)] },
+  { from: 12, long: false, hits: [e(12, "snare", 0.6), e(13, "snare", 0.6), e(14, "tom1", 0.8), e(15, "tom3", 0.95)] },
+  { from: 8, long: true, hits: [e(8, "snare", 0.6), e(9, "snare", 0.5), e(10, "tom1", 0.72), e(11, "tom1", 0.68), e(12, "tom2", 0.8), e(13, "tom2", 0.75), e(14, "tom3", 0.9), e(15, "tom3", 0.9)] },
+  { from: 8, long: true, hits: [e(8, "kick", 0.85), e(10, "snare", 0.6), e(11, "snare", 0.55), e(12, "tom1", 0.75), e(13, "tom2", 0.8), e(14, "tom3", 0.88), e(15, "kick", 0.9)] },
+];
 /** The same on the triplet grids (jazz, shuffle, brushes). */
 const FILLS12 = [
   { from: 9, long: false, hits: [e(9, "snare", 0.5), e(10, "snare", 0.6), e(11, "snare", 0.78)] },
   { from: 9, long: false, hits: [e(9, "snare", 0.7), e(11, "snare", 0.85), e(10, "kick", 0.5)] },
   { from: 6, long: true, hits: [e(6, "snare", 0.55), e(7, "ghost", 0.4), e(8, "snare", 0.62), e(9, "snare", 0.7), e(10, "snare", 0.8), e(11, "snare", 0.95)] },
 ];
+const FILLS12_TOMS = [
+  { from: 9, long: false, hits: [e(9, "tom1", 0.65), e(10, "tom2", 0.75), e(11, "tom3", 0.88)] },
+  { from: 9, long: false, hits: [e(9, "snare", 0.6), e(10, "tom1", 0.72), e(11, "tom3", 0.9)] },
+  { from: 6, long: true, hits: [e(6, "snare", 0.55), e(7, "snare", 0.5), e(8, "tom1", 0.7), e(9, "tom2", 0.78), e(10, "tom2", 0.78), e(11, "tom3", 0.92)] },
+];
 const LANDING = [e(0, "ohat", 0.8), e(0, "kick", 1)];
+const LANDING_CRASH = [e(0, "crash", 0.85), e(0, "kick", 1)];

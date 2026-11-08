@@ -3,7 +3,7 @@
 
 const PPQ = 480;
 /** General MIDI drum notes for our drum voices. */
-export const GM_DRUMS = { kick: 36, snare: 38, ghost: 38, rim: 37, hat: 42, ohat: 46, foot: 44, ride: 51, brush: 38 };
+export const GM_DRUMS = { kick: 36, snare: 38, ghost: 38, rim: 37, hat: 42, ohat: 46, foot: 44, ride: 51, brush: 38, tom1: 50, tom2: 47, tom3: 43, crash: 49 };
 /** General MIDI programs for our chord and bass sounds (0-based). */
 export const GM_KEYS = {
   rhodes: 4, grand: 0, kawai: 0, fmpiano: 5, upright: 0, vibes: 11, clavisynth: 7, organ: 19, harpsichord: 6, harp: 46,
