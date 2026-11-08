@@ -16,6 +16,12 @@ OUT = os.path.join(os.path.dirname(__file__), "..", "assets", "audio", "kits")
 
 
 def read(path):
+    if path.endswith(".flac"):
+        import soundfile as sf
+        x, sr = sf.read(path, dtype="float64")
+        if x.ndim > 1:
+            x = x.mean(axis=1)
+        return resample_poly(x, SR, sr) if sr != SR else x
     sr, x = wav.read(path)
     full = float(np.iinfo(x.dtype).max) + 1 if np.issubdtype(x.dtype, np.integer) else 1.0
     x = x.astype(np.float64) / full  # absolute level, so velocity layers keep their dynamics
@@ -141,7 +147,35 @@ def main():
             }
         return {"items": files, "layers": layers, "per": per, "len": ln, "peak": peak, "fade": fade, "mix": lambda f: [(f, 1.0)]}
 
+    VP = os.path.join(src, "virtuosity_drums", "Samples")
+
+    def vp(folder, pattern, layers, ln, mics=None, lo=0, hi=None, per=2, peak=-3, fade=0.05):
+        """Virtuosity Drums (Versilian Studios, CC0): sticks, 4 round robins and many velocities. Mics are folders:
+        mid is the close-ish mic, oh the overheads, room the room. `pattern` has `{m}` for the mic name."""
+        mics = mics or {"mid": 1.0, "oh": 0.5}
+        first = list(mics)[0]
+        files = sorted(glob.glob(os.path.join(VP, first, folder, pattern.replace("{m}", first))), key=lambda f: (vl_rr(f), f))
+        files = [f for f in files if "_rr" not in f or vl_rr(f)[1] in (1, 3)][lo:hi]
+        return {
+            "items": files, "layers": layers, "per": per, "len": ln, "peak": peak, "fade": fade,
+            "mix": lambda f: [(f.replace(os.sep + first + os.sep, os.sep + m + os.sep).replace(f"{first}_", f"{m}_"), w) for m, w in mics.items()],
+        }
+
     kits = {}
+    kits["bebop"] = (
+        "Jazz sticks kit",
+        "Versilian Studios, Virtuosity Drums (sticks; flat ride, snares-off kick)",
+        {
+            "kick": vp("kick", "{m}_kick_snoff_vl*_rr*.flac", 3, 0.8, {"mid": 1.0, "oh": 0.4, "room": 0.3}, peak=-2),
+            "snare": vp("snare", "{m}_snare_center_vl*.flac", 3, 0.6, peak=-3),
+            "ghost": vp("snare", "{m}_snare_muted_vl*.flac", 2, 0.3, hi=10, peak=-14),
+            "rim": vp("snare", "{m}_snare_crossstick_vl*.flac", 2, 0.35, peak=-8),
+            "hat": vp("hh", "{m}_hh_closed_vl*_rr*.flac", 3, 0.3, peak=-9),
+            "ohat": vp("hh", "{m}_hh_open_vl*_rr*.flac", 2, 1.4, peak=-9, fade=0.4),
+            "foot": vp("hh", "{m}_hh_pedal_vl*_rr*.flac", 2, 0.25, peak=-12),
+            "ride": vp("flatride", "{m}_flatride_ride_vl*_rr*.flac", 3, 1.5, {"mid": 1.0, "oh": 0.7}, peak=-9, fade=0.6),
+        },
+    )
 
     room = {"kick": 0.5, "wndw": 1.0, "oh": 0.5}
     kits["gogoroom"] = (

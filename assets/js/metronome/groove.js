@@ -7,10 +7,10 @@
 // Patterns are lists of entries. An entry has a grid step, a voice, a gain, and an optional
 // chance (for ghost notes). Chances come from a seeded generator keyed by bar, step and voice,
 // so a ghost note that plays in bar 3 plays in bar 3 every time.
-import { slotRng } from "./prng.js?v=20261108f";
-import { barPlays } from "./overlay.js?v=20261108f";
+import { slotRng } from "./prng.js?v=20261108g";
+import { barPlays } from "./overlay.js?v=20261108g";
 
-export const GROOVE_STYLES = ["off", "lofi", "dilla", "halftime", "boombap", "jazz", "brushes", "bossa", "shuffle", "funk", "waltz"];
+export const GROOVE_STYLES = ["off", "lofi", "dilla", "halftime", "boombap", "jazz", "brushes", "bossa", "shuffle", "funk", "waltz", "trap", "house"];
 export const GROOVE_NAMES = {
   off: "Off",
   lofi: "Lofi",
@@ -23,6 +23,8 @@ export const GROOVE_NAMES = {
   shuffle: "Shuffle",
   funk: "Funk",
   waltz: "Jazz waltz",
+  trap: "Trap",
+  house: "House",
 };
 const VOICES = ["kick", "snare", "ghost", "rim", "hat", "ohat", "foot", "ride", "brush"];
 export const DRUM_VOICES = VOICES;
@@ -66,6 +68,22 @@ const BRUSHES = [
   e(3, "foot", 0.5), e(9, "foot", 0.5),
   e(0, "kick", 0.4), e(6, "kick", 0.2, 0.5),
   e(3, "ghost", 0.3, 0.35), e(9, "ghost", 0.3, 0.35),
+];
+
+const TRAP = [
+  e(0, "kick", 1), e(3, "kick", 0.7, 0.6), e(7, "kick", 0.8, 0.8), e(10, "kick", 0.9), e(14, "kick", 0.55, 0.4),
+  e(8, "snare", 1, 1, 0.004), e(8, "ghost", 0.6),
+  ...[0, 2, 4, 6, 8, 10, 12, 14].map((s, i) => e(s, "hat", i % 2 ? 0.4 : 0.6)),
+  ...[3, 7, 11, 13, 15].map((s) => e(s, "hat", 0.3, 0.55)),
+  e(14, "hat", 0.35, 0.5), e(15, "hat", 0.45, 0.5), e(11, "ohat", 0.4, 0.35),
+];
+const HOUSE = [
+  ...[0, 4, 8, 12].map((s) => e(s, "kick", 1)),
+  e(4, "ghost", 0.75), e(12, "ghost", 0.75), e(4, "snare", 0.55), e(12, "snare", 0.55),
+  ...[2, 6, 10, 14].map((s) => e(s, "ohat", 0.55)),
+  ...[0, 4, 8, 12].map((s) => e(s, "hat", 0.3, 0.8)),
+  ...[1, 3, 5, 7, 9, 11, 13, 15].map((s) => e(s, "hat", 0.22, 0.7)),
+  e(15, "rim", 0.35, 0.3),
 ];
 
 const NEOSOUL = [
@@ -116,6 +134,8 @@ const STYLE = {
   funk: { entries: FUNK, steps: 16, swing: 0.53, loose: 0.006, fill: true },
   shuffle: { entries: SHUFFLE, steps: 12, swing: null, loose: 0.01, fill: false },
   waltz: { entries: WALTZ, steps: 9, swing: null, loose: 0.01, fill: false, beats: 3 },
+  trap: { entries: TRAP, steps: 16, swing: 0.5, loose: 0.004, fill: true },
+  house: { entries: HOUSE, steps: 16, swing: 0.52, loose: 0.003, fill: false },
   brushes: { entries: BRUSHES, steps: 12, swing: null, loose: 0.012, fill: false },
 };
 
