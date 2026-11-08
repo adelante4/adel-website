@@ -1,0 +1,55 @@
+{
+ "id": "pipeorgan",
+ "name": "Pipe organ",
+ "kind": "keys",
+ "sampleRate": 44100,
+ "release": 0.4,
+ "license": "CC0 1.0",
+ "credit": "VCSL, pipe organ (quiet registration)",
+ "notes": [
+  {
+   "midi": 23.962,
+   "file": "n24.mp3"
+  },
+  {
+   "midi": 29.923,
+   "file": "n30.mp3"
+  },
+  {
+   "midi": 36.027,
+   "file": "n36.mp3"
+  },
+  {
+   "midi": 42.069,
+   "file": "n42.mp3"
+  },
+  {
+   "midi": 48.011,
+   "file": "n48.mp3"
+  },
+  {
+   "midi": 54.001,
+   "file": "n54.mp3"
+  },
+  {
+   "midi": 59.963,
+   "file": "n60.mp3"
+  },
+  {
+   "midi": 66.0,
+   "file": "n66.mp3"
+  },
+  {
+   "midi": 71.967,
+   "file": "n72.mp3"
+  },
+  {
+   "midi": 77.965,
+   "file": "n78.mp3"
+  },
+  {
+   "midi": 83.992,
+   "file": "n84.mp3"
+  }
+ ]
+}

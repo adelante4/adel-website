@@ -6,8 +6,8 @@
 <title>Metronome | Adel Mostafavi</title>
 <meta name="description" content="A practice metronome with odd meters, swing, chance, gap trainer and tempo ladder. Runs in the browser.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="assets/css/site.css?v=20261108k">
-<link rel="stylesheet" href="assets/css/metronome.css?v=20261108k">
+<link rel="stylesheet" href="assets/css/site.css?v=20261108l">
+<link rel="stylesheet" href="assets/css/metronome.css?v=20261108l">
 </head>
 <body>
 <div class="moire soft" aria-hidden="true"><i></i><i></i></div>
@@ -29,7 +29,7 @@
         </svg>
         <span class="pulse" aria-hidden="true"></span>
         <div class="label">
-          <output class="bpm" id="bpm" aria-live="off">80</output>
+          <input class="bpm" id="bpm" type="text" inputmode="numeric" maxlength="3" value="80" autocomplete="off" aria-label="Tempo in beats per minute. Type a number and press Enter.">
           <span class="unit">BPM</span>
           <span class="word" id="tempo-word">Andante</span>
         </div>
@@ -55,15 +55,15 @@
       <p class="lede">What you hear is these four parts added together. Open one to change it.</p>
       <div class="chips" id="chips-sound">
         <div class="cg"><button class="chip" type="button" data-chip="click" aria-expanded="false"><span class="cn">Click</span><span class="cv" id="cv-click"></span></button></div>
-        <div class="cg"><button class="sw" id="harmony-toggle" type="button" aria-pressed="false" aria-label="Keys on or off">Off</button><button class="chip" type="button" data-chip="keys" aria-expanded="false"><span class="cn">Keys</span><span class="cv" id="cv-keys"></span></button></div>
+        <div class="cg"><button class="sw" id="harmony-toggle" type="button" aria-pressed="false" aria-label="Chords on or off">Off</button><button class="chip" type="button" data-chip="keys" aria-expanded="false"><span class="cn">Chords</span><span class="cv" id="cv-keys"></span></button></div>
         <div class="cg"><button class="sw" id="bass-toggle" type="button" aria-pressed="false" aria-label="Bass on or off">Off</button><button class="chip" type="button" data-chip="bass" aria-expanded="false"><span class="cn">Bass</span><span class="cv" id="cv-bass"></span></button></div>
         <div class="cg"><button class="sw" id="drums-toggle" type="button" aria-pressed="false" aria-label="Drums on or off">Off</button><button class="chip" type="button" data-chip="drums" aria-expanded="false"><span class="cn">Drums</span><span class="cv" id="cv-drums"></span></button></div>
         <div class="cg"><button class="chip" type="button" data-chip="feel" aria-expanded="false"><span class="cn">Feel</span><span class="cv" id="cv-feel"></span></button></div>
       </div>
       <div class="field style-row">
         <label class="label" for="band-style">Start from a style</label>
-        <select id="band-style" aria-label="Set keys, bass, drums and tempo from a style"></select>
-        <p class="note">Sets keys, bass, drums and tempo together. Change any part after.</p>
+        <select id="band-style" aria-label="Set chords, bass, drums and tempo from a style"></select>
+        <p class="note">Sets chords, bass, drums and tempo together. Change any part after.</p>
         <p class="note" id="band-status" role="status" aria-live="polite"></p>
       </div>
       <p class="sentence" id="sentence" aria-live="polite"></p>
@@ -126,13 +126,13 @@
         </div>
 
         <div class="panel" data-panel="keys" hidden>
-          <div class="panel-head"><h3>Keys</h3><button class="btn small close" type="button">Close</button></div>
-          <div class="segs" id="keys-sound" role="group" aria-label="Keys sound"></div>
+          <div class="panel-head"><h3>Chords</h3><button class="btn small close" type="button">Close</button></div>
+          <div class="segs" id="keys-sound" role="group" aria-label="Chord instrument"></div>
           <p class="note" id="keys-note"></p>
           <span class="label">Comping</span>
           <div class="segs" id="comp" role="group" aria-label="Comping rhythm"></div>
           <p class="note" id="comp-note"></p>
-          <label class="label" for="mix-chords">Keys level <b id="mix-chords-val"></b></label>
+          <label class="label" for="mix-chords">Chords level <b id="mix-chords-val"></b></label>
           <input id="mix-chords" type="range" min="0" max="1" step="0.05" value="0.7">
         </div>
 
@@ -164,7 +164,7 @@
           <div class="panel-head"><h3>Feel</h3><button class="btn small close" type="button">Close</button></div>
           <label class="label" for="swing">Swing <b id="swing-val"></b></label>
           <input id="swing" type="range" min="0.5" max="0.8" step="0.005" value="0.5">
-          <p class="note">Swings the click (with two or four clicks per beat) and the whole band: keys, bass and drums. Left at straight, the band plays its style's own feel.</p>
+          <p class="note">Swings the click (with two or four clicks per beat) and the whole band: chords, bass and drums. Left at straight, the band plays its style's own feel.</p>
         </div>
       </div>
     </section>
@@ -220,7 +220,7 @@
 
     <section class="block" id="tune" aria-labelledby="h-tune">
       <h2 id="h-tune">Tune</h2>
-      <p class="lede">The chords the keys and bass follow. Pick a tune, or write your own.</p>
+      <p class="lede">The chords the band follows. Pick a tune, or write your own.</p>
       <div class="field">
         <label class="label" for="preset">Tune</label>
         <select id="preset" aria-label="Load a progression"></select>
@@ -233,7 +233,7 @@
           <button class="btn small" id="tune-new" type="button">New progression</button>
         </div>
       </div>
-      <p class="chart-note" id="chart-note" hidden>The chart is silent until Keys or Bass is on.</p>
+      <p class="chart-note" id="chart-note" hidden>The chart is silent until Chords or Bass is on.</p>
       <div class="now-next" id="now-next" aria-live="off"></div>
       <div class="field lens-field">
         <span class="label" id="lens-label">Show on the chart</span>
@@ -280,11 +280,11 @@
   <div class="transport" role="group" aria-label="Transport">
     <button class="btn go" id="start" type="button" aria-pressed="false">Start</button>
     <button class="btn" id="bpm-down" type="button" aria-label="Slower">&minus;</button>
-    <output class="bpm-mini" id="bpm-mini" aria-hidden="true">80</output>
+    <input class="bpm-mini" id="bpm-mini" type="text" inputmode="numeric" maxlength="3" value="80" autocomplete="off" aria-label="Tempo in beats per minute">
     <button class="btn" id="bpm-up" type="button" aria-label="Faster">+</button>
     <button class="btn" id="tap" type="button">Tap</button>
   </div>
 </div>
-<script type="module" src="assets/js/metronome/metronome.js?v=20261108k"></script>
+<script type="module" src="assets/js/metronome/metronome.js?v=20261108l"></script>
 </body>
 </html>

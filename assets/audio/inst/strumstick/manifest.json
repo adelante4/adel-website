@@ -1,0 +1,83 @@
+{
+ "id": "strumstick",
+ "name": "Strumstick",
+ "kind": "keys",
+ "sampleRate": 44100,
+ "release": 0.3,
+ "license": "CC0 1.0",
+ "credit": "VCSL, strumstick (fingerpicked)",
+ "notes": [
+  {
+   "midi": 38.042,
+   "file": "n38.mp3"
+  },
+  {
+   "midi": 40.048,
+   "file": "n40.mp3"
+  },
+  {
+   "midi": 43.028,
+   "file": "n43.mp3"
+  },
+  {
+   "midi": 45.056,
+   "file": "n45.mp3"
+  },
+  {
+   "midi": 47.027,
+   "file": "n47.mp3"
+  },
+  {
+   "midi": 49.061,
+   "file": "n49.mp3"
+  },
+  {
+   "midi": 50.114,
+   "file": "n50.mp3"
+  },
+  {
+   "midi": 52.018,
+   "file": "n52.mp3"
+  },
+  {
+   "midi": 53.992,
+   "file": "n54.mp3"
+  },
+  {
+   "midi": 55.015,
+   "file": "n55.mp3"
+  },
+  {
+   "midi": 57.037,
+   "file": "n57.mp3"
+  },
+  {
+   "midi": 59.011,
+   "file": "n59.mp3"
+  },
+  {
+   "midi": 61.03,
+   "file": "n61.mp3"
+  },
+  {
+   "midi": 62.035,
+   "file": "n62.mp3"
+  },
+  {
+   "midi": 64.021,
+   "file": "n64.mp3"
+  },
+  {
+   "midi": 66.015,
+   "file": "n66.mp3"
+  },
+  {
+   "midi": 66.981,
+   "file": "n67.mp3"
+  },
+  {
+   "midi": 68.992,
+   "file": "n69.mp3"
+  }
+ ]
+}

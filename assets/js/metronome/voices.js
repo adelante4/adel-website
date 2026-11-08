@@ -2,7 +2,7 @@
 //
 // Every function takes the audio context, a destination node, and a start time, builds a few
 // short-lived nodes, and lets them clean up after themselves. Nothing here keeps state.
-import { midiToHz } from "./chords.js?v=20261108k";
+import { midiToHz } from "./chords.js?v=20261108l";
 
 /** One second of white noise, shared by all drum voices. */
 export function makeNoise(ctx, seconds = 2) {
@@ -663,5 +663,126 @@ export function supersaw(ctx, dest, when, midis, seconds, gain) {
       o.start(when);
       o.stop(end + 0.4);
     }
+  });
+}
+
+/** A string section: four detuned saws with a slow bow-like swell and a little vibrato. */
+export function strings(ctx, dest, when, midis, seconds, gain) {
+  const n = midis.length;
+  const end = when + Math.max(0.4, seconds);
+  midis.forEach((m, i) => {
+    const f = midiToHz(m);
+    const out = ctx.createGain();
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = Math.min(4200, f * 6);
+    lp.Q.value = 0.6;
+    const peak = (0.13 * gain) / Math.sqrt(n);
+    const rise = Math.min(0.3, (end - when) * 0.4);
+    out.gain.setValueAtTime(0.0001, when);
+    out.gain.exponentialRampToValueAtTime(peak, when + rise);
+    out.gain.setValueAtTime(peak, end);
+    out.gain.exponentialRampToValueAtTime(0.0001, end + 0.55);
+    lp.connect(out);
+    out.connect(dest);
+    const lfo = ctx.createOscillator();
+    lfo.frequency.value = 5.2 + 0.4 * i;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 7;
+    lfo.connect(lfoGain);
+    for (const d of [-13, -4, 5, 14]) {
+      const o = ctx.createOscillator();
+      o.type = "sawtooth";
+      o.frequency.value = f;
+      o.detune.value = d;
+      lfoGain.connect(o.detune);
+      o.connect(lp);
+      o.start(when);
+      o.stop(end + 0.6);
+    }
+    lfo.start(when);
+    lfo.stop(end + 0.6);
+  });
+}
+
+/** Horn section: saws and a square through a filter that opens with the swell, the way brass does. */
+export function brass(ctx, dest, when, midis, seconds, gain) {
+  const n = midis.length;
+  const end = when + Math.max(0.15, seconds);
+  midis.forEach((m) => {
+    const f = midiToHz(m);
+    const out = ctx.createGain();
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.Q.value = 1.6;
+    lp.frequency.setValueAtTime(f * 2.2, when);
+    lp.frequency.exponentialRampToValueAtTime(Math.min(4500, f * 8), when + 0.09);
+    lp.frequency.exponentialRampToValueAtTime(Math.min(2400, f * 4.5), when + 0.5);
+    const peak = (0.17 * gain) / Math.sqrt(n);
+    out.gain.setValueAtTime(0.0001, when);
+    out.gain.exponentialRampToValueAtTime(peak, when + 0.045);
+    out.gain.exponentialRampToValueAtTime(peak * 0.7, when + 0.25);
+    out.gain.setValueAtTime(peak * 0.7, end);
+    out.gain.exponentialRampToValueAtTime(0.0001, end + 0.14);
+    lp.connect(out);
+    out.connect(dest);
+    [["sawtooth", -6, 1], ["sawtooth", 7, 1], ["square", 0, 0.35]].forEach(([type, d, a]) => {
+      const o = ctx.createOscillator();
+      const og = ctx.createGain();
+      o.type = type;
+      o.frequency.value = f;
+      o.detune.value = d;
+      og.gain.value = a;
+      o.connect(og);
+      og.connect(lp);
+      o.start(when);
+      o.stop(end + 0.2);
+    });
+  });
+}
+
+/** A choir on "ah": saws through three vowel filters, slow in, a touch of vibrato. */
+export function choir(ctx, dest, when, midis, seconds, gain) {
+  const n = midis.length;
+  const end = when + Math.max(0.5, seconds);
+  midis.forEach((m, i) => {
+    const f = midiToHz(m);
+    const out = ctx.createGain();
+    const src = ctx.createGain();
+    const peak = (0.3 * gain) / Math.sqrt(n);
+    const rise = Math.min(0.35, (end - when) * 0.4);
+    out.gain.setValueAtTime(0.0001, when);
+    out.gain.exponentialRampToValueAtTime(peak, when + rise);
+    out.gain.setValueAtTime(peak, end);
+    out.gain.exponentialRampToValueAtTime(0.0001, end + 0.7);
+    out.connect(dest);
+    const lfo = ctx.createOscillator();
+    lfo.frequency.value = 5 + 0.3 * i;
+    const lfoGain = ctx.createGain();
+    lfoGain.gain.value = 9;
+    lfo.connect(lfoGain);
+    [-7, 0, 7].forEach((d) => {
+      const o = ctx.createOscillator();
+      o.type = "sawtooth";
+      o.frequency.value = f;
+      o.detune.value = d;
+      lfoGain.connect(o.detune);
+      o.connect(src);
+      o.start(when);
+      o.stop(end + 0.8);
+    });
+    [[800, 1], [1150, 0.5], [2900, 0.22]].forEach(([hz, a]) => {
+      const bp = ctx.createBiquadFilter();
+      const bg = ctx.createGain();
+      bp.type = "bandpass";
+      bp.frequency.value = hz;
+      bp.Q.value = 7;
+      bg.gain.value = a;
+      src.connect(bp);
+      bp.connect(bg);
+      bg.connect(out);
+    });
+    lfo.start(when);
+    lfo.stop(end + 0.8);
   });
 }

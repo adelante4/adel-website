@@ -21,6 +21,13 @@ export const KEYS = [
   { id: "drone", name: "Dark drone", trim: 0.458, synth: true, note: "A deep, slow pad with a filter that breathes by itself. Ambient and Hecker-like. Use with Sustain." },
   { id: "glass", name: "Glass bells", trim: 1.47, synth: true, note: "FM bells that ring and fade. Cold and bright, an octave up. Good with Arp." },
   { id: "supersaw", name: "Supersaw", trim: 1.007, synth: true, note: "Five detuned saws, bright and wide. For stabs in house, trance and IDM." },
+  { id: "strings", name: "Strings", trim: 0.849, synth: true, note: "A string section with a slow bow swell. Lush under ballads and ambient. Use with Sustain." },
+  { id: "brass", name: "Horns", trim: 0.94, synth: true, note: "A horn section: bright stabs that swell open. Best with Push or On 1." },
+  { id: "choir", name: "Choir", trim: 1.681, synth: true, note: "A choir on ah, slow in and airy. Use with Sustain." },
+  { id: "strumstick", name: "Strumstick", trim: 4.088, note: "A fingerpicked folk string instrument, like a small guitar. Warm and woody, good for Arp and Charleston." },
+  { id: "pipeorgan", name: "Pipe organ", trim: 1.094, note: "A church pipe organ, quiet stops. Big and still. Use with Sustain." },
+  { id: "tubular", name: "Tubular bells", trim: 1.235, note: "Orchestral chimes. Long, ringing and sparse. Use with Arp or Sustain." },
+  { id: "glock", name: "Glockenspiel", trim: 1.681, note: "Small metal bars, very high, so chords are lifted. Sparkly and quiet." },
   { id: "pad", name: "Pad", trim: 0.778, synth: true, note: "A slow, warm synth pad. Pairs with Sustain." },
 ];
 

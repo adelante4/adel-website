@@ -4,24 +4,24 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261108k";
-import { createTransport } from "./transport.js?v=20261108k";
-import { barPlays } from "./overlay.js?v=20261108k";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261108k";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261108k";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261108k";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261108k";
-import { COMP_STYLES } from "./comping.js?v=20261108k";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261108k";
-import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261108k";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261108k";
-import { BAND_STYLES } from "./bands.js?v=20261108k";
-import { createTuneView } from "./tune.js?v=20261108k";
-import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261108k";
-import { initRooms } from "./rooms.js?v=20261108k";
-import { TOP_100 } from "./top100.js?v=20261108k";
-import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261108k";
-import { MAX_FORM_BARS } from "./share.js?v=20261108k";
+import { createAudio } from "./audio.js?v=20261108l";
+import { createTransport } from "./transport.js?v=20261108l";
+import { barPlays } from "./overlay.js?v=20261108l";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261108l";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261108l";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261108l";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261108l";
+import { COMP_STYLES } from "./comping.js?v=20261108l";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261108l";
+import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261108l";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261108l";
+import { BAND_STYLES } from "./bands.js?v=20261108l";
+import { createTuneView } from "./tune.js?v=20261108l";
+import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261108l";
+import { initRooms } from "./rooms.js?v=20261108l";
+import { TOP_100 } from "./top100.js?v=20261108l";
+import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261108l";
+import { MAX_FORM_BARS } from "./share.js?v=20261108l";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -267,10 +267,17 @@ const els = {
   page: document.querySelector(".metro-page"),
 };
 
+/** Writes the tempo into both number boxes, except the one being typed in. */
+function showBpm(bpm) {
+  for (const id of ["bpm", "bpm-mini"]) {
+    const el = $(id);
+    if (document.activeElement !== el) el.value = String(bpm);
+  }
+}
+
 function renderTempo() {
   const bpm = state.pattern.bpm;
-  $("bpm").textContent = String(bpm);
-  $("bpm-mini").textContent = String(bpm);
+  showBpm(bpm);
   $("tempo-word").textContent = tempoWord(bpm);
   $("bpm-slider").value = String(Math.min(240, bpm));
 }
@@ -605,8 +612,7 @@ function frame() {
     disc.classList.remove("settle");
     disc.style.setProperty("--rot", `${(((beat % p.beats) + p.beats) % p.beats / p.beats * 360).toFixed(2)}deg`);
     const bpm = Math.round(transport.bpmAt(beat));
-    $("bpm").textContent = String(bpm);
-    $("bpm-mini").textContent = String(bpm);
+    showBpm(bpm);
     $("tempo-word").textContent = tempoWord(bpm);
     const bar = Math.floor(beat / p.beats);
     markChord(bar, beat - bar * p.beats);
@@ -666,6 +672,26 @@ $("tap").addEventListener("click", () => {
 });
 $("bpm-down").addEventListener("click", () => setBpm(state.pattern.bpm - 1));
 $("bpm-up").addEventListener("click", () => setBpm(state.pattern.bpm + 1));
+// Type a tempo: Enter or leaving the box applies it, Escape puts the old one back, arrows nudge by 1 (Shift: 5).
+for (const id of ["bpm", "bpm-mini"]) {
+  const el = $(id);
+  el.addEventListener("focus", () => el.select());
+  el.addEventListener("change", () => {
+    const n = Math.round(Number(el.value.replace(/[^0-9.]/g, "")));
+    if (Number.isFinite(n) && n > 0) setBpm(n);
+    el.value = String(state.pattern.bpm);
+  });
+  el.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") el.blur();
+    else if (e.key === "Escape") {
+      el.value = String(state.pattern.bpm);
+      el.blur();
+    } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+      e.preventDefault();
+      setBpm(state.pattern.bpm + (e.key === "ArrowUp" ? 1 : -1) * (e.shiftKey ? 5 : 1));
+    }
+  });
+}
 $("bpm-slider").addEventListener("input", (e) => setBpm(Number(e.target.value)));
 
 $("swing").addEventListener("input", (e) => {

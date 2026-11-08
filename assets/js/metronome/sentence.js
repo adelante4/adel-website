@@ -1,6 +1,6 @@
 // Says in plain words what the page is playing, from the same state the transport reads.
 // Pure functions: no DOM, no audio.
-import { KEYS, BASSES } from "./instruments.js?v=20261108k";
+import { KEYS, BASSES } from "./instruments.js?v=20261108l";
 
 export const GROOVE_NAMES = {
   lofi: "Lofi", dilla: "Neo-soul", halftime: "Halftime", boombap: "Boom-bap", jazz: "Jazz swing",
@@ -27,7 +27,7 @@ export function describeSound(s, tuneName = "") {
 
   const values = {
     click: `${clickMode === "off" ? "Off" : clickMode === "auto" ? "Auto" : "On"}, ${meter}`,
-    keys: h.on ? nameOf(KEYS, h.sound) : "adds chords",
+    keys: h.on ? nameOf(KEYS, h.sound) : "adds a backing",
     bass: b.on ? nameOf(BASSES, b.sound) : "adds a bass line",
     drums: drumsOn ? GROOVE_NAMES[g.style] ?? g.style : "adds a groove",
     feel: [p.swing > 0.5 ? `swing: ${swingWord(p.swing)}` : "straight", p.humanize > 0 ? "loose" : ""].filter(Boolean).join(", "),
@@ -37,7 +37,7 @@ export function describeSound(s, tuneName = "") {
     trade: pr.trade > 0 ? (drumsOn ? `every ${pr.trade} bars` : "needs drums") : "off",
   };
 
-  const voices = [h.on && "keys", b.on && "bass", drumsOn && "drums"].filter(Boolean);
+  const voices = [h.on && "chords", b.on && "bass", drumsOn && "drums"].filter(Boolean);
   const out = [];
   if (!voices.length) {
     out.push(clickOff ? "Silence: the click is off and no band is on." : `Click only. ${meter}, ${pattern(p)}.`);

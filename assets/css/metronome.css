@@ -349,3 +349,13 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
   .top-side { flex: 1 1 100%; }
   .quiet-row .btn { flex: 1 1 0; }
 }
+
+/* The tempo numbers are text boxes you can type in. They look like the numbers they replace. */
+input.bpm, input.bpm-mini {
+  background: transparent; border: 0; border-radius: 0; color: inherit; font: inherit; text-align: center;
+  padding: 0; margin: 0; box-shadow: none; appearance: none; -moz-appearance: textfield;
+}
+.vinyl input.bpm { width: 3.1ch; font-size: clamp(34px, 11vw, 48px); font-weight: 700; line-height: 1; letter-spacing: -0.03em; cursor: text; }
+.transport input.bpm-mini { width: 3.2ch; min-width: 0; font-size: 22px; font-weight: 700; flex: 0 0 auto; }
+input.bpm:hover, input.bpm-mini:hover { text-decoration: underline dotted; text-underline-offset: 6px; }
+input.bpm:focus-visible, input.bpm-mini:focus-visible { outline: 3px solid var(--ink, #111); outline-offset: 3px; text-decoration: none; background: var(--bg, #fff); }
