@@ -7,8 +7,8 @@
 // Patterns are lists of entries. An entry has a grid step, a voice, a gain, and an optional
 // chance (for ghost notes). Chances come from a seeded generator keyed by bar, step and voice,
 // so a ghost note that plays in bar 3 plays in bar 3 every time.
-import { slotRng } from "./prng.js?v=20261108r";
-import { barPlays } from "./overlay.js?v=20261108r";
+import { slotRng } from "./prng.js?v=20261108s";
+import { barPlays } from "./overlay.js?v=20261108s";
 
 export const GROOVE_STYLES = ["off", "lofi", "dilla", "halftime", "boombap", "jazz", "brushes", "bossa", "shuffle", "funk", "waltz", "trap", "house", "techno", "twostep", "idm", "minimal", "five4", "five8", "seven223", "seven322", "nine", "eleven", "teental", "rupak", "jhaptal", "keharwa", "dadra"];
 export const GROOVE_NAMES = {
@@ -304,8 +304,15 @@ export function generateGroove(groove, pattern, practice, fromBeat, toBeat) {
     const level = groove.intensity ?? 0.5;
     const grid12 = style.steps === 12;
     const fillAt = groove.fills === false || level < 0.2 ? 0 : level > 0.75 ? 2 : 4;
-    const hasFill = fillAt > 0 && (style.fill || grid12) && pb % fillAt === fillAt - 1;
-    const entries = hasFill ? style.entries.concat(grid12 ? FILL12 : FILL) : style.entries;
+    const fillIn = (q) => fillAt > 0 && q >= 0 && (style.fill || grid12) && q % fillAt === fillAt - 1;
+    let entries = style.entries;
+    if (fillIn(pb)) {
+      const pool = (grid12 ? FILLS12 : FILLS16).filter((f) => !f.long || level > 0.6);
+      const f = pool[Math.floor(slotRng(pattern.seed, bar, 999, 71)() * pool.length)];
+      entries = entries.filter((x) => x.step < f.from).concat(f.hits.map((h) => ({ ...h, chance: 1, late: 0 })));
+    } else if (fillIn(pb - 1)) {
+      entries = entries.concat(LANDING.map((h) => ({ ...h, chance: 1, late: 0 })));
+    }
     const volume = 0.8 + 0.4 * level;
     entries.forEach((en, n) => {
       const rng = slotRng(pattern.seed, bar, en.step * 16 + n, 70);
@@ -327,7 +334,20 @@ export function generateGroove(groove, pattern, practice, fromBeat, toBeat) {
   return out;
 }
 
-/** Added in the last beat of every fourth bar for grooves with a fill. */
-const FILL = [e(12, "snare", 0.5, 0.5), e(13, "ghost", 0.45, 0.5), e(14, "snare", 0.55, 0.4), e(15, "snare", 0.65, 0.4)];
-/** The same for the triplet grids (jazz, shuffle, brushes): a snare and ghost run into the last beat. */
-const FILL12 = [e(9, "snare", 0.45, 0.6), e(10, "ghost", 0.4, 0.5), e(11, "snare", 0.6, 0.6)];
+/**
+ * Fills, written out the way a drummer plays them: each starts at `from`, replaces what the groove would play from
+ * there, builds in loudness, and lands on the next bar's downbeat with an open hat over the kick.
+ */
+const FILLS16 = [
+  { from: 12, long: false, hits: [e(12, "snare", 0.5), e(13, "snare", 0.55), e(14, "snare", 0.72), e(15, "snare", 0.9)] },
+  { from: 12, long: false, hits: [e(12, "snare", 0.75), e(13, "kick", 0.8), e(14, "snare", 0.7), e(15, "snare", 0.95)] },
+  { from: 8, long: true, hits: [e(8, "kick", 0.85), e(10, "snare", 0.55), e(12, "snare", 0.65), e(13, "snare", 0.7), e(14, "snare", 0.82), e(15, "snare", 0.95)] },
+  { from: 8, long: true, hits: [e(8, "snare", 0.6), e(9, "ghost", 0.4), e(10, "snare", 0.65), e(12, "kick", 0.85), e(13, "snare", 0.7), e(14, "snare", 0.85), e(15, "snare", 1)] },
+];
+/** The same on the triplet grids (jazz, shuffle, brushes). */
+const FILLS12 = [
+  { from: 9, long: false, hits: [e(9, "snare", 0.5), e(10, "snare", 0.6), e(11, "snare", 0.78)] },
+  { from: 9, long: false, hits: [e(9, "snare", 0.7), e(11, "snare", 0.85), e(10, "kick", 0.5)] },
+  { from: 6, long: true, hits: [e(6, "snare", 0.55), e(7, "ghost", 0.4), e(8, "snare", 0.62), e(9, "snare", 0.7), e(10, "snare", 0.8), e(11, "snare", 0.95)] },
+];
+const LANDING = [e(0, "ohat", 0.8), e(0, "kick", 1)];

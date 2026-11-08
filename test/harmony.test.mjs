@@ -373,6 +373,11 @@ test("intensity thins and fills the groove; defaults keep the old sound", () => 
   const n = (g) => generateGroove({ style: "lofi", ...g }, p, pr, 0, 32).length;
   assert.ok(n({ intensity: 0.1 }) < n({ intensity: 0.5 }));
   assert.ok(n({ intensity: 0.5 }) < n({ intensity: 1 }));
-  assert.ok(n({ fills: false }) < n({}));
+  const sig = (g) => JSON.stringify(generateGroove({ style: "lofi", ...g }, p, pr, 0, 32).map((h) => [h.step, h.voice]));
+  assert.notEqual(sig({ fills: false }), sig({}));
+  const bar3 = generateGroove({ style: "lofi" }, p, pr, 15, 16);
+  assert.ok(bar3.filter((h) => h.voice === "hat").length === 0, "the fill replaces the hats");
+  const next = generateGroove({ style: "lofi" }, p, pr, 16, 17);
+  assert.ok(next.some((h) => h.voice === "ohat"), "lands on the downbeat");
   assert.equal(n({}), n({ intensity: 0.5, fills: true, pocket: true }));
 });

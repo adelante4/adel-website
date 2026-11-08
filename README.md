@@ -74,5 +74,5 @@ Choosing 5/4 jazz, 5/8, 7/8 (2+2+3 or 3+2+2), 9/8, 11/8, Teental (16), Rupak (7)
 
 ## Smarter band
 
-- **Intensity** (Drums panel): 0.5 is the groove as written. Lower drops ghost notes and subdivisions; higher adds ghost notes, louder hits and more frequent fills. **Fills** adds a short fill at the end of every fourth bar (every second above 0.75), now also for the triplet grooves (jazz, shuffle, brushes). **Pocket feel** puts the bass about 10 ms behind the beat, chords 4 ms, snare 5 ms, ride 5 ms ahead.
+- **Intensity** (Drums panel): 0.5 is the groove as written. Lower drops ghost notes and subdivisions; higher adds ghost notes, louder hits and more frequent fills. **Fills** are written-out drum fills (a crescendo of snare hits, sometimes with a kick) at the end of every fourth bar, landing on the next downbeat with an open hat and kick (every second above 0.75), now also for the triplet grooves (jazz, shuffle, brushes). **Pocket feel** puts the bass about 10 ms behind the beat, chords 4 ms, snare 5 ms, ride 5 ms ahead.
 - **Scales lens** (Tune room): the scale for each chord, its arpeggio, and a random tone to land on in the Now and Next cards. A dominant that falls to a minor chord gets the altered scale, a major chord on IV gets Lydian, vi gets Aeolian, iii Phrygian.
