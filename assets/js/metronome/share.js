@@ -62,7 +62,7 @@ export function defaultState() {
       sound: "rhodes",
     },
     bass: { on: false, style: "walking", sound: "doublebass" },
-    groove: { style: "off", kit: "synth", dust: false },
+    groove: { style: "off", kit: "synth", dust: false, intensity: 0.5, fills: true, pocket: true },
     mix: { click: 0.7, chords: 0.7, bass: 0.7, groove: 0.7, autoMute: false },
   };
 }
@@ -85,7 +85,14 @@ export function normalizeHarmony(raw) {
 
 export function normalizeGroove(raw) {
   const r = isObj(raw) ? raw : {};
-  return { style: pick(r.style, GROOVE_STYLES, "off"), kit: pick(r.kit, ids(KITS), "synth"), dust: r.dust === true };
+  return {
+    style: pick(r.style, GROOVE_STYLES, "off"),
+    kit: pick(r.kit, ids(KITS), "synth"),
+    dust: r.dust === true,
+    intensity: Math.round(num(r.intensity, 0, 1, 0.5) * 20) / 20,
+    fills: r.fills !== false,
+    pocket: r.pocket !== false,
+  };
 }
 
 export function normalizeBass(raw) {

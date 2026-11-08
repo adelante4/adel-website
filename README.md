@@ -71,3 +71,8 @@ The page is one column: Sound (Metronome, Chords, Bass, Drums and Feel as chips,
 ## Odd meters and taals
 
 Choosing 5/4 jazz, 5/8, 7/8 (2+2+3 or 3+2+2), 9/8, 11/8, Teental (16), Rupak (7), Jhaptal (10), Keharwa (8) or Dadra (6) moves the meter to match. The taal grooves play the theka (the standard bol pattern) on the existing drum voices: open bass strokes as kick, dayan strokes as rim, closed strokes as ghost notes. They are approximations, best on the Hand percussion kit. They are unheard by the author's ear.
+
+## Smarter band
+
+- **Intensity** (Drums panel): 0.5 is the groove as written. Lower drops ghost notes and subdivisions; higher adds ghost notes, louder hits and more frequent fills. **Fills** adds a short fill at the end of every fourth bar (every second above 0.75), now also for the triplet grooves (jazz, shuffle, brushes). **Pocket feel** puts the bass about 10 ms behind the beat, chords 4 ms, snare 5 ms, ride 5 ms ahead.
+- **Scales lens** (Tune room): the scale for each chord, its arpeggio, and a random tone to land on in the Now and Next cards. A dominant that falls to a minor chord gets the altered scale, a major chord on IV gets Lydian, vi gets Aeolian, iii Phrygian.

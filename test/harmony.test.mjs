@@ -178,7 +178,7 @@ test("groove: trade fours, gap trainer and count-in", () => {
 test("share: harmony, groove and mix round trip; defaults stay out of the link", () => {
   const s = defaultState();
   s.harmony = { on: true, form: [["Dm7", "G7"], ["Cmaj7"]], comp: "arp", sound: "vibes" };
-  s.groove = { style: "jazz", kit: "rusty", dust: true };
+  s.groove = { style: "jazz", kit: "rusty", dust: true, intensity: 0.5, fills: true, pocket: true };
   s.bass = { on: true, style: "bossa", sound: "swagbass" };
   s.mix = { click: 0.3, chords: 0.5, bass: 0.6, groove: 0.9, autoMute: true };
   const back = decodeShare(encodeShare(s));
@@ -208,7 +208,7 @@ test("share: hostile harmony input is repaired", () => {
     for (const c of bar) assert.ok(parseChord(c));
   }
   assert.equal(bad.harmony.comp, "charleston");
-  assert.deepEqual(bad.groove, { style: "off", kit: "synth", dust: false });
+  assert.deepEqual(bad.groove, { style: "off", kit: "synth", dust: false, intensity: 0.5, fills: true, pocket: true });
   assert.deepEqual(bad.bass, { on: false, style: "walking", sound: "doublebass" });
   assert.equal(bad.harmony.sound, "rhodes");
   assert.deepEqual(bad.mix, { click: 1, chords: 0, bass: 0.7, groove: 0.7, autoMute: false });
@@ -365,4 +365,14 @@ test("every groove stays inside its own bar and matches only its own meter", () 
     assert.ok(hits.length >= 4, `${style} has hits`);
     assert.ok(hits.every((h) => h.beat >= 0 && h.beat < beats + 0.05), `${style} hits fall in the bar`);
   }
+});
+
+test("intensity thins and fills the groove; defaults keep the old sound", () => {
+  const p = defaultState().pattern;
+  const pr = { countIn: 0, gap: null, trade: 0, ladder: null };
+  const n = (g) => generateGroove({ style: "lofi", ...g }, p, pr, 0, 32).length;
+  assert.ok(n({ intensity: 0.1 }) < n({ intensity: 0.5 }));
+  assert.ok(n({ intensity: 0.5 }) < n({ intensity: 1 }));
+  assert.ok(n({ fills: false }) < n({}));
+  assert.equal(n({}), n({ intensity: 0.5, fills: true, pocket: true }));
 });

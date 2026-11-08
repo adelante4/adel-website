@@ -503,6 +503,11 @@ function renderHarmony() {
   })(g.kit);
   $("kit-note").textContent = KITS.find((x) => x.id === g.kit)?.note ?? "";
   $("dust-toggle").setAttribute("aria-pressed", String(g.dust));
+  $("fills-toggle").setAttribute("aria-pressed", String(g.fills));
+  $("pocket-toggle").setAttribute("aria-pressed", String(g.pocket));
+  $("intensity").value = String(g.intensity);
+  $("intensity-val").textContent = g.intensity < 0.3 ? "Sparse" : g.intensity < 0.45 ? "Light" : g.intensity <= 0.55 ? "As written" : g.intensity < 0.8 ? "Busy" : "Full";
+  $("intensity-note").textContent = "Lower: ghost notes and subdivisions drop out. Higher: more ghost notes, louder hits, more fills.";
   const clickMode = state.mix.click === 0 ? "off" : state.mix.autoMute ? "auto" : "on";
   makeSeg($("click-mode"), [["on", "On"], ["auto", "Auto"], ["off", "Off"]], setClickMode)(clickMode);
   $("click-note").textContent = {
@@ -941,6 +946,18 @@ $("delete-go").addEventListener("click", () => {
 // Drums and mix
 $("dust-toggle").addEventListener("click", () => {
   state.groove.dust = !state.groove.dust;
+  commit();
+});
+$("fills-toggle").addEventListener("click", () => {
+  state.groove.fills = !state.groove.fills;
+  commit();
+});
+$("pocket-toggle").addEventListener("click", () => {
+  state.groove.pocket = !state.groove.pocket;
+  commit();
+});
+$("intensity").addEventListener("input", (e) => {
+  state.groove.intensity = Number(e.target.value);
   commit();
 });
 let lastClickLevel = 1;

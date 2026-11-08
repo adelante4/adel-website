@@ -11,11 +11,13 @@ import { analyze, noteName, keyName } from "./analysis.js";
 import { voiceForm, degreeLabel, guideSemis, handMove } from "./voicing.js";
 import { buildIndex, sharedPieces, shortName } from "./dna.js";
 import { parseChord } from "./chords.js";
+import { playFor, targetFor } from "./scales.js?v=20261108r";
 
 const LENSES = [
   ["chords", "Chords", "Chord names only."],
   ["function", "Function", "Each chord by its job in the key. A line under bars marks a ii–V–I or similar; the key is named when it leaves home."],
   ["guide", "Guide tones", "The 3rd and 7th of each chord. Red marks where the last chord's 7th falls a half step (or stays) onto this chord's 3rd: play those two notes and the changes sing."],
+  ["scale", "Scales", "The scale that fits each chord, its arpeggio, and a random tone to land on. A dominant that falls to a minor chord gets the altered scale; a major chord on IV gets Lydian."],
   ["voicing", "Voicings", "A four-string shape per chord. Red dots are the 3rd and 7th, a ring is the root. Shapes are chosen so the hand and the voices move as little as possible."],
 ];
 
@@ -74,6 +76,7 @@ export function createTuneView({ chart, nowNext, lensBar, lensNote, dna, library
   let beats = 4;
   let beatDots = [];
   let lastBeat = -1;
+  let lap = 0; // chord changes heard since play started: drives the random target tone
 
   // ---- data for a form ----
   function dataFor(form) {
@@ -128,6 +131,10 @@ export function createTuneView({ chart, nowNext, lensBar, lensNote, dna, library
       b.append(el("i", "", g.sevenLabel), g.seventhName);
       box.append(a, b);
       return box;
+    }
+    if (lens === "scale") {
+      const p = playFor(d.chords[i], flats(d), d.chords[(i + 1) % d.chords.length], d.a.slots[i].numeral);
+      return p ? el("span", "scl", p.name) : null;
     }
     if (lens === "voicing") {
       const v = voices(d)[i];
@@ -199,6 +206,24 @@ export function createTuneView({ chart, nowNext, lensBar, lensNote, dna, library
         const p = guide(d, from);
         box.append(el("div", "nn-hint", `${p.seventhName} falls to ${g.thirdName}`));
       }
+    } else if (lens === "scale") {
+      const p = playFor(d.chords[i], flats(d), d.chords[(i + 1) % d.chords.length], s.numeral);
+      if (p) {
+        box.append(el("div", "nn-scale", p.name));
+        const sc = el("div", "nn-notes");
+        const inArp = new Set(p.arp.map((t) => t.note));
+        for (const n of p.scale) sc.append(el("span", "nt" + (inArp.has(n) ? " ct" : ""), n));
+        box.append(sc);
+        const ar = el("div", "nn-arp");
+        for (const t of p.arp) {
+          const x = el("span", "gt");
+          x.append(el("i", "", t.label), t.note);
+          ar.append(x);
+        }
+        box.append(ar);
+        const tg = targetFor(d.chords[i], flats(d), role === "now" ? lap : lap + 1);
+        if (tg) box.append(el("div", "nn-target", `Land on the ${tg.label}: ${tg.note}`));
+      }
     } else if (lens === "voicing") {
       const v = voices(d)[i];
       if (v) {
@@ -218,7 +243,7 @@ export function createTuneView({ chart, nowNext, lensBar, lensNote, dna, library
   }
 
   function renderNow(d) {
-    const key = JSON.stringify([d.key, current, lens, beats]);
+    const key = JSON.stringify([d.key, current, lens, beats, lap]);
     if (key === nnKey) return;
     nnKey = key;
     lastBeat = -1;
@@ -316,6 +341,8 @@ export function createTuneView({ chart, nowNext, lensBar, lensNote, dna, library
       if (slot === null) {
         if (api.playing) {
           api.playing = false;
+          lap = 0;
+          nnKey = "";
           api.render(api.last);
         }
         return;
@@ -325,6 +352,7 @@ export function createTuneView({ chart, nowNext, lensBar, lensNote, dna, library
       if (i === undefined) return;
       if (i !== current) {
         current = i;
+        lap++;
         renderNow(d);
       }
       const dot = Math.min(beatDots.length - 1, Math.floor(inBar));

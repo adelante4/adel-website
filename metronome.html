@@ -161,7 +161,15 @@
           <span class="label">Kit</span>
           <div class="segs" id="kit" role="group" aria-label="Drum kit"></div>
           <p class="note" id="kit-note"></p>
-          <button class="btn small" id="dust-toggle" type="button" aria-pressed="false">Vinyl dust</button>
+          <label class="label" for="intensity">Intensity <b id="intensity-val"></b></label>
+          <input id="intensity" type="range" min="0" max="1" step="0.05" value="0.5">
+          <p class="note" id="intensity-note"></p>
+          <div class="row">
+            <button class="btn small" id="fills-toggle" type="button" aria-pressed="true">Fills</button>
+            <button class="btn small" id="pocket-toggle" type="button" aria-pressed="true">Pocket feel</button>
+            <button class="btn small" id="dust-toggle" type="button" aria-pressed="false">Vinyl dust</button>
+          </div>
+          <p class="note">Fills: a short fill at the end of every fourth bar (every second at high intensity). Pocket feel: the bass sits a hair behind the beat, the ride a hair ahead.</p>
           <label class="label" for="mix-groove">Drums level <b id="mix-groove-val"></b></label>
           <input id="mix-groove" type="range" min="0" max="1" step="0.05" value="0.7">
         </div>

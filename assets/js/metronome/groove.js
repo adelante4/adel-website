@@ -299,16 +299,26 @@ export function generateGroove(groove, pattern, practice, fromBeat, toBeat) {
   for (let bar = firstBar; bar <= lastBar; bar++) {
     const pb = bar - practice.countIn;
     if (pb < 0 || !barPlays(practice, bar).groove) continue;
-    const entries = style.fill && pb % 4 === 3 ? style.entries.concat(FILL) : style.entries;
+    // Intensity: 0.5 is the groove as written. Lower thins it (ghosts and subdivisions drop out, no fills);
+    // higher fills the gaps, makes the ghosts likelier, and fills more often.
+    const level = groove.intensity ?? 0.5;
+    const grid12 = style.steps === 12;
+    const fillAt = groove.fills === false || level < 0.2 ? 0 : level > 0.75 ? 2 : 4;
+    const hasFill = fillAt > 0 && (style.fill || grid12) && pb % fillAt === fillAt - 1;
+    const entries = hasFill ? style.entries.concat(grid12 ? FILL12 : FILL) : style.entries;
+    const volume = 0.8 + 0.4 * level;
     entries.forEach((en, n) => {
       const rng = slotRng(pattern.seed, bar, en.step * 16 + n, 70);
-      const plays = rng() < en.chance;
+      const weak = en.chance < 1 || en.gain < 0.4;
+      if (level < 0.35 && en.gain < 0.4 && en.voice !== "kick") return;
+      const chance = weak ? Math.min(1, en.chance * (0.4 + 1.2 * level)) : en.chance;
+      const plays = rng() < chance;
       const nudge = rng();
       const loud = rng();
       if (!plays) return;
       let pos = bar * beats + stepBeat(groove.style, en.step, pattern.bpm, pattern.swing > 0.5 ? pattern.swing : null) + en.late;
       pos += (nudge - 0.5) * 2 * (style.loose + pattern.humanize * 0.03);
-      let gain = en.gain * (0.9 + loud * 0.2);
+      let gain = en.gain * (0.9 + loud * 0.2) * volume;
       if (pos < 0 || pos < fromBeat || pos >= toBeat) return;
       out.push({ beat: pos, voice: en.voice, gain: Math.min(1, gain), bar, step: en.step });
     });
@@ -319,3 +329,5 @@ export function generateGroove(groove, pattern, practice, fromBeat, toBeat) {
 
 /** Added in the last beat of every fourth bar for grooves with a fill. */
 const FILL = [e(12, "snare", 0.5, 0.5), e(13, "ghost", 0.45, 0.5), e(14, "snare", 0.55, 0.4), e(15, "snare", 0.65, 0.4)];
+/** The same for the triplet grids (jazz, shuffle, brushes): a snare and ghost run into the last beat. */
+const FILL12 = [e(9, "snare", 0.45, 0.6), e(10, "ghost", 0.4, 0.5), e(11, "snare", 0.6, 0.6)];

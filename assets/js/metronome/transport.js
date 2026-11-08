@@ -77,9 +77,15 @@ export function createTransport(getConfig) {
             seconds: ctxTimeOfBeat(e.beat + e.dur) - ctxTimeOfBeat(e.beat),
           }))
         : [];
-      const drums = groove && groove.style !== "off" ? generateGroove(groove, pattern, practice, cursor, horizon).map(at) : [];
+      // Pocket: the bass sits a touch behind the beat, the ride a touch on top. Small, in seconds.
+      const pocket = groove?.pocket !== false && groove?.style !== "off";
+      const late = (e, ms) => (pocket ? { ...e, time: e.time + ms / 1000 } : e);
+      const DRUM_POCKET = { ride: -5, snare: 5, ghost: 5, foot: 3 };
+      const drums = groove && groove.style !== "off"
+        ? generateGroove(groove, pattern, practice, cursor, horizon).map(at).map((e) => late(e, DRUM_POCKET[e.voice] ?? 0))
+        : [];
       cursor = horizon;
-      return { clicks, chords, bass: bassNotes, drums };
+      return { clicks, chords: chords.map((e) => late(e, 4)), bass: bassNotes.map((e) => late(e, 10)), drums };
     },
     /** Clicks only. */
     pull(nowCtx, lookahead) {

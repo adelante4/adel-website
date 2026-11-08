@@ -373,3 +373,12 @@ input.bpm:focus-visible, input.bpm-mini:focus-visible { outline: 3px solid var(-
 .ex-parts { border: 0; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; }
 .ex-parts label { display: flex; align-items: center; gap: 8px; font-size: 14px; }
 .export-body select { max-width: 100%; }
+
+/* Scales lens */
+.scl { font-size: 11px; opacity: 0.75; display: block; margin-top: 2px; }
+.nn-scale { font-weight: 700; margin: 6px 0 4px; }
+.nn-notes, .nn-arp { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0; }
+.nt { font-size: 14px; opacity: 0.6; }
+.nt.ct { opacity: 1; font-weight: 700; }
+.nn-target { margin-top: 6px; font-weight: 700; color: var(--accent); }
+.nn-card.now .nn-target { color: inherit; border-top: 1px solid currentColor; padding-top: 6px; }
