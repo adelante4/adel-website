@@ -4,7 +4,7 @@
 // metronome.js; this module only decides what is visible.
 
 const $ = (id) => document.getElementById(id);
-const ROOMS = [["beat", "Beat"], ["tune", "Tune"], ["band", "Band"], ["train", "Train"]];
+const ROOMS = [["beat", "Beat"], ["band", "Band"], ["tune", "Tune"], ["train", "Train"]];
 
 const pressed = (id) => $(id).querySelector('[aria-pressed="true"]')?.textContent ?? "";
 
@@ -26,6 +26,8 @@ const PEDALS = {
     },
   },
   sound: { room: "beat", on: (s) => s.pattern.sound !== "tock", read: () => pressed("sound"), reset: (s) => void (s.pattern.sound = "tock") },
+  write: { room: "tune", on: () => false, read: () => "", reset: null },
+  save: { room: "tune", on: () => false, read: () => "", reset: null },
   edit: { room: "tune", on: () => false, read: () => "", reset: null },
   countin: { room: "train", on: (s) => s.practice.countIn > 0, read: () => pressed("countin"), reset: (s) => { s.practice.countIn = 0; return "restart"; } },
   gap: {
@@ -189,7 +191,7 @@ export function initRooms({ getState, commit }) {
     tabs.forEach((t, i) => {
       const n = counts[ROOMS[i][0]];
       const c = t.querySelector(".count");
-      c.textContent = n ? String(n) : "";
+      c.textContent = n ? "•" : "";
       t.classList.toggle("lit", n > 0);
     });
 
@@ -216,5 +218,5 @@ export function initRooms({ getState, commit }) {
   }
 
   show("beat");
-  return { sync, show };
+  return { sync, show, open: (id) => { show(PEDALS[id].room); open(id, true); } };
 }

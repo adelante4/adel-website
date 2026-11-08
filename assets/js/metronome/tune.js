@@ -319,11 +319,6 @@ export function createTuneView({ chart, nowNext, lensBar, lensNote, dna, library
       if (i !== current) {
         current = i;
         renderNow(d);
-        const on = chart.querySelector(".chord.on");
-        if (on && !document.getElementById("room-tune").hidden) {
-          const r = on.getBoundingClientRect();
-          if (r.top < 70 || r.bottom > innerHeight - 90) on.scrollIntoView({ block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
-        }
       }
       const dot = Math.min(beatDots.length - 1, Math.floor(inBar));
       if (dot !== lastBeat) {

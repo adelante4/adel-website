@@ -342,3 +342,9 @@ input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; border-radius
 .click-mode .segs { width: 100%; }
 .click-mode .seg { flex: 1 1 0; }
 .click-mode .note { margin: 0; min-height: 3.1em; }
+
+/* A small lit dot on a room means something in it is switched on. */
+.room-tab .count { min-width: 12px; width: 12px; height: 12px; padding: 0; line-height: 0; font-size: 0; right: -6px; top: 0; }
+#write-text, #save-name { width: 100%; font: inherit; font-size: 14px; padding: 10px; border: 1.5px solid var(--ink); background: #fff; color: var(--ink); border-radius: 0; }
+#write-text { resize: vertical; line-height: 1.5; }
+#delete-go[hidden] { display: none; }

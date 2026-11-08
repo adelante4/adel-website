@@ -7,7 +7,7 @@
 <meta name="description" content="A practice metronome with odd meters, swing, chance, gap trainer and tempo ladder. Runs in the browser.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
 <link rel="stylesheet" href="assets/css/site.css?v=20261106">
-<link rel="stylesheet" href="assets/css/metronome.css?v=20261107q">
+<link rel="stylesheet" href="assets/css/metronome.css?v=20261107r">
 </head>
 <body>
 <div class="moire soft" aria-hidden="true"><i></i><i></i></div>
@@ -117,6 +117,7 @@
           <button class="btn small" id="key-up" type="button" aria-label="Up a semitone">+1</button>
           <button class="btn small" id="key-fourth" type="button">Up a 4th</button>
         </div>
+        <button class="btn small" id="tune-new" type="button">New progression</button>
       </div>
 
       <div class="now-next" id="now-next" aria-live="off"></div>
@@ -129,6 +130,21 @@
       <div class="form" id="form" role="group" aria-label="Chord form"></div>
 
       <div class="pedals">
+        <div class="pedal" data-pedal="write" data-name="Write chords">
+          <label class="note" for="write-text">One bar per segment, bars separated by |. Two chords in a bar: Dm7 G7. % repeats the bar before.</label>
+          <textarea id="write-text" rows="4" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+          <button class="btn small" id="write-apply" type="button">Use these chords</button>
+          <p class="note" id="write-note" role="status" aria-live="polite"></p>
+        </div>
+        <div class="pedal" data-pedal="save" data-name="Save as mine">
+          <label class="label" for="save-name">Name</label>
+          <input id="save-name" type="text" maxlength="60" autocomplete="off" placeholder="My ii–V–I in Eb">
+          <div class="inline">
+            <button class="btn small" id="save-go" type="button">Save</button>
+            <button class="btn small" id="delete-go" type="button" hidden>Delete this one</button>
+          </div>
+          <p class="note" id="save-note" role="status" aria-live="polite">Saved on this device, under My progressions in the picker.</p>
+        </div>
         <div class="pedal" data-pedal="edit" data-name="Edit chords" data-open-on="form">
           <p class="note">Pick a chord to change it. Splitting a bar gives two chords, two beats each.</p>
           <div class="inline">
@@ -240,6 +256,6 @@
     </section>
   </div>
 </div>
-<script type="module" src="assets/js/metronome/metronome.js?v=20261107q"></script>
+<script type="module" src="assets/js/metronome/metronome.js?v=20261107r"></script>
 </body>
 </html>

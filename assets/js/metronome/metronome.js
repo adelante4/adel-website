@@ -4,23 +4,24 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261107q";
-import { createTransport } from "./transport.js?v=20261107q";
-import { barPlays } from "./overlay.js?v=20261107q";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261107q";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261107q";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261107q";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261107q";
-import { COMP_STYLES } from "./comping.js?v=20261107q";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261107q";
-import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261107q";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261107q";
-import { BAND_STYLES } from "./bands.js?v=20261107q";
-import { createTuneView } from "./tune.js?v=20261107q";
-import { initRooms } from "./rooms.js?v=20261107q";
-import { TOP_100 } from "./top100.js?v=20261107q";
-import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261107q";
-import { MAX_FORM_BARS } from "./share.js?v=20261107q";
+import { createAudio } from "./audio.js?v=20261107r";
+import { createTransport } from "./transport.js?v=20261107r";
+import { barPlays } from "./overlay.js?v=20261107r";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261107r";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261107r";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261107r";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261107r";
+import { COMP_STYLES } from "./comping.js?v=20261107r";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits } from "./groove.js?v=20261107r";
+import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261107r";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261107r";
+import { BAND_STYLES } from "./bands.js?v=20261107r";
+import { createTuneView } from "./tune.js?v=20261107r";
+import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261107r";
+import { initRooms } from "./rooms.js?v=20261107r";
+import { TOP_100 } from "./top100.js?v=20261107r";
+import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261107r";
+import { MAX_FORM_BARS } from "./share.js?v=20261107r";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -502,6 +503,10 @@ function renderHarmony() {
 
   sel.bar = Math.min(sel.bar, h.form.length - 1);
   sel.k = Math.min(sel.k, h.form[sel.bar].length - 1);
+  const wt = $("write-text");
+  if (document.activeElement !== wt) wt.value = formToText(h.form);
+  $("delete-go").hidden = !currentMine;
+  if (currentMine && document.activeElement !== $("save-name")) $("save-name").value = tuneName;
   tuneView.render({ form: h.form, sel, beats: state.pattern.beats, tuneName });
   const cur = parseChord(h.form[sel.bar][sel.k]);
   $("chord-root").value = String(cur.root);
@@ -610,6 +615,9 @@ function notice(text) {
 
 const library = [...MY_STANDARDS, ...TOP_100, ...STANDARDS];
 let tuneName = "";
+let currentMine = null;
+let mine = loadMine();
+let refreshPicker = () => {};
 const tuneView = createTuneView({
   chart: els.form,
   nowNext: $("now-next"),
@@ -723,23 +731,33 @@ fillSelect($("chord-quality"), QUALITIES.map((q) => q.id), (id) => QUALITIES.fin
     return g;
   };
   const preset = $("preset");
-  const all = [...PRESETS, ...MY_STANDARDS, ...TOP_100, ...STANDARDS];
-  preset.replaceChildren(
-    Object.assign(document.createElement("option"), { value: "", textContent: "Choose one…" }),
-    group("Progressions", PRESETS),
-    group("My standards", MY_STANDARDS),
-    group("Top 100", TOP_100),
-    ...(STANDARDS.length ? [group("Standards", STANDARDS)] : []),
-  );
+  const everything = () => [...mine, ...PRESETS, ...MY_STANDARDS, ...TOP_100, ...STANDARDS];
+  const buildPicker = () => {
+    preset.replaceChildren(
+      Object.assign(document.createElement("option"), { value: "", textContent: "Choose one…" }),
+      ...(mine.length ? [group("My progressions", mine)] : []),
+      group("Progressions", PRESETS),
+      group("My standards", MY_STANDARDS),
+      group("Top 100", TOP_100),
+      ...(STANDARDS.length ? [group("Standards", STANDARDS)] : []),
+    );
+  };
+  refreshPicker = buildPicker;
+  buildPicker();
   preset.addEventListener("change", () => {
-    const p = all.find((x) => x.id === preset.value);
+    const p = everything().find((x) => x.id === preset.value);
     preset.value = "";
     if (!p) return;
     tuneName = p.name;
+    currentMine = p.mine ? p.id : null;
     state.harmony.form = p.form.map((bar) => [...bar]);
     sel.bar = 0;
     sel.k = 0;
-    $("preset-note").textContent = (STANDARDS.includes(p) || MY_STANDARDS.includes(p) || TOP_100.includes(p)) ? `${p.name}: typical changes, ${p.form.length} bars. Check them against your own chart.` : "";
+    $("preset-note").textContent = p.mine
+      ? `${p.name}: your progression, ${p.form.length} bars.`
+      : STANDARDS.includes(p) || MY_STANDARDS.includes(p) || TOP_100.includes(p)
+        ? `${p.name}: typical changes, ${p.form.length} bars. Check them against your own chart.`
+        : "";
     // A chart written in 3/4 plays in 3/4.
     if (p.beats && (state.pattern.beats !== p.beats || state.pattern.den !== 4)) {
       const q = state.pattern;
@@ -816,6 +834,52 @@ const transposeForm = (n) => {
 $("key-down").addEventListener("click", () => transposeForm(-1));
 $("key-up").addEventListener("click", () => transposeForm(1));
 $("key-fourth").addEventListener("click", () => transposeForm(5));
+
+// Writing and saving progressions
+const writeNote = (text) => ($("write-note").textContent = text);
+$("write-apply").addEventListener("click", () => {
+  const r = textToForm($("write-text").value);
+  if (r.error) return writeNote(r.error);
+  state.harmony.form = r.form;
+  sel.bar = 0;
+  sel.k = 0;
+  tuneName = "";
+  currentMine = null;
+  commit();
+  writeNote(`${r.form.length} bar${r.form.length === 1 ? "" : "s"} set.`);
+});
+$("tune-new").addEventListener("click", () => {
+  state.harmony.form = [["Cmaj7"], ["Cmaj7"], ["Cmaj7"], ["Cmaj7"]];
+  sel.bar = 0;
+  sel.k = 0;
+  tuneName = "";
+  currentMine = null;
+  $("preset-note").textContent = "";
+  commit();
+  rooms.open("write");
+  $("write-text").focus();
+  $("write-text").select();
+});
+$("save-go").addEventListener("click", () => {
+  const name = $("save-name").value.trim();
+  if (!name) return ($("save-note").textContent = "Give it a name first.");
+  mine = withSaved(mine, name, state.harmony.form, state.pattern.beats === 3 ? 3 : 4);
+  currentMine = mine[0].id;
+  tuneName = name;
+  $("save-note").textContent = storeMine(mine) ? `Saved "${name}" on this device. Find it under My progressions.` : "Could not save: this browser blocks storage.";
+  refreshPicker();
+  commit();
+});
+$("delete-go").addEventListener("click", () => {
+  const p = mine.find((x) => x.id === currentMine);
+  if (!p) return;
+  mine = mine.filter((x) => x !== p);
+  storeMine(mine);
+  currentMine = null;
+  $("save-note").textContent = `Deleted "${p.name}".`;
+  refreshPicker();
+  commit();
+});
 
 // Drums and mix
 $("dust-toggle").addEventListener("click", () => {
