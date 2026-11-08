@@ -7,10 +7,10 @@
 // Patterns are lists of entries. An entry has a grid step, a voice, a gain, and an optional
 // chance (for ghost notes). Chances come from a seeded generator keyed by bar, step and voice,
 // so a ghost note that plays in bar 3 plays in bar 3 every time.
-import { slotRng } from "./prng.js?v=20261108h";
-import { barPlays } from "./overlay.js?v=20261108h";
+import { slotRng } from "./prng.js?v=20261108i";
+import { barPlays } from "./overlay.js?v=20261108i";
 
-export const GROOVE_STYLES = ["off", "lofi", "dilla", "halftime", "boombap", "jazz", "brushes", "bossa", "shuffle", "funk", "waltz", "trap", "house"];
+export const GROOVE_STYLES = ["off", "lofi", "dilla", "halftime", "boombap", "jazz", "brushes", "bossa", "shuffle", "funk", "waltz", "trap", "house", "techno", "twostep", "idm", "minimal", "ecm"];
 export const GROOVE_NAMES = {
   off: "Off",
   lofi: "Lofi",
@@ -25,6 +25,11 @@ export const GROOVE_NAMES = {
   waltz: "Jazz waltz",
   trap: "Trap",
   house: "House",
+  techno: "Techno",
+  twostep: "2-step",
+  idm: "IDM",
+  minimal: "Minimal clicks",
+  ecm: "ECM pulse",
 };
 const VOICES = ["kick", "snare", "ghost", "rim", "hat", "ohat", "foot", "ride", "brush"];
 export const DRUM_VOICES = VOICES;
@@ -86,6 +91,40 @@ const HOUSE = [
   e(15, "rim", 0.35, 0.3),
 ];
 
+const TECHNO = [
+  ...[0, 4, 8, 12].map((s) => e(s, "kick", 1)),
+  e(4, "ghost", 0.7), e(12, "ghost", 0.7), e(4, "snare", 0.3, 0.6), e(12, "snare", 0.3, 0.6),
+  ...[2, 6, 10, 14].map((s) => e(s, "ohat", 0.5)),
+  ...[1, 3, 5, 7, 9, 11, 13, 15].map((s) => e(s, "hat", 0.26, 0.8)),
+  e(7, "rim", 0.3, 0.3), e(11, "rim", 0.35, 0.35), e(15, "rim", 0.3, 0.25),
+];
+const TWOSTEP = [
+  e(0, "kick", 1), e(10, "kick", 0.9), e(7, "kick", 0.5, 0.35), e(14, "kick", 0.4, 0.2),
+  e(4, "snare", 1), e(12, "snare", 1),
+  ...[0, 2, 4, 6, 8, 10, 12, 14].map((s, i) => e(s, "hat", i % 2 ? 0.3 : 0.5)),
+  ...[3, 9, 15].map((s) => e(s, "hat", 0.2, 0.5)),
+  e(6, "rim", 0.4, 0.45), e(11, "rim", 0.35, 0.4), e(14, "ohat", 0.35, 0.3), e(15, "ghost", 0.25, 0.3),
+];
+const IDM = [
+  e(0, "kick", 1), e(3, "kick", 0.6, 0.35), e(7, "kick", 0.8, 0.6), e(10, "kick", 0.9, 0.7), e(13, "kick", 0.5, 0.3),
+  e(4, "snare", 1), e(12, "snare", 0.9, 0.8), e(9, "snare", 0.65, 0.35), e(15, "snare", 0.6, 0.3), e(6, "snare", 0.5, 0.25),
+  ...[2, 5, 8, 11, 14].map((s) => e(s, "ghost", 0.35, 0.45)),
+  ...[...Array(16).keys()].map((s) => e(s, "hat", s % 4 === 0 ? 0.5 : 0.28, 0.7)),
+  e(5, "rim", 0.45, 0.4), e(14, "rim", 0.5, 0.35), e(11, "ohat", 0.4, 0.25),
+];
+const MINIMAL = [
+  e(0, "kick", 0.8), e(8, "kick", 0.5, 0.6), e(11, "kick", 0.35, 0.25),
+  ...[3, 5, 7, 11, 13].map((s) => e(s, "hat", 0.4, 0.6)),
+  ...[2, 6, 10, 14].map((s) => e(s, "rim", 0.35, 0.5)),
+  e(9, "ghost", 0.3, 0.3), e(15, "ohat", 0.25, 0.2), e(1, "hat", 0.25, 0.3),
+];
+const ECM = [
+  e(0, "ride", 0.5), e(8, "ride", 0.4), e(12, "ride", 0.3), e(5, "ride", 0.3, 0.4), e(14, "ride", 0.25, 0.3),
+  e(0, "kick", 0.25, 0.6), e(10, "kick", 0.2, 0.3),
+  e(4, "foot", 0.3), e(12, "foot", 0.3),
+  e(7, "ghost", 0.2, 0.3), e(15, "ghost", 0.2, 0.25),
+];
+
 const NEOSOUL = [
   e(0, "kick", 1), e(5, "kick", 0.55, 0.7), e(7, "kick", 0.7, 0.8), e(10, "kick", 0.9), e(13, "kick", 0.4, 0.45),
   e(4, "snare", 0.9, 1, 0.035), e(12, "snare", 0.95, 1, 0.035),
@@ -136,6 +175,11 @@ const STYLE = {
   waltz: { entries: WALTZ, steps: 9, swing: null, loose: 0.01, fill: false, beats: 3 },
   trap: { entries: TRAP, steps: 16, swing: 0.5, loose: 0.004, fill: true },
   house: { entries: HOUSE, steps: 16, swing: 0.52, loose: 0.003, fill: false },
+  techno: { entries: TECHNO, steps: 16, swing: 0.5, loose: 0.002, fill: false },
+  twostep: { entries: TWOSTEP, steps: 16, swing: 0.6, loose: 0.006, fill: true },
+  idm: { entries: IDM, steps: 16, swing: 0.5, loose: 0.006, fill: true },
+  minimal: { entries: MINIMAL, steps: 16, swing: 0.5, loose: 0.003, fill: false },
+  ecm: { entries: ECM, steps: 16, swing: 0.5, loose: 0.02, fill: false },
   brushes: { entries: BRUSHES, steps: 12, swing: null, loose: 0.012, fill: false },
 };
 

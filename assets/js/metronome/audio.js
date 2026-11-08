@@ -26,12 +26,12 @@ const SOUNDS = {
 };
 
 // Recorded hits (Versilian Community Sample Library, CC0). Each voice has three files.
-import { rhodes, bass, bassSynth, organ, pad, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261108h";
-import { createSampler } from "./sampler.js?v=20261108h";
-import { KEYS, BASSES, trimOf, drumTrim } from "./instruments.js?v=20261108h";
+import { rhodes, bass, bassSynth, organ, pad, juno, drone, glass, supersaw, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261108i";
+import { createSampler } from "./sampler.js?v=20261108i";
+import { KEYS, BASSES, trimOf, drumTrim } from "./instruments.js?v=20261108i";
 
-const SYNTH_KEYS = new Set(["rhodes", "organ", "pad"]);
-const SYNTH_BASS = new Set(["round", "moog", "sub"]);
+const SYNTH_KEYS = new Set(["rhodes", "organ", "pad", "juno", "drone", "glass", "supersaw"]);
+const SYNTH_BASS = new Set(["round", "moog", "sub", "reese", "acid", "fmbass", "dub"]);
 const SAMPLE_VOICES = ["woodblock", "claves", "log", "frame", "brake"];
 const FILE = { woodblock: "wood", claves: "claves", log: "log", frame: "frame", brake: "brake" };
 const KINDS = ["accent", "beat", "sub"];
@@ -264,6 +264,10 @@ export function createAudio() {
       const out = via(run, "chords", trimOf(KEYS, id));
       if (id === "organ") return organ(ctx, out, when, notes, seconds, gain);
       if (id === "pad") return pad(ctx, out, when, notes, seconds, gain);
+      if (id === "juno") return juno(ctx, out, when, notes, seconds, gain);
+      if (id === "drone") return drone(ctx, out, when, notes, seconds, gain);
+      if (id === "glass") return glass(ctx, out, when, notes, seconds, gain);
+      if (id === "supersaw") return supersaw(ctx, out, when, notes, seconds, gain);
       if (id !== "rhodes") {
         // A recorded instrument plays each note on its own; the strum is a few milliseconds.
         let ok = true;

@@ -2,7 +2,7 @@
 //
 // Every function takes the audio context, a destination node, and a start time, builds a few
 // short-lived nodes, and lets them clean up after themselves. Nothing here keeps state.
-import { midiToHz } from "./chords.js?v=20261108h";
+import { midiToHz } from "./chords.js?v=20261108i";
 
 /** One second of white noise, shared by all drum voices. */
 export function makeNoise(ctx, seconds = 2) {
@@ -323,6 +323,119 @@ export function bassSynth(ctx, dest, when, midi, seconds, gain, kind = "round") 
     o2.stop(when + hold + 0.3);
     return;
   }
+  if (kind === "reese") {
+    // Three detuned saws that beat against each other, a sub sine under them, and a filter that slowly closes.
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.Q.value = 2.5;
+    lp.frequency.setValueAtTime(Math.min(1800, f * 8), when);
+    lp.frequency.exponentialRampToValueAtTime(Math.max(140, f * 3), when + Math.max(0.4, hold));
+    const shaper = softClip(ctx, 2.2);
+    for (const d of [-16, 0, 16]) {
+      const o = ctx.createOscillator();
+      o.type = "sawtooth";
+      o.frequency.value = f;
+      o.detune.value = d;
+      o.connect(lp);
+      o.start(when);
+      o.stop(when + hold + 0.4);
+    }
+    const sub = ctx.createOscillator();
+    const subg = ctx.createGain();
+    sub.type = "sine";
+    sub.frequency.value = f;
+    subg.gain.value = 1.3;
+    sub.connect(subg);
+    subg.connect(shaper);
+    lp.connect(shaper);
+    shaper.connect(g);
+    g.connect(dest);
+    g.gain.setValueAtTime(0.0001, when);
+    g.gain.exponentialRampToValueAtTime(0.34 * gain, when + 0.02);
+    g.gain.setValueAtTime(0.3 * gain, when + hold);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + hold + 0.3);
+    sub.start(when);
+    sub.stop(when + hold + 0.4);
+    return;
+  }
+  if (kind === "acid") {
+    // A single saw into a resonant filter that snaps shut: short, squelchy, a little driven.
+    const o = ctx.createOscillator();
+    const lp = ctx.createBiquadFilter();
+    o.type = "sawtooth";
+    o.frequency.value = f;
+    lp.type = "lowpass";
+    lp.Q.value = 15;
+    lp.frequency.setValueAtTime(Math.min(5000, f * 18), when);
+    lp.frequency.exponentialRampToValueAtTime(Math.max(90, f * 1.8), when + 0.22);
+    const shaper = softClip(ctx, 3);
+    const len = Math.min(hold, 0.45);
+    g.gain.setValueAtTime(0.0001, when);
+    g.gain.exponentialRampToValueAtTime(0.3 * gain, when + 0.004);
+    g.gain.setValueAtTime(0.26 * gain, when + len);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + len + 0.06);
+    o.connect(lp);
+    lp.connect(shaper);
+    shaper.connect(g);
+    g.connect(dest);
+    o.start(when);
+    o.stop(when + len + 0.1);
+    return;
+  }
+  if (kind === "fmbass") {
+    // Two-operator FM, as on a DX: a hard attack that falls into a round sine.
+    const car = ctx.createOscillator();
+    const mod = ctx.createOscillator();
+    const idx = ctx.createGain();
+    car.type = "sine";
+    mod.type = "sine";
+    car.frequency.value = f;
+    mod.frequency.value = f;
+    idx.gain.setValueAtTime(f * 5, when);
+    idx.gain.exponentialRampToValueAtTime(f * 0.5, when + 0.28);
+    mod.connect(idx);
+    idx.connect(car.frequency);
+    g.gain.setValueAtTime(0.0001, when);
+    g.gain.exponentialRampToValueAtTime(0.5 * gain, when + 0.004);
+    g.gain.setValueAtTime(0.42 * gain, when + hold * 0.8);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + hold + 0.18);
+    car.connect(g);
+    g.connect(dest);
+    car.start(when);
+    mod.start(when);
+    car.stop(when + hold + 0.25);
+    mod.stop(when + hold + 0.25);
+    return;
+  }
+  if (kind === "dub") {
+    // A heavy, round bass for dub and deep techno: sine and triangle through a low filter, driven.
+    const a = ctx.createOscillator();
+    const b = ctx.createOscillator();
+    const lp = ctx.createBiquadFilter();
+    a.type = "sine";
+    b.type = "triangle";
+    a.frequency.value = f;
+    b.frequency.value = f;
+    b.detune.value = 4;
+    lp.type = "lowpass";
+    lp.frequency.value = Math.max(180, f * 3.5);
+    lp.Q.value = 1.4;
+    const shaper = softClip(ctx, 3.5);
+    g.gain.setValueAtTime(0.0001, when);
+    g.gain.exponentialRampToValueAtTime(0.55 * gain, when + 0.025);
+    g.gain.setValueAtTime(0.5 * gain, when + hold);
+    g.gain.exponentialRampToValueAtTime(0.0001, when + hold + 0.22);
+    a.connect(shaper);
+    b.connect(lp);
+    lp.connect(shaper);
+    shaper.connect(g);
+    g.connect(dest);
+    a.start(when);
+    b.start(when);
+    a.stop(when + hold + 0.3);
+    b.stop(when + hold + 0.3);
+    return;
+  }
   const saw = ctx.createOscillator();
   const sq = ctx.createOscillator();
   const lp = ctx.createBiquadFilter();
@@ -406,6 +519,149 @@ export function pad(ctx, dest, when, midis, seconds, gain) {
       o.connect(lp);
       o.start(when);
       o.stop(end + 0.8);
+    }
+  });
+}
+
+/** Warm analogue poly: two detuned saws and a sub square through a gentle low-pass, slow-ish attack. */
+export function juno(ctx, dest, when, midis, seconds, gain) {
+  const n = midis.length;
+  const end = when + Math.max(0.3, seconds);
+  midis.forEach((m) => {
+    const f = midiToHz(m);
+    const out = ctx.createGain();
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.setValueAtTime(Math.min(3200, f * 7), when);
+    lp.frequency.exponentialRampToValueAtTime(Math.min(1500, f * 3.2), end);
+    lp.Q.value = 1.1;
+    const peak = (0.17 * gain) / Math.sqrt(n);
+    out.gain.setValueAtTime(0.0001, when);
+    out.gain.exponentialRampToValueAtTime(peak, when + 0.06);
+    out.gain.setValueAtTime(peak * 0.85, end);
+    out.gain.exponentialRampToValueAtTime(0.0001, end + 0.55);
+    lp.connect(out);
+    out.connect(dest);
+    [["sawtooth", -8, 1], ["sawtooth", 8, 1], ["square", 0, 0.45, 0.5]].forEach(([type, d, a, mult = 1]) => {
+      const o = ctx.createOscillator();
+      const og = ctx.createGain();
+      o.type = type;
+      o.frequency.value = f * mult;
+      o.detune.value = d;
+      og.gain.value = a;
+      o.connect(og);
+      og.connect(lp);
+      o.start(when);
+      o.stop(end + 0.6);
+    });
+  });
+}
+
+/** A dark, slow drone: detuned saws and a deep sine under a filter that breathes on its own. */
+export function drone(ctx, dest, when, midis, seconds, gain) {
+  const n = midis.length;
+  const hold = Math.max(0.8, seconds);
+  const end = when + hold;
+  midis.forEach((m, i) => {
+    const f = midiToHz(m);
+    const out = ctx.createGain();
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.Q.value = 2.2;
+    lp.frequency.value = Math.min(900, f * 2.6);
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    lfo.frequency.value = 0.08 + 0.03 * i;
+    lfoGain.gain.value = Math.min(500, f * 1.4);
+    lfo.connect(lfoGain);
+    lfoGain.connect(lp.frequency);
+    const peak = (0.2 * gain) / Math.sqrt(n);
+    const rise = Math.min(0.9, hold * 0.45);
+    out.gain.setValueAtTime(0.0001, when);
+    out.gain.exponentialRampToValueAtTime(peak, when + rise);
+    out.gain.setValueAtTime(peak, end);
+    out.gain.exponentialRampToValueAtTime(0.0001, end + 1.6);
+    lp.connect(out);
+    out.connect(dest);
+    [["sawtooth", -7, 1, 1], ["sawtooth", 6, 1, 1], ["sine", 0, 1.1, 0.5], ["triangle", 3, 0.5, 2]].forEach(([type, d, a, mult]) => {
+      const o = ctx.createOscillator();
+      const og = ctx.createGain();
+      o.type = type;
+      o.frequency.value = f * mult;
+      o.detune.value = d;
+      og.gain.value = a;
+      o.connect(og);
+      og.connect(lp);
+      o.start(when);
+      o.stop(end + 1.7);
+    });
+    lfo.start(when);
+    lfo.stop(end + 1.7);
+  });
+}
+
+/** Glass bells: two-operator FM with an inharmonic ratio, ringing and fading on its own. */
+export function glass(ctx, dest, when, midis, seconds, gain) {
+  const n = midis.length;
+  midis.forEach((m, i) => {
+    const f = midiToHz(m + 12);
+    const t = when + i * 0.012;
+    const ring = Math.max(1.4, Math.min(3.5, seconds * 1.4));
+    const out = ctx.createGain();
+    const peak = (0.2 * gain) / Math.sqrt(n);
+    out.gain.setValueAtTime(0.0001, t);
+    out.gain.exponentialRampToValueAtTime(peak, t + 0.004);
+    out.gain.exponentialRampToValueAtTime(0.0001, t + ring);
+    out.connect(dest);
+    [[1, 3.5, 2.6], [2.76, 5.4, 0.9]].forEach(([mult, ratio, index]) => {
+      const car = ctx.createOscillator();
+      const mod = ctx.createOscillator();
+      const mg = ctx.createGain();
+      const cg = ctx.createGain();
+      car.frequency.value = f * mult;
+      mod.frequency.value = f * mult * ratio;
+      mg.gain.setValueAtTime(f * mult * index, t);
+      mg.gain.exponentialRampToValueAtTime(f * mult * 0.05, t + ring * 0.6);
+      cg.gain.value = mult === 1 ? 1 : 0.25;
+      mod.connect(mg);
+      mg.connect(car.frequency);
+      car.connect(cg);
+      cg.connect(out);
+      car.start(t);
+      mod.start(t);
+      car.stop(t + ring + 0.1);
+      mod.stop(t + ring + 0.1);
+    });
+  });
+}
+
+/** Supersaw: five detuned saws, bright and wide. For stabs and for IDM and trance voicings. */
+export function supersaw(ctx, dest, when, midis, seconds, gain) {
+  const n = midis.length;
+  const end = when + Math.max(0.2, seconds);
+  midis.forEach((m) => {
+    const f = midiToHz(m);
+    const out = ctx.createGain();
+    const lp = ctx.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.setValueAtTime(Math.min(7000, f * 14), when);
+    lp.frequency.exponentialRampToValueAtTime(Math.min(2400, f * 5), when + 0.35);
+    lp.Q.value = 0.9;
+    const peak = (0.08 * gain) / Math.sqrt(n);
+    out.gain.setValueAtTime(0.0001, when);
+    out.gain.exponentialRampToValueAtTime(peak, when + 0.012);
+    out.gain.setValueAtTime(peak * 0.8, end);
+    out.gain.exponentialRampToValueAtTime(0.0001, end + 0.3);
+    lp.connect(out);
+    out.connect(dest);
+    for (const d of [-26, -13, 0, 13, 26]) {
+      const o = ctx.createOscillator();
+      o.type = "sawtooth";
+      o.frequency.value = f;
+      o.detune.value = d;
+      o.connect(lp);
+      o.start(when);
+      o.stop(end + 0.4);
     }
   });
 }

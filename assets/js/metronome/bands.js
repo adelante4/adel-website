@@ -14,5 +14,10 @@ export const BAND_STYLES = [
   { id: "funk", name: "Funk", bpm: 100, meter: [4, 4], groove: { style: "funk", kit: "swirly", dust: false }, bass: { style: "funk", sound: "fashionbass" }, keys: { sound: "clavisynth", comp: "push" } },
   { id: "trap", name: "Trap", bpm: 140, meter: [4, 4], groove: { style: "trap", kit: "tr808", dust: false }, bass: { style: "sub", sound: "sub" }, keys: { sound: "pad", comp: "sustain" } },
   { id: "house", name: "House", bpm: 124, meter: [4, 4], groove: { style: "house", kit: "tr909", dust: false }, bass: { style: "funk", sound: "fashionbass" }, keys: { sound: "clavisynth", comp: "push" } },
+  { id: "techno", name: "Techno", bpm: 130, meter: [4, 4], groove: { style: "techno", kit: "tr909", dust: false }, bass: { style: "roots", sound: "sub" }, keys: { sound: "pad", comp: "sustain" } },
+  { id: "twostep", name: "2-step (Burial)", bpm: 138, meter: [4, 4], groove: { style: "twostep", kit: "gogoretro", dust: true }, bass: { style: "sub", sound: "sub" }, keys: { sound: "pad", comp: "sustain" } },
+  { id: "idm", name: "IDM", bpm: 146, meter: [4, 4], groove: { style: "idm", kit: "tr909", dust: false }, bass: { style: "sub", sound: "sub" }, keys: { sound: "fmpiano", comp: "arp" } },
+  { id: "minimal", name: "Minimal clicks", bpm: 118, meter: [4, 4], groove: { style: "minimal", kit: "tr808", dust: false }, bass: { style: "roots", sound: "sub" }, keys: { sound: "marimba", comp: "arp" } },
+  { id: "ecm", name: "ECM pulse", bpm: 68, meter: [4, 4], groove: { style: "ecm", kit: "bebop", dust: false }, bass: { style: "twofeel", sound: "doublebass" }, keys: { sound: "grand", comp: "sustain" } },
   { id: "waltz", name: "Jazz waltz", bpm: 138, meter: [3, 4], groove: { style: "waltz", kit: "bebop", dust: false }, bass: { style: "twofeel", sound: "doublebass" }, keys: { sound: "upright", comp: "charleston" } },
 ];

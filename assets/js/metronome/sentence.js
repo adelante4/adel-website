@@ -1,10 +1,10 @@
 // Says in plain words what the page is playing, from the same state the transport reads.
 // Pure functions: no DOM, no audio.
-import { KEYS, BASSES } from "./instruments.js?v=20261108h";
+import { KEYS, BASSES } from "./instruments.js?v=20261108i";
 
 export const GROOVE_NAMES = {
   lofi: "Lofi", dilla: "Neo-soul", halftime: "Halftime", boombap: "Boom-bap", jazz: "Jazz swing",
-  brushes: "Brushes", bossa: "Bossa", shuffle: "Shuffle", funk: "Funk", waltz: "Jazz waltz", trap: "Trap", house: "House",
+  brushes: "Brushes", bossa: "Bossa", shuffle: "Shuffle", funk: "Funk", waltz: "Jazz waltz", trap: "Trap", house: "House", techno: "Techno", twostep: "2-step", idm: "IDM", minimal: "Minimal clicks", ecm: "ECM pulse",
 };
 
 const nameOf = (list, id) => list.find((x) => x.id === id)?.name ?? id;
