@@ -4,26 +4,26 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261109c";
-import { createTransport } from "./transport.js?v=20261109c";
-import { barPlays } from "./overlay.js?v=20261109c";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261109c";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261109c";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261109c";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261109c";
-import { COMP_STYLES } from "./comping.js?v=20261109c";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits, grooveMeter } from "./groove.js?v=20261109c";
-import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261109c";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261109c";
-import { BAND_STYLES } from "./bands.js?v=20261109c";
-import { createTuneView } from "./tune.js?v=20261109c";
-import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261109c";
-import { initRooms } from "./rooms.js?v=20261109c";
-import { initOffline, holdScreen, releaseScreen } from "./offline.js?v=20261109c";
-import { initExport } from "./export.js?v=20261109c";
-import { TOP_100 } from "./top100.js?v=20261109c";
-import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261109c";
-import { MAX_FORM_BARS } from "./share.js?v=20261109c";
+import { createAudio } from "./audio.js?v=20261109d";
+import { createTransport } from "./transport.js?v=20261109d";
+import { barPlays } from "./overlay.js?v=20261109d";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261109d";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261109d";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261109d";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261109d";
+import { COMP_STYLES } from "./comping.js?v=20261109d";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits, grooveMeter } from "./groove.js?v=20261109d";
+import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261109d";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261109d";
+import { BAND_STYLES } from "./bands.js?v=20261109d";
+import { createTuneView } from "./tune.js?v=20261109d";
+import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261109d";
+import { initRooms } from "./rooms.js?v=20261109d";
+import { initOffline, holdScreen, releaseScreen } from "./offline.js?v=20261109d";
+import { initExport } from "./export.js?v=20261109d";
+import { TOP_100 } from "./top100.js?v=20261109d";
+import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261109d";
+import { MAX_FORM_BARS } from "./share.js?v=20261109d";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -415,9 +415,20 @@ const COMP_NOTES = {
   twofeel: "Beats 1 and 3.",
   bossa: "The bossa guitar clave over two bars: 1, the & of 2 and 4, then 2 and 3. Short, soft stabs.",
   arp: "Eighth notes running up and down through the chord.",
+  freddie: "Four short, even chops a bar, like Freddie Green with the Basie band.",
+  latepush: "The & of 2 and beat 4. Leaves beat 1 to the bass.",
+  anticipate: "Each chord arrives an eighth early and rings over the bar line.",
+  bossaclave: "The real bossa clave over two bars: 1, the & of 2 and 4, then 2 and the & of 3.",
+  rumba: "Rumba clave 3-2 over two bars: 1, the & of 2 and the & of 4, then 2 and 3.",
+  ecm: "Sparse and ringing: a rolled chord on 1, then the & of 3 tied over the bar line.",
+  twostep: "Broken UK-garage stabs on 1, the a of 2 and the & of 3, a little behind the grid.",
+  hama1: "Sixteenths grouped 3+3+3+3+2+2. Needs 4/4 and a tempo that is not too fast.",
+  hama2: "Sixteenths grouped 3+3+2+3+3+2. The 3+3+2 cell twice, the Tigran way.",
+  groups: "A stab on each group of 2 or 3 counted beats: 5 is 3+2, 7 is 2+2+3, 10 is 2+3+2+3.",
+  hemiola: "A hit every dotted quarter, running through the bar lines. Lines up again after 3 bars of 4/4.",
   mixed: "A different rhythm each bar. The choice is seeded, so it repeats the same way each time.",
 };
-const COMP_LABELS = { sustain: "Sustain", on1: "On 1", charleston: "Charleston", push: "Push", twofeel: "Two-feel", bossa: "Bossa", arp: "Arpeggio", mixed: "Mixed" };
+const COMP_LABELS = { sustain: "Sustain", on1: "On 1", charleston: "Charleston", push: "Push", twofeel: "Two-feel", bossa: "Bossa", arp: "Arpeggio", freddie: "Freddie", latepush: "Late push", anticipate: "Anticipate", bossaclave: "Bossa clave", rumba: "Rumba", ecm: "ECM ballad", twostep: "2-step", hama1: "3+3+3+3+2+2", hama2: "3+3+2+3+3+2", groups: "Groups", hemiola: "Hemiola", mixed: "Mixed" };
 const BASS_NOTES = {
   roots: "The root, held for the whole chord.",
   twofeel: "Root on 1, fifth on 3.",

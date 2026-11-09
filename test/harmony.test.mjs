@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { parseChord, cleanChord, transposeChord, formatChord, chordPitchClasses, voiceChord, voiceChords, bassNote, PRESETS, QUALITIES } from "../assets/js/metronome/chords.js";
-import { styleHits, flattenForm, generateHarmony } from "../assets/js/metronome/comping.js";
+import { styleHits, flattenForm, generateHarmony, COMP_STYLES } from "../assets/js/metronome/comping.js";
 import { createTransport } from "../assets/js/metronome/transport.js";
 import { generateGroove, stepBeat, GROOVE_STYLES, grooveFits, grooveSounds, grooveMeter } from "../assets/js/metronome/groove.js";
 import { generateBass, BASS_STYLES } from "../assets/js/metronome/bassline.js";
@@ -386,4 +386,57 @@ test("bossa comping plays the two-bar clave", () => {
   assert.deepEqual(styleHits("bossa", 4, 0).map((h) => h.at), [0, 1.5, 3]);
   assert.deepEqual(styleHits("bossa", 4, 1).map((h) => h.at), [1, 2]);
   assert.ok(styleHits("bossa", 2, 1).length >= 1);
+});
+
+test("new comping styles place hits where they should", () => {
+  const at = (style, span = 4, bar = 0, beats = 4, start = 0) => styleHits(style, span, bar, beats, start).map((h) => h.at);
+  assert.deepEqual(at("freddie"), [0, 1, 2, 3]);
+  assert.deepEqual(at("latepush"), [1.5, 3]);
+  assert.deepEqual(at("anticipate"), [-0.5]);
+  assert.deepEqual(at("bossaclave", 4, 0), [0, 1.5, 3]);
+  assert.deepEqual(at("bossaclave", 4, 1), [1, 2.5]);
+  assert.deepEqual(at("rumba", 4, 0), [0, 1.5, 3.5]);
+  assert.deepEqual(at("rumba", 4, 1), [1, 2]);
+  assert.deepEqual(at("ecm"), [0, 2.5]);
+  assert.deepEqual(at("twostep"), [0, 1.75, 2.5]);
+  assert.deepEqual(at("hama1"), [0, 0.75, 1.5, 2.25, 3, 3.5]);
+  assert.deepEqual(at("hama2"), [0, 0.75, 1.5, 2, 2.75, 3.5]);
+});
+
+test("groups follow the odd-meter counts", () => {
+  const at = (span) => styleHits("groups", span).map((h) => h.at);
+  assert.deepEqual(at(5), [0, 3]);
+  assert.deepEqual(at(7), [0, 2, 4]);
+  assert.deepEqual(at(10), [0, 2, 5, 7]);
+  assert.deepEqual(at(4), [0, 2]);
+  assert.deepEqual(at(13), [0, 3, 6, 9, 11]);
+});
+
+test("hemiola runs through the bar lines and repeats every 3 bars of 4/4", () => {
+  const hits = (bar) => styleHits("hemiola", 4, bar, 4, 0).map((h) => 4 * bar + h.at);
+  const all = [0, 1, 2, 3, 4, 5].flatMap(hits);
+  all.forEach((b, i) => i && assert.ok(Math.abs(b - all[i - 1] - 1.5) < 1e-9, `gap before ${b}`));
+  assert.deepEqual(styleHits("hemiola", 4, 3).map((h) => h.at), styleHits("hemiola", 4, 0).map((h) => h.at));
+  assert.ok(styleHits("hemiola", 1, 0).length >= 1);
+});
+
+test("every comping style makes hits that stay inside the chord, and split ranges agree", () => {
+  for (const comp of COMP_STYLES) {
+    for (const span of [1, 2, 3, 4, 5, 7]) {
+      const hs = styleHits(comp, span, 1, 4, 0);
+      assert.ok(hs.length >= 1, `${comp} span ${span}`);
+      for (const h of hs) assert.ok(h.at < span && h.dur > 0 && h.vel > 0 && h.vel <= 1, `${comp} span ${span}`);
+    }
+    const h = H({ comp });
+    const whole = generateHarmony(h, pattern, practice(), 0, 24);
+    const parts = [...generateHarmony(h, pattern, practice(), 0, 7.3), ...generateHarmony(h, pattern, practice(), 7.3, 24)];
+    assert.deepEqual(parts.sort((a, b) => a.beat - b.beat), whole, comp);
+  }
+});
+
+test("the ECM rolled chord spreads its notes low to high", () => {
+  const ev = generateHarmony(H({ comp: "ecm" }), pattern, practice(), 0, 4).filter((e) => e.bar === 0 && e.beat < 1);
+  assert.ok(ev.length > 1);
+  assert.ok(ev.every((e) => e.notes.length === 1));
+  ev.forEach((e, i) => i && assert.ok(e.beat > ev[i - 1].beat && e.notes[0] >= ev[i - 1].notes[0]));
 });
