@@ -426,9 +426,18 @@ const COMP_NOTES = {
   hama2: "Sixteenths grouped 3+3+2+3+3+2. The 3+3+2 cell twice, the Tigran way.",
   groups: "A stab on each group of 2 or 3 counted beats: 5 is 3+2, 7 is 2+2+3, 10 is 2+3+2+3.",
   hemiola: "A hit every dotted quarter, running through the bar lines. Lines up again after 3 bars of 4/4.",
-  mixed: "A different rhythm each bar. The choice is seeded, so it repeats the same way each time.",
+  dcharleston: "Charleston twice a bar: 1, the & of 2, 3, the & of 4.",
+  offbeat: "Every &. The skank and the dub chord.",
+  dilla: "Behind the beat: 1, the a of 2 and the e of 4, all late.",
+  afro: "The 12/8 bell laid over four beats, as in Afro Blue and Footprints.",
+  quint: "A hit every five sixteenths: 5 against 4. Lines up again after 5 bars of 4/4.",
+  septet: "A hit every seven sixteenths: 7 against 4. Lines up again after 7 bars of 4/4.",
+  mixed: "A different rhythm each bar, chosen by a seeded die. It repeats the same way each time.",
+  arc: "No dice. Eight bars that build from sparse to busy, peak, then breathe before the loop turns.",
+  cadence: "No dice. Each chord leans by its job: the tonic rests, the minor asks, the dominant pushes toward the next.",
+  develop: "No dice in the bars. A motif, then the same again, then shifted an eighth later, then thinned out.",
 };
-const COMP_LABELS = { sustain: "Sustain", on1: "On 1", charleston: "Charleston", push: "Push", twofeel: "Two-feel", bossa: "Bossa", arp: "Arpeggio", freddie: "Freddie", latepush: "Late push", anticipate: "Anticipate", bossaclave: "Bossa clave", rumba: "Rumba", ecm: "ECM ballad", twostep: "2-step", hama1: "3+3+3+3+2+2", hama2: "3+3+2+3+3+2", groups: "Groups", hemiola: "Hemiola", mixed: "Mixed" };
+const COMP_LABELS = { sustain: "Sustain", on1: "On 1", charleston: "Charleston", push: "Push", twofeel: "Two-feel", bossa: "Bossa", arp: "Arpeggio", freddie: "Freddie", latepush: "Late push", anticipate: "Anticipate", bossaclave: "Bossa clave", rumba: "Rumba", ecm: "ECM ballad", twostep: "2-step", hama1: "3+3+3+3+2+2", hama2: "3+3+2+3+3+2", groups: "Groups", hemiola: "Hemiola", dcharleston: "Charleston x2", offbeat: "Offbeat", dilla: "Behind", afro: "Afro bell", quint: "5 over 4", septet: "7 over 4", mixed: "Mixed", arc: "Arc", cadence: "Cadence", develop: "Develop" };
 const BASS_NOTES = {
   roots: "The root, held for the whole chord.",
   twofeel: "Root on 1, fifth on 3.",

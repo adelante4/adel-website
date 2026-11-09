@@ -5,13 +5,17 @@
 // repeatable: the same range gives the same events, and splitting a range changes nothing.
 import { slotRng } from "./prng.js?v=20261109d";
 import { barPlays } from "./overlay.js?v=20261109d";
-import { voiceChords } from "./chords.js?v=20261109d";
+import { voiceChords, parseChord } from "./chords.js?v=20261109d";
+import { classOf } from "./analysis.js?v=20261109d";
 
 export const COMP_STYLES = [
   "sustain", "on1", "charleston", "push", "twofeel", "bossa", "arp",
   "freddie", "latepush", "anticipate", "bossaclave", "rumba", "ecm", "twostep", "hama1", "hama2", "groups", "hemiola",
-  "mixed",
+  "dcharleston", "offbeat", "dilla", "afro", "quint", "septet",
+  "mixed", "arc", "cadence", "develop",
 ];
+/** The comp choices that pick a rhythm for each bar (or chord) instead of being one. */
+export const MIX_STYLES = ["mixed", "arc", "cadence", "develop"];
 const MIXED_POOL = ["on1", "charleston", "push", "twofeel"];
 const MAX_NUDGE_BEATS = 0.04;
 
@@ -37,6 +41,18 @@ function cells(at, span, dur, vels) {
 }
 
 const HEMIOLA_BEATS = 1.5;
+
+/** A steady pulse of `step` beats that ignores bar lines, so it drifts against the bar and comes back. */
+function pulseHits(step, span, bar, beats, start) {
+  const abs = bar * beats + start;
+  const first = (step - (abs % step)) % step;
+  const hits = [];
+  for (let at = first; at < span - 1e-9; at += step) {
+    const k = Math.round((abs + at) / step);
+    hits.push({ at, dur: Math.min(step * 0.8, span - at), vel: k % 4 === 0 ? 0.95 : k % 2 ? 0.7 : 0.8 });
+  }
+  return hits.length ? hits : [{ at: 0, dur: Math.min(span, step * 0.8), vel: 0.8 }];
+}
 
 /**
  * Hits inside one chord that lasts `span` beats. `at` can be negative: a push before the chord.
@@ -115,17 +131,25 @@ export function styleHits(style, span, bar = 0, beats = 4, start = 0) {
       });
       return hits.filter((h) => h.at < span);
     }
-    case "hemiola": {
-      // A hit every dotted quarter, running through the bar lines: back on the downbeat after 3 bars of 4/4.
-      const abs = bar * beats + start;
-      const first = (HEMIOLA_BEATS - (abs % HEMIOLA_BEATS)) % HEMIOLA_BEATS;
-      const hits = [];
-      for (let at = first; at < span - 1e-9; at += HEMIOLA_BEATS) {
-        const k = Math.round((abs + at) / HEMIOLA_BEATS);
-        hits.push({ at, dur: Math.min(1.2, span - at), vel: k % 4 === 0 ? 0.95 : k % 2 ? 0.7 : 0.8 });
-      }
-      return hits.length ? hits : [{ at: 0, dur: Math.min(span, 1.2), vel: 0.8 }];
-    }
+    case "hemiola":
+      return pulseHits(HEMIOLA_BEATS, span, bar, beats, start);
+    case "quint":
+      // A hit every five sixteenths, 5 against 4. Back on the downbeat after 5 bars of 4/4.
+      return pulseHits(1.25, span, bar, beats, start);
+    case "septet":
+      // A hit every seven sixteenths, 7 against 4. Back on the downbeat after 7 bars of 4/4.
+      return pulseHits(1.75, span, bar, beats, start);
+    case "dcharleston":
+      return cells([0, 1.5, 2, 3.5], span, 0.8, [1, 0.8, 0.9, 0.7]);
+    case "offbeat":
+      // Every & : the skank, and the dub chord.
+      return cells([0.5, 1.5, 2.5, 3.5], span, 0.35, [0.75, 0.85]);
+    case "dilla":
+      // Behind the beat: 1, the a of 2 and the e of 4, all late, like a drummer who is not hurrying.
+      return cells([0, 1.75, 3.25], span, 0.6, [0.9, 0.7, 0.75]).map((h, i) => ({ ...h, late: i === 0 ? 0.04 : 0.1 }));
+    case "afro":
+      // The 12/8 bell across four beats (Afro Blue, Footprints): triplet eighths 0 2 4 5 7 9 11.
+      return cells([0, 2 / 3, 4 / 3, 5 / 3, 7 / 3, 3, 11 / 3], span, 0.5, [1, 0.7, 0.8, 0.65, 0.8, 0.7, 0.75]);
     case "twofeel":
       return long
         ? [{ at: 0, dur: 1.9, vel: 1 }, { at: 2, dur: Math.min(1.9, span - 2), vel: 0.8 }]
@@ -133,6 +157,66 @@ export function styleHits(style, span, bar = 0, beats = 4, start = 0) {
     default:
       return [{ at: 0, dur: Math.min(span, 2), vel: 1 }];
   }
+}
+
+// ---- mixing: ways to move between rhythms that follow the music instead of a dice roll ----
+
+/** From sparse to busy. Each mode below walks these. */
+export const DENSITY = [
+  ["sustain", "ecm", "anticipate"],
+  ["on1", "twofeel", "latepush", "bossaclave"],
+  ["charleston", "push", "dcharleston", "twostep", "rumba", "dilla", "offbeat", "freddie"],
+  ["hama1", "hama2", "afro", "arp", "hemiola", "quint"],
+];
+/** Arc: eight bars that build, peak, then breathe before the loop turns. */
+const ARC = [0, 1, 1, 2, 2, 3, 3, 1];
+/** Cadence: what each kind of chord leans toward. */
+const BY_FUNCTION = {
+  maj: ["ecm", "on1", "sustain", "twofeel"],
+  min: ["charleston", "latepush", "dcharleston", "twostep"],
+  hdim: ["latepush", "twostep", "charleston"],
+  dim: ["latepush", "twostep"],
+  dom: ["push", "anticipate", "latepush", "offbeat"],
+};
+const MOTIFS = ["charleston", "latepush", "bossaclave", "rumba", "twostep", "hama2", "dcharleston", "afro", "dilla"];
+
+const everyOther = (hits) => {
+  const kept = hits.filter((_, i) => i % 2 === 0).map((h) => ({ ...h, dur: h.dur * 1.5 }));
+  return kept.length ? kept : hits;
+};
+const shiftLater = (hits, span) => {
+  const moved = hits.map((h) => ({ ...h, at: h.at + 0.5 })).filter((h) => h.at < span);
+  return moved.length ? moved : hits;
+};
+/** How a motif is changed from bar to bar of a four-bar phrase: stated, repeated, displaced, thinned. */
+const DEVELOP = [(h) => h, (h) => h, shiftLater, (h) => everyOther(h)];
+
+/**
+ * Which rhythm one chord plays, and how it is changed.
+ * `mixed` rolls a seeded die each bar. The others have no dice in the pattern itself: `arc` follows a shape over
+ * eight bars, `cadence` follows the chord's job (rest on the tonic, lean on the dominant) and `develop` states a
+ * motif and then repeats, displaces and thins it. Same inputs, same answer, so a loop does not wander.
+ */
+export function resolveStyle(comp, { seed = 1, bar = 0, pb = 0, slot = 0, chord = "Cmaj7", form = 4 } = {}) {
+  const same = (h) => h;
+  if (comp === "mixed") {
+    return { style: MIXED_POOL[Math.floor(slotRng(seed, bar, 90, 0)() * MIXED_POOL.length)], xform: same };
+  }
+  if (comp === "arc") {
+    const tier = DENSITY[ARC[((pb % 8) + 8) % 8]];
+    return { style: tier[(Math.floor(pb / 8) + pb) % tier.length], xform: same };
+  }
+  if (comp === "cadence") {
+    const q = parseChord(chord)?.quality ?? "maj7";
+    const pool = BY_FUNCTION[classOf(q)] ?? BY_FUNCTION.maj;
+    return { style: pool[(pb + slot) % pool.length], xform: same };
+  }
+  if (comp === "develop") {
+    const phrase = Math.floor(pb / 4);
+    const motif = MOTIFS[Math.floor(slotRng(seed, phrase, 91, 0)() * MOTIFS.length)];
+    return { style: motif, xform: DEVELOP[((pb % 4) + 4) % 4] };
+  }
+  return { style: comp, xform: same };
 }
 
 /** The chords of a form in playing order, with where each one starts in its bar. */
@@ -179,11 +263,10 @@ export function generateHarmony(harmony, pattern, practice, fromBeat, toBeat) {
     const pb = bar - practice.countIn;
     if (pb < 0 || !barPlays(practice, bar).harmony) continue;
     const fb = pb % harmony.form.length;
-    const style =
-      harmony.comp === "mixed" ? MIXED_POOL[Math.floor(slotRng(pattern.seed, bar, 90, 0)() * MIXED_POOL.length)] : harmony.comp;
     for (const [s, idx] of byBar[fb]) {
       const base = bar * beats + s.start;
-      styleHits(style, s.span, pb, beats, s.start).forEach((h, n) => {
+      const { style, xform } = resolveStyle(harmony.comp, { seed: pattern.seed, bar, pb, slot: idx, chord: s.chord });
+      xform(styleHits(style, s.span, pb, beats, s.start), s.span).forEach((h, n) => {
         const rng = slotRng(pattern.seed, bar, idx, n + 40);
         const nudge = rng();
         const loud = rng();

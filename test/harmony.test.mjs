@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { parseChord, cleanChord, transposeChord, formatChord, chordPitchClasses, voiceChord, voiceChords, bassNote, PRESETS, QUALITIES } from "../assets/js/metronome/chords.js";
-import { styleHits, flattenForm, generateHarmony, COMP_STYLES } from "../assets/js/metronome/comping.js";
+import { styleHits, flattenForm, generateHarmony, COMP_STYLES, MIX_STYLES, DENSITY, resolveStyle } from "../assets/js/metronome/comping.js";
 import { createTransport } from "../assets/js/metronome/transport.js";
 import { generateGroove, stepBeat, GROOVE_STYLES, grooveFits, grooveSounds, grooveMeter } from "../assets/js/metronome/groove.js";
 import { generateBass, BASS_STYLES } from "../assets/js/metronome/bassline.js";
@@ -439,4 +439,62 @@ test("the ECM rolled chord spreads its notes low to high", () => {
   assert.ok(ev.length > 1);
   assert.ok(ev.every((e) => e.notes.length === 1));
   ev.forEach((e, i) => i && assert.ok(e.beat > ev[i - 1].beat && e.notes[0] >= ev[i - 1].notes[0]));
+});
+
+test("more rhythms place hits where they should", () => {
+  const at = (style, span = 4, bar = 0) => styleHits(style, span, bar, 4, 0).map((h) => +h.at.toFixed(3));
+  assert.deepEqual(at("dcharleston"), [0, 1.5, 2, 3.5]);
+  assert.deepEqual(at("offbeat"), [0.5, 1.5, 2.5, 3.5]);
+  assert.deepEqual(at("dilla"), [0, 1.75, 3.25]);
+  assert.ok(styleHits("dilla", 4).every((h, i) => (i ? h.late === 0.1 : h.late === 0.04)));
+  assert.deepEqual(at("afro"), [0, 0.667, 1.333, 1.667, 2.333, 3, 3.667]);
+  const gaps = (style, bars, step) => {
+    const all = Array.from({ length: bars }, (_, b) => styleHits(style, 4, b, 4, 0).map((h) => 4 * b + h.at)).flat();
+    all.forEach((b, i) => i && assert.ok(Math.abs(b - all[i - 1] - step) < 1e-9, `${style} gap before ${b}`));
+    return all;
+  };
+  gaps("quint", 10, 1.25);
+  gaps("septet", 14, 1.75);
+  assert.deepEqual(styleHits("quint", 4, 5).map((h) => h.at), styleHits("quint", 4, 0).map((h) => h.at));
+  assert.deepEqual(styleHits("septet", 4, 7).map((h) => h.at), styleHits("septet", 4, 0).map((h) => h.at));
+});
+
+test("every style named in the density tiers exists, and mix modes are listed last", () => {
+  for (const id of DENSITY.flat()) assert.ok(COMP_STYLES.includes(id), id);
+  assert.deepEqual(COMP_STYLES.slice(-MIX_STYLES.length), MIX_STYLES);
+  for (const id of MIX_STYLES) assert.ok(COMP_STYLES.includes(id));
+});
+
+test("arc builds from sparse to busy and breathes at the end, with no randomness", () => {
+  const tierOf = (pb) => DENSITY.findIndex((t) => t.includes(resolveStyle("arc", { pb }).style));
+  assert.deepEqual([0, 1, 2, 3, 4, 5, 6, 7].map(tierOf), [0, 1, 1, 2, 2, 3, 3, 1]);
+  assert.deepEqual([8, 9, 10, 11, 12, 13, 14, 15].map(tierOf), [0, 1, 1, 2, 2, 3, 3, 1]);
+  for (const seed of [1, 99, 12345]) assert.equal(resolveStyle("arc", { pb: 5, seed }).style, resolveStyle("arc", { pb: 5 }).style);
+});
+
+test("cadence: the tonic rests, the minor asks, the dominant leans forward", () => {
+  const pick = (chord, pb = 0) => resolveStyle("cadence", { chord, pb }).style;
+  for (let pb = 0; pb < 8; pb++) {
+    assert.ok(["ecm", "on1", "sustain", "twofeel"].includes(pick("Cmaj7", pb)));
+    assert.ok(["charleston", "latepush", "dcharleston", "twostep"].includes(pick("Dm7", pb)));
+    assert.ok(["push", "anticipate", "latepush", "offbeat"].includes(pick("G7", pb)));
+    assert.ok(["latepush", "twostep", "charleston"].includes(pick("Bm7b5", pb)));
+  }
+});
+
+test("develop states a motif, repeats it, shifts it an eighth later, then thins it", () => {
+  const bars = [0, 1, 2, 3].map((pb) => {
+    const { style, xform } = resolveStyle("develop", { pb, seed: 7 });
+    return { style, hits: xform(styleHits(style, 4, pb, 4, 0), 4) };
+  });
+  assert.equal(new Set(bars.map((b) => b.style)).size, 1, "one motif for the phrase");
+  const base = styleHits(bars[0].style, 4, 1, 4, 0).map((h) => h.at);
+  assert.deepEqual(bars[1].hits.map((h) => h.at), base);
+  assert.ok(bars[2].hits.every((h) => h.at < 4));
+  assert.ok(bars[3].hits.length <= bars[0].hits.length);
+  assert.ok(bars[3].hits.length >= 1);
+  const a = resolveStyle("develop", { pb: 0, seed: 7 }).style;
+  assert.equal(resolveStyle("develop", { pb: 3, seed: 7 }).style, a);
+  const seen = new Set([0, 4, 8, 12, 16, 20].map((pb) => resolveStyle("develop", { pb, seed: 7 }).style));
+  assert.ok(seen.size > 1, "motif changes between phrases");
 });
