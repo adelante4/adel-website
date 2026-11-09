@@ -11,6 +11,7 @@ import { analyze, noteName, keyName } from "./analysis.js";
 import { voiceForm, degreeLabel, guideSemis, handMove } from "./voicing.js";
 import { buildIndex, sharedPieces, shortName } from "./dna.js";
 import { parseChord } from "./chords.js";
+import { detectForm, locate } from "./sections.js?v=20261109d";
 import { playFor, targetFor } from "./scales.js?v=20261109d";
 
 const LENSES = [
@@ -58,7 +59,21 @@ export function fretSvg(v, quality, big = false) {
   return s + "</svg>";
 }
 
-export function createTuneView({ chart, nowNext, lensBar, lensNote, dna, library, loadTune }) {
+const MOVED = { 1: "up a half step", 2: "up a whole step", 3: "up a minor 3rd", 4: "up a major 3rd", 5: "up a 4th", 6: "a tritone away", 7: "down a 4th", 8: "down a major 3rd", 9: "down a minor 3rd", 10: "down a whole step", 11: "down a half step" };
+
+/** What a section chip says when you hover it. */
+function sectionTitle(det, i) {
+  const s = det.sections[i];
+  const firstOfLetter = det.sections.findIndex((x) => x.letter === s.letter);
+  if (s.letter === "Tag") return `A tag: ${s.bars} bars after the last section.`;
+  if (firstOfLetter === i) return `${s.letter}: bars ${s.start + 1} to ${s.start + s.bars}.`;
+  const bits = [`Same changes as the first ${s.letter}`];
+  if (s.shift) bits.push(`${MOVED[s.shift]}`);
+  if (s.prime) bits.push("with a different ending");
+  return `${bits.join(", ")}. Bars ${s.start + 1} to ${s.start + s.bars}.`;
+}
+
+export function createTuneView({ chart, nowNext, lensBar, lensNote, dna, library, loadTune, formStrip, pickBar }) {
   let lens = "chords";
   try {
     const saved = localStorage.getItem("metro-lens");
@@ -92,7 +107,7 @@ export function createTuneView({ chart, nowNext, lensBar, lensNote, dna, library
         chords.push(text);
       });
     });
-    data = { key, form, a, at, chords, voices: null };
+    data = { key, form, a, at, chords, voices: null, det: detectForm(form) };
     return data;
   }
   const voices = (d) => (d.voices ??= voiceForm(d.chords));
@@ -150,7 +165,18 @@ export function createTuneView({ chart, nowNext, lensBar, lensNote, dna, library
   function buildChart(d, sel) {
     return d.form.map((bar, b) => {
       const cell = el("div", "cell");
-      const no = el("span", "no", `Bar ${b + 1}`);
+      const no = el("span", "no");
+      const loc = locate(d.det, b);
+      if (loc) {
+        cell.dataset.tint = String(loc.section.letter === "Tag" ? 1 : "ABCDEFGHIJKLMNOPQRSTUVWXYZ".indexOf(loc.section.letter) % 4);
+        if (b === loc.section.start) {
+          cell.classList.add("sec-start");
+          const tag = el("b", "sec", loc.section.label);
+          tag.title = sectionTitle(d.det, loc.index);
+          no.append(tag);
+        }
+      }
+      no.append(`Bar ${b + 1}`);
       const pair = el("div", "pair");
       bar.forEach((text, k) => {
         const i = d.at[b][k];
@@ -183,7 +209,13 @@ export function createTuneView({ chart, nowNext, lensBar, lensNote, dna, library
     const s = d.a.slots[i];
     const top = el("div", "nn-top");
     top.append(el("span", "nn-role", role === "now" ? "Now" : "Next"));
-    top.append(el("span", "nn-bar", `Bar ${s.bar + 1}${d.form[s.bar].length === 2 ? (s.k ? ", 2nd half" : ", 1st half") : ""}`));
+    const where = locate(d.det, s.bar);
+    const nnBar = el("span", "nn-bar", `Bar ${s.bar + 1}${d.form[s.bar].length === 2 ? (s.k ? ", 2nd half" : ", 1st half") : ""}`);
+    if (where) {
+      const w = where.section;
+      nnBar.append(" · ", el("b", "", w.label), ` ${where.bar}/${w.bars}`);
+    }
+    top.append(nnBar);
     box.append(top);
     box.append(el("div", "nn-chord", d.chords[i]));
     const fn = el("div", "nn-fn");
@@ -288,6 +320,42 @@ export function createTuneView({ chart, nowNext, lensBar, lensNote, dna, library
     dna.replaceChildren(box);
   }
 
+  // ---- the form strip: AABA, one chip a section ----
+  let stripKey = "";
+  let stripChips = [];
+  function renderStrip(d) {
+    if (!formStrip) return;
+    const key = JSON.stringify(d.key);
+    if (key === stripKey) return;
+    stripKey = key;
+    stripChips = [];
+    if (!d.det) {
+      formStrip.hidden = true;
+      formStrip.replaceChildren();
+      return;
+    }
+    formStrip.hidden = false;
+    const name = el("span", "form-name", d.det.kind ?? `Form ${d.det.name}`);
+    const kids = [name];
+    if (d.det.kind) kids.push(el("span", "form-name", d.det.name));
+    d.det.sections.forEach((s, i) => {
+      const b = el("button", "form-chip", s.label);
+      b.type = "button";
+      b.title = sectionTitle(d.det, i);
+      b.setAttribute("aria-label", `${s.letter === "Tag" ? "Tag" : `Section ${s.label}`}, bars ${s.start + 1} to ${s.start + s.bars}. Select its first bar.`);
+      b.append(el("small", "", `${s.start + 1}\u2013${s.start + s.bars}`));
+      b.addEventListener("click", () => pickBar?.(s.start));
+      kids.push(b);
+      stripChips.push(b);
+    });
+    formStrip.replaceChildren(...kids);
+  }
+  /** Mark the section the playhead (or the selected bar) is in. */
+  function paintStrip(d, bar) {
+    const loc = locate(d.det, bar);
+    stripChips.forEach((b, i) => b.setAttribute("aria-pressed", String(!!loc && loc.index === i)));
+  }
+
   // ---- lens switch ----
   const buttons = LENSES.map(([id, name]) => {
     const b = el("button", "seg", name);
@@ -332,6 +400,8 @@ export function createTuneView({ chart, nowNext, lensBar, lensNote, dna, library
       if (!api.playing) current = d.at[Math.min(sel.bar, d.form.length - 1)][Math.min(sel.k, d.form[Math.min(sel.bar, d.form.length - 1)].length - 1)];
       renderNow(d);
       renderDna(d, tuneName);
+      renderStrip(d);
+      paintStrip(d, api.playing ? (d.a.slots[current]?.bar ?? 0) : sel.bar);
     },
     playing: false,
     /** The slot sounding now (or null when stopped), and how far into the bar we are. */
@@ -354,6 +424,7 @@ export function createTuneView({ chart, nowNext, lensBar, lensNote, dna, library
         current = i;
         lap++;
         renderNow(d);
+        paintStrip(d, slot.bar);
       }
       const dot = Math.min(beatDots.length - 1, Math.floor(inBar));
       if (dot !== lastBeat) {

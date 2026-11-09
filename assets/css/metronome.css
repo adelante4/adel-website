@@ -382,3 +382,19 @@ input.bpm:focus-visible, input.bpm-mini:focus-visible { outline: 3px solid var(-
 .nt.ct { opacity: 1; font-weight: 700; }
 .nn-target { margin-top: 6px; font-weight: 700; color: var(--accent); }
 .nn-card.now .nn-target { color: inherit; border-top: 1px solid currentColor; padding-top: 6px; }
+
+/* ---- Song form: A A B A ---- */
+.form-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 8px; }
+.form-strip[hidden] { display: none; }
+.form-name { font-size: 13px; font-weight: 700; margin-right: 4px; }
+.form-chip { border: 1.5px solid var(--ink); background: var(--bg); color: var(--ink); padding: 4px 10px; font: inherit; font-size: 13px; cursor: pointer; min-height: 36px; }
+.form-chip small { margin-left: 6px; font-size: 11px; opacity: 0.7; }
+.form-chip:hover { background: var(--accent); color: var(--ink); }
+.form-chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.form-chip[aria-pressed="true"]:hover { background: var(--ink); color: var(--bg); }
+.cell.sec-start { border-left-width: 6px; }
+.cell[data-tint="1"] { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+.cell[data-tint="2"] { background: color-mix(in srgb, var(--ink) 11%, transparent); }
+.cell[data-tint="3"] { background: color-mix(in srgb, var(--ink) 16%, transparent); }
+.cell .no b.sec { display: inline-block; min-width: 1.5em; padding: 0 4px; margin-right: 6px; text-align: center; background: var(--ink); color: var(--bg); font-weight: 700; }
+.nn-bar b { font-weight: 700; }

@@ -687,6 +687,12 @@ const tuneView = createTuneView({
   lensBar: $("lens"),
   lensNote: $("lens-note"),
   dna: $("dna"),
+  formStrip: $("form-strip"),
+  pickBar: (b) => {
+    sel.bar = Math.min(b, state.harmony.form.length - 1);
+    sel.k = 0;
+    renderAll();
+  },
   library,
   loadTune: (id) => {
     $("preset").value = id;
