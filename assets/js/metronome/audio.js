@@ -26,11 +26,14 @@ const SOUNDS = {
 };
 
 // Recorded hits (Versilian Community Sample Library, CC0). Each voice has three files.
-import { rhodes, bass, bassSynth, organ, pad, juno, drone, glass, supersaw, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261109d";
-import { createSampler } from "./sampler.js?v=20261109d";
-import { KEYS, BASSES, trimOf, drumTrim, drumLevel } from "./instruments.js?v=20261109d";
+import { rhodes, bass, bassSynth, deadNote, softClip, organ, pad, juno, drone, glass, supersaw, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261109e";
+import { createSampler } from "./sampler.js?v=20261109e";
+import { KEYS, BASSES, trimOf, drumTrim, drumLevel } from "./instruments.js?v=20261109e";
 
 const SYNTH_KEYS = new Set(["rhodes", "organ", "pad", "juno", "drone", "glass", "supersaw"]);
+// Bass bus voicing; the makeup keeps the level where the per-sound trims were measured.
+const BASS_MAKEUP = 0.37; // the compressor adds about 8.7 dB of its own makeup
+const BASS_HARMONICS = 0.3;
 const SYNTH_BASS = new Set(["round", "moog", "sub", "reese", "acid", "fmbass", "dub"]);
 const SAMPLE_VOICES = ["woodblock", "claves", "log", "frame", "brake"];
 const FILE = { woodblock: "wood", claves: "claves", log: "log", frame: "frame", brake: "brake" };
@@ -194,8 +197,36 @@ export function createAudio(options = {}) {
       chordSend.gain.value = 0.22;
       chordTone.connect(chordSend);
       chordSend.connect(reverbIn);
+      // Bass: the level control, then a gentle compressor so the notes sit even, plus a copy of the low end
+      // pushed into soft clipping and filtered to the upper harmonics, so a small speaker can hear the pitch.
       const bassBus = ctx.createGain();
-      bassBus.connect(run);
+      const bassHp = ctx.createBiquadFilter();
+      bassHp.type = "highpass";
+      bassHp.frequency.value = 30;
+      const bassComp = ctx.createDynamicsCompressor();
+      bassComp.threshold.value = -24;
+      bassComp.knee.value = 14;
+      bassComp.ratio.value = 3;
+      bassComp.attack.value = 0.008;
+      bassComp.release.value = 0.16;
+      const bassMake = ctx.createGain();
+      bassMake.gain.value = BASS_MAKEUP;
+      bassBus.connect(bassHp);
+      bassHp.connect(bassComp);
+      bassComp.connect(bassMake);
+      bassMake.connect(run);
+      const harmLo = ctx.createBiquadFilter();
+      harmLo.type = "lowpass";
+      harmLo.frequency.value = 260;
+      const harmHi = ctx.createBiquadFilter();
+      harmHi.type = "highpass";
+      harmHi.frequency.value = 220;
+      const harmGain = ctx.createGain();
+      harmGain.gain.value = BASS_HARMONICS;
+      bassHp.connect(harmLo);
+      harmLo.connect(softClip(ctx, 9)).connect(harmHi);
+      harmHi.connect(harmGain);
+      harmGain.connect(bassMake);
       const grooveBus = ctx.createGain();
       grooveBus.connect(run);
       const grooveSend = ctx.createGain();
@@ -287,11 +318,31 @@ export function createAudio(options = {}) {
       }
       rhodes(ctx, out, when, notes, seconds, gain);
     },
-    bass(run, when, midi, seconds, gain, id = "round") {
-      const out = via(run, "bass", trimOf(BASSES, id));
-      if (SYNTH_BASS.has(id)) return bassSynth(ctx, out, when, midi, seconds, gain, id);
-      if (sampler.note(id, out, when, midi, seconds, gain * (id === "doublebass" ? 1.7 : 1.1))) return;
-      bassSynth(ctx, via(run, "bass", trimOf(BASSES, "round")), when, midi, seconds, gain, "round");
+    /**
+     * One bass note. A bass plays one note at a time, so a new note cuts the one before it a hair after it starts;
+     * a muted ("dead") note is a short thud on any sound; soft notes are darker than hard ones; and `art` bends
+     * the pitch ("slide" up into the note, "fall" away at the end) on the recorded basses.
+     */
+    bass(run, when, midi, seconds, gain, id = "round", art) {
+      const trim = trimOf(BASSES, id);
+      const voice = ctx.createGain();
+      const tone = ctx.createBiquadFilter();
+      tone.type = "lowpass";
+      tone.frequency.value = Math.min(9000, 500 + 8000 * Math.pow(Math.min(1, gain), 1.6));
+      tone.Q.value = 0.5;
+      voice.connect(tone);
+      tone.connect(via(run, "bass", art === "dead" ? trimOf(BASSES, "round") : trim));
+      const prev = run.lastBass;
+      if (prev && prev.until > when) {
+        prev.voice.gain.setValueAtTime(1, Math.max(prev.when, when - 0.004));
+        prev.voice.gain.linearRampToValueAtTime(0, when + 0.02);
+      }
+      run.lastBass = { voice, when, until: when + (art === "dead" ? 0.1 : seconds + 0.3) };
+      if (art === "dead") return deadNote(ctx, voice, when, midi, gain);
+      if (SYNTH_BASS.has(id)) return bassSynth(ctx, voice, when, midi, seconds, gain, id);
+      const opts = { rel: 0.04 + seconds * 0.35, slide: art === "slide" ? 2 : 0, fall: art === "fall" ? 3 : 0 };
+      if (sampler.note(id, voice, when, midi, seconds, gain * (id === "doublebass" ? 1.7 : 1.1), 1, opts)) return;
+      bassSynth(ctx, voice, when, midi, seconds, gain, "round");
     },
     drum(run, when, voice, gain, style, kit = "synth") {
       const out = via(run, "groove", drumTrim(kit, style));

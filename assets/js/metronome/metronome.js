@@ -4,26 +4,26 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261109d";
-import { createTransport } from "./transport.js?v=20261109d";
-import { barPlays } from "./overlay.js?v=20261109d";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261109d";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261109d";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261109d";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261109d";
-import { COMP_STYLES } from "./comping.js?v=20261109d";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits, grooveMeter } from "./groove.js?v=20261109d";
-import { BASS_STYLES, BASS_STYLE_NAMES } from "./bassline.js?v=20261109d";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261109d";
-import { BAND_STYLES } from "./bands.js?v=20261109d";
-import { createTuneView } from "./tune.js?v=20261109d";
-import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261109d";
-import { initRooms } from "./rooms.js?v=20261109d";
-import { initOffline, holdScreen, releaseScreen } from "./offline.js?v=20261109d";
-import { initExport } from "./export.js?v=20261109d";
-import { TOP_100 } from "./top100.js?v=20261109d";
-import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261109d";
-import { MAX_FORM_BARS } from "./share.js?v=20261109d";
+import { createAudio } from "./audio.js?v=20261109e";
+import { createTransport } from "./transport.js?v=20261109e";
+import { barPlays } from "./overlay.js?v=20261109e";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261109e";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261109e";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261109e";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261109e";
+import { COMP_STYLES } from "./comping.js?v=20261109e";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits, grooveMeter } from "./groove.js?v=20261109e";
+import { BASS_STYLES, BASS_STYLE_NAMES, BASS_STYLE_NOTES } from "./bassline.js?v=20261109e";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261109e";
+import { BAND_STYLES } from "./bands.js?v=20261109e";
+import { createTuneView } from "./tune.js?v=20261109e";
+import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261109e";
+import { initRooms } from "./rooms.js?v=20261109e";
+import { initOffline, holdScreen, releaseScreen } from "./offline.js?v=20261109e";
+import { initExport } from "./export.js?v=20261109e";
+import { TOP_100 } from "./top100.js?v=20261109e";
+import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261109e";
+import { MAX_FORM_BARS } from "./share.js?v=20261109e";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -86,7 +86,7 @@ function tick() {
   }
   for (const e of bass) {
     if (e.time < now - 0.03) continue;
-    audio.bass(run, Math.max(e.time, now), e.midi, e.seconds, e.gain, state.bass.sound);
+    audio.bass(run, Math.max(e.time, now), e.midi, e.seconds, e.gain, state.bass.sound, e.art);
   }
   for (const e of drums) {
     if (e.time < now - 0.03) continue;
@@ -438,15 +438,6 @@ const COMP_NOTES = {
   develop: "No dice in the bars. A motif, then the same again, then shifted an eighth later, then thinned out.",
 };
 const COMP_LABELS = { sustain: "Sustain", on1: "On 1", charleston: "Charleston", push: "Push", twofeel: "Two-feel", bossa: "Bossa", arp: "Arpeggio", freddie: "Freddie", latepush: "Late push", anticipate: "Anticipate", bossaclave: "Bossa clave", rumba: "Rumba", ecm: "ECM ballad", twostep: "2-step", hama1: "3+3+3+3+2+2", hama2: "3+3+2+3+3+2", groups: "Groups", hemiola: "Hemiola", dcharleston: "Charleston x2", offbeat: "Offbeat", dilla: "Behind", afro: "Afro bell", quint: "5 over 4", septet: "7 over 4", mixed: "Mixed", arc: "Arc", cadence: "Cadence", develop: "Develop" };
-const BASS_NOTES = {
-  roots: "The root, held for the whole chord.",
-  twofeel: "Root on 1, fifth on 3.",
-  walking: "Four notes a bar: the root, chord tones, and a half step into the next chord.",
-  lofi: "The root on 1, with a short octave and fifth pickup.",
-  bossa: "Root and fifth in the bossa pattern.",
-  funk: "A short riff locked to the kick: a loud one, space, muted ghost notes, and a pickup into the next chord.",
-  sub: "Long deep notes, with an occasional re-hit.",
-};
 const sel = { bar: 0, k: 0 }; // the chord being edited (display only, not saved)
 
 let warming = 0;
@@ -496,7 +487,7 @@ function renderHarmony() {
     state.bass.style = v;
     commit();
   })(b.style);
-  $("bass-style-note").textContent = BASS_NOTES[b.style];
+  $("bass-style-note").textContent = BASS_STYLE_NOTES[b.style];
 
   makeSeg($("groove"), GROOVE_STYLES.map((x) => [x, GROOVE_NAMES[x]]), (v) => {
     state.groove.style = v;

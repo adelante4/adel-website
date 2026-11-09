@@ -88,7 +88,7 @@ export function createSampler(ctx) {
       return Boolean(k && k.voices[voice]);
     },
     /** Returns false if the instrument is not loaded, so the caller can use a synth. */
-    note(id, dest, when, midi, seconds, gain, trim = 1) {
+    note(id, dest, when, midi, seconds, gain, trim = 1, opts = {}) {
       const inst = get("inst", id);
       if (!inst) return false;
       const lo = inst.notes[0].midi;
@@ -100,10 +100,20 @@ export function createSampler(ctx) {
       for (const n of inst.notes) if (Math.abs(n.midi - m) < Math.abs(best.midi - m)) best = n;
       const src = ctx.createBufferSource();
       src.buffer = best.buffer;
-      src.playbackRate.value = Math.pow(2, (m - best.midi) / 12);
+      const rate = Math.pow(2, (m - best.midi) / 12);
       const g = ctx.createGain();
-      const release = inst.man.release ?? 0.2;
+      // Short notes release faster, so a run of them does not smear. opts.rel caps the release.
+      const release = Math.min(inst.man.release ?? 0.2, opts.rel ?? 9);
       const hold = Math.max(0.08, seconds);
+      if (opts.slide) {
+        // Glides up into the note from below.
+        src.playbackRate.setValueAtTime(rate * Math.pow(2, -opts.slide / 12), when);
+        src.playbackRate.exponentialRampToValueAtTime(rate, when + 0.07);
+      } else if (opts.fall) {
+        // The pitch sags away over the end of the note.
+        src.playbackRate.setValueAtTime(rate, when + hold * 0.55);
+        src.playbackRate.exponentialRampToValueAtTime(rate * Math.pow(2, -opts.fall / 12), when + hold + release);
+      } else src.playbackRate.value = rate;
       const level = Math.max(0.0002, gain * trim);
       g.gain.setValueAtTime(0.0001, when);
       g.gain.exponentialRampToValueAtTime(level, when + 0.003);

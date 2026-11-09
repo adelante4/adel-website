@@ -2,7 +2,7 @@
 //
 // Every function takes the audio context, a destination node, and a start time, builds a few
 // short-lived nodes, and lets them clean up after themselves. Nothing here keeps state.
-import { midiToHz } from "./chords.js?v=20261109d";
+import { midiToHz } from "./chords.js?v=20261109e";
 
 /** One second of white noise, shared by all drum voices. */
 export function makeNoise(ctx, seconds = 2) {
@@ -132,12 +132,43 @@ export function rhodes(ctx, dest, when, midis, seconds, gain) {
 
 /** A round, short bass note. */
 /** A soft clipper: adds the upper harmonics that let a low note be heard on a small speaker. */
-function softClip(ctx, drive) {
+export function softClip(ctx, drive) {
   const shaper = ctx.createWaveShaper();
   const curve = new Float32Array(513);
   for (let i = 0; i < 513; i++) curve[i] = Math.tanh(((i - 256) / 256) * drive);
   shaper.curve = curve;
   return shaper;
+}
+
+/**
+ * A muted, dead note (a ghost): the sound of a left-hand mute and a right-hand pluck. A short thud with the
+ * pitch hinted, not a note. Used for every bass sound, because a recorded long note cannot be made this short.
+ */
+export function deadNote(ctx, dest, when, midi, gain) {
+  const f = midiToHz(midi);
+  const lp = ctx.createBiquadFilter();
+  lp.type = "lowpass";
+  lp.frequency.setValueAtTime(520, when);
+  lp.frequency.exponentialRampToValueAtTime(180, when + 0.07);
+  lp.Q.value = 0.8;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.0001, when);
+  g.gain.exponentialRampToValueAtTime(Math.max(0.0002, 0.9 * gain), when + 0.003);
+  g.gain.exponentialRampToValueAtTime(0.0001, when + 0.085);
+  [["triangle", f * 1.03, 1], ["sine", f * 2, 0.35]].forEach(([type, hz, level]) => {
+    const o = ctx.createOscillator();
+    const og = ctx.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(hz, when);
+    o.frequency.exponentialRampToValueAtTime(hz * 0.93, when + 0.07);
+    og.gain.value = level;
+    o.connect(og);
+    og.connect(lp);
+    o.start(when);
+    o.stop(when + 0.1);
+  });
+  lp.connect(g);
+  g.connect(dest);
 }
 
 /** A warm synth bass: a triangle with its octave and fifth, lightly driven. Audible on a phone. */

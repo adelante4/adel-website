@@ -498,3 +498,73 @@ test("develop states a motif, repeats it, shifts it an eighth later, then thins 
   const seen = new Set([0, 4, 8, 12, 16, 20].map((pb) => resolveStyle("develop", { pb, seed: 7 }).style));
   assert.ok(seen.size > 1, "motif changes between phrases");
 });
+
+test("bass: styles are all named and described", async () => {
+  const { BASS_STYLE_NAMES, BASS_STYLE_NOTES } = await import("../assets/js/metronome/bassline.js");
+  assert.ok(BASS_STYLES.length >= 20);
+  assert.equal(new Set(BASS_STYLES).size, BASS_STYLES.length);
+  for (const s of BASS_STYLES) {
+    assert.ok(BASS_STYLE_NAMES[s] && BASS_STYLE_NOTES[s], s);
+    assert.ok(BASS_STYLE_NOTES[s].length > 20, s);
+  }
+});
+
+test("bass: a bar with two chords puts each chord's root on its own change, in every style that plays the beat", () => {
+  const form = { form: [["Dm7", "G7"], ["Cmaj7"], ["Cm7", "F7"], ["Bbmaj7"]] };
+  for (const style of ["walking", "walkghost", "funk", "bossa", "soul", "lofi", "neosoul", "vamp", "roots", "twofeel", "boogie", "arp", "ballad"]) {
+    for (const seed of [1, 2, 3]) {
+      const ev = generateBass({ style }, form, { ...pattern, seed }, practice(), 0, 16);
+      for (const [beat, pc] of [[0, 2], [2, 7], [8, 0], [10, 5]]) {
+        const hit = ev.find((e) => Math.abs(e.beat - beat) < 0.2 && e.art !== "dead");
+        assert.ok(hit, `${style} seed ${seed}: nothing at ${beat}`);
+        assert.equal(hit.midi % 12, pc, `${style} seed ${seed} beat ${beat}: ${hit.midi}`);
+      }
+    }
+  }
+});
+
+test("bass: walking through two chords in a bar steps into each change", () => {
+  const form = { form: [["Dm7", "G7"], ["Cmaj7", "A7"], ["Dm7", "G7"], ["Cmaj7"]] };
+  for (const seed of [1, 2, 3, 4]) {
+    for (const style of ["walking", "walkghost"]) {
+      const ev = generateBass({ style }, form, { ...pattern, seed }, practice(), 0, 16).filter((e) => e.art !== "dead");
+      for (const [i, j] of [[1, 2], [3, 4], [5, 6], [7, 8]]) {
+        const a = ev.find((e) => Math.abs(e.beat - i) < 0.01);
+        const b = ev.find((e) => Math.abs(e.beat - j) < 0.01);
+        assert.equal(Math.abs(a.midi - b.midi), 1, `${style} seed ${seed}: ${a.midi} -> ${b.midi}`);
+      }
+      const leaps = ev.slice(1).map((e, k) => Math.abs(e.midi - ev[k].midi));
+      assert.ok(Math.max(...leaps) <= 7, `max leap ${Math.max(...leaps)}`);
+    }
+  }
+});
+
+test("bass: funk keeps one riff across a split bar and marks ghost notes as dead", () => {
+  const split = { form: [["Dm7", "G7"], ["Cmaj7"]] };
+  const whole = { form: [["Dm7"], ["Cmaj7"]] };
+  const a = generateBass({ style: "funk" }, split, pattern, practice(), 0, 8);
+  const b = generateBass({ style: "funk" }, whole, pattern, practice(), 0, 8);
+  // The same rhythm in the first bar, whether the bar holds one chord or two.
+  const rhythm = (ev) => ev.filter((e) => e.bar === 0 && Math.abs(e.beat - 2) > 0.2).map((e) => e.beat);
+  const drop = (ev) => rhythm(ev).filter((x) => x < 1.4 || x > 2.3);
+  assert.deepEqual(drop(a), drop(b));
+  const ghosts = a.filter((e) => e.art === "dead");
+  assert.ok(ghosts.length >= 2);
+  assert.ok(ghosts.every((e) => e.dur < 0.2 && e.gain < 0.6));
+  // One loud one per bar: the downbeat is the loudest note.
+  assert.ok(a.find((e) => e.beat === 0).gain >= 0.9);
+});
+
+test("bass: odd meters keep notes inside the bar", () => {
+  const form = { form: [["Dm7", "G7"], ["Cmaj7"], ["Am7"], ["D7", "G7"]] };
+  for (const beats of [3, 5, 6, 7]) {
+    for (const style of BASS_STYLES) {
+      const cfg = { ...pattern, beats };
+      const ev = generateBass({ style }, form, cfg, practice(), 0, beats * 8);
+      assert.ok(ev.length > 0, `${style} ${beats}`);
+      for (const e of ev) {
+        assert.ok(e.beat >= e.bar * beats - 0.05 && e.beat < (e.bar + 1) * beats + 0.0001, `${style} ${beats}: ${e.beat} in bar ${e.bar}`);
+      }
+    }
+  }
+});
