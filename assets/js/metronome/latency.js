@@ -8,7 +8,7 @@
 // so a booming room or a thin speaker does not smear the peak. It runs on a slowed-down copy of the signal
 // (a quarter of the sample rate), which is plenty for a result good to a tenth of a millisecond.
 // Pure code, no Web Audio.
-import { createFFT } from "./fft.js?v=20261109e";
+import { createFFT } from "./fft.js?v=20261111a";
 
 /**
  * @param {{rate:number, maxDelay?:number, decim?:number, size?:number, near?:number|null}} o

@@ -3,7 +3,7 @@
 // This is the McLeod pitch method: a normalised autocorrelation whose first strong peak marks the
 // period. It is made for single notes. A chord gives a low "clarity" and is reported as no pitch.
 // Picking the first strong peak, not the highest, keeps it from answering an octave or a twelfth low.
-import { createFFT, nextPow2 } from "./fft.js?v=20261109e";
+import { createFFT, nextPow2 } from "./fft.js?v=20261111a";
 
 const ffts = new Map();
 const fftFor = (n) => {

@@ -12,8 +12,8 @@
 <meta name="apple-mobile-web-app-title" content="Metronome">
 <meta name="description" content="A practice metronome with odd meters, swing, chance, gap trainer and tempo ladder. Runs in the browser.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="assets/css/site.css?v=20261109e">
-<link rel="stylesheet" href="assets/css/metronome.css?v=20261109e">
+<link rel="stylesheet" href="assets/css/site.css?v=20261111a">
+<link rel="stylesheet" href="assets/css/metronome.css?v=20261111a">
 </head>
 <body>
 <div class="moire soft" aria-hidden="true"><i></i><i></i></div>
@@ -232,6 +232,29 @@
       </div>
     </section>
 
+    <section class="block" id="listen" aria-labelledby="h-listen">
+      <h2 id="h-listen">Listen</h2>
+      <p class="lede">Turn the microphone on and play along. The page times every note against the band and, when you stop, tells you where you sit and what to practise next.</p>
+      <div class="row">
+        <button class="btn" id="listen-mic" type="button" aria-pressed="false">Turn microphone on</button>
+        <button class="btn" id="listen-measure" type="button">Measure the delay</button>
+      </div>
+      <progress id="listen-meter" value="0" max="1" aria-label="Microphone level"></progress>
+      <p class="note" id="listen-status" role="status" aria-live="polite"></p>
+      <p class="note" id="listen-delay"></p>
+      <p class="note" id="listen-live" aria-live="off"></p>
+      <div class="listen-report" id="listen-report" hidden></div>
+      <details class="more" id="more-listen">
+        <summary>How it listens, and what it compares you with</summary>
+        <div class="listen-about">
+          <p class="note">The sound stays on this device. Nothing is recorded, stored or sent. Only the numbers of each take are kept, in this browser.</p>
+          <p class="note">Headphones, or a guitar plugged into an audio interface, give the most exact numbers: note starts are placed to about a millisecond. With speakers, the page subtracts its own band from the microphone first. That works, but soft notes under a loud band can be missed.</p>
+          <p class="note">Sound takes time to leave the page and come back through the microphone. That delay has to be known before "ahead" or "behind" means anything. With speakers it is measured from the band as it plays. With headphones, press Measure and hold one earcup against the microphone.</p>
+          <p class="note">The report uses the measures from research on recorded jazz solos: how late the first eighth of each beat is, whether the second eighth stays with the band, and the ratio between the two. It tells you what players on records do and what teachers ask for. It does not give marks.</p>
+        </div>
+      </details>
+    </section>
+
     <section class="block" id="tune" aria-labelledby="h-tune">
       <h2 id="h-tune">Tune</h2>
       <p class="lede">The chords the band follows. Pick a tune, or write your own.</p>
@@ -350,6 +373,6 @@
     <button class="btn" id="tap" type="button">Tap</button>
   </div>
 </div>
-<script type="module" src="assets/js/metronome/metronome.js?v=20261109e"></script>
+<script type="module" src="assets/js/metronome/metronome.js?v=20261111a"></script>
 </body>
 </html>

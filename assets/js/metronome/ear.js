@@ -15,10 +15,10 @@
 //   4. A start that the band's own signal explains (a drum hit that was not fully removed) is dropped.
 //   5. The pitch is read from the cleaned waveform just after the start (pitch.js).
 // Pure code, no Web Audio, so all of it is tested under Node with synthetic guitars and rooms.
-import { createFFT, hann } from "./fft.js?v=20261109e";
-import { createEchoModel } from "./echo.js?v=20261109e";
-import { createDelayTracker } from "./latency.js?v=20261109e";
-import { detectPitch, hzToMidi } from "./pitch.js?v=20261109e";
+import { createFFT, hann } from "./fft.js?v=20261111a";
+import { createEchoModel } from "./echo.js?v=20261111a";
+import { createDelayTracker } from "./latency.js?v=20261111a";
+import { detectPitch, hzToMidi } from "./pitch.js?v=20261111a";
 
 const db = (x) => 10 * Math.log10(Math.max(x, 1e-20));
 
@@ -26,7 +26,7 @@ const db = (x) => 10 * Math.log10(Math.max(x, 1e-20));
  * @param {{rate:number, delay?:number|null, onDelay?:(r:object)=>void}} o
  *   delay: the round trip in seconds when already measured. The ear keeps checking it against what it hears.
  */
-export function createEar({ rate, size = 1024, hop = 256, delay = null, minGap = 0.05, sensitivity = 1, probe = null } = {}) {
+export function createEar({ rate, size = 1024, hop = 256, delay = null, hint = null, minGap = 0.05, sensitivity = 1, probe = null } = {}) {
   const fft = createFFT(size);
   const win = hann(size);
   const half = size >> 1;
@@ -35,7 +35,9 @@ export function createEar({ rate, size = 1024, hop = 256, delay = null, minGap =
   const kHi = Math.min(half - 1, Math.floor(8000 / binHz));
   const canceller = createEchoModel({ rate });
   const PART = canceller.part;
-  let tracker = createDelayTracker({ rate, near: delay });
+  // hint: a delay measured earlier. It is not trusted, but the search stays near it, so a band that repeats
+  // every beat cannot be read one beat off.
+  let tracker = createDelayTracker({ rate, near: delay ?? hint });
   let roundTrip = delay; // seconds, or null when unknown
   let refShift = delay === null ? null : Math.max(0, Math.round(delay * rate) - Math.round(0.002 * rate));
   let cancelling = delay !== null;
@@ -100,6 +102,8 @@ export function createEar({ rate, size = 1024, hop = 256, delay = null, minGap =
   let levelDb = -90;
   const ratios = new Float64Array(96);
   const levels = new Float64Array(96);
+  let rawLeak = 0.1;
+  let rawLevel = 0.1;
   let leakLevel = 0.4; // the same for loudness over the first 30 ms
   let echoRise = 0;
   let ratioN = 0;
@@ -410,9 +414,14 @@ export function createEar({ rate, size = 1024, hop = 256, delay = null, minGap =
     const part = (arr, q) => Array.from(arr.subarray(0, n)).sort((x, y) => x - y)[Math.floor(n * q)];
     // A note has to stand clear of the leftovers: well above the usual ones, and never below a fixed share of
     // the band hit itself, so a hit that happens to cancel badly is still not a note.
-    leak = Math.min(0.7, Math.max(0.12, 4 * part(ratios, 0.35)));
-    // Loudness is judged at the quietest hits: with a guitar sustaining, the rest are mostly guitar.
-    leakLevel = Math.min(0.6, Math.max(0.2, 4 * part(levels, 0.12)));
+    // The usual leftover is read from the cleanest hits. When you play on every beat, most hits have a guitar
+    // note on top and look large; so the estimate may fall at once but only creep up, and what was learned
+    // in the count-in or in a rest is kept.
+    const rise = (old, now) => (now < old ? now : Math.min(now, old * 1.01));
+    rawLeak = ratioN === 1 ? part(ratios, 0.2) : rise(rawLeak, part(ratios, 0.2));
+    rawLevel = ratioN === 1 ? part(levels, 0.12) : rise(rawLevel, part(levels, 0.12));
+    leak = Math.min(0.7, Math.max(0.12, 4 * rawLeak));
+    leakLevel = Math.min(0.6, Math.max(0.2, 4 * rawLevel));
   }
 
   function settle() {
@@ -424,15 +433,22 @@ export function createEar({ rate, size = 1024, hop = 256, delay = null, minGap =
       if (r.sample - lastOnsetSample < minGap * rate) continue;
       // A start that could not be placed exactly needs stronger evidence to count as a note at all.
       // With speakers: a start with no click of its own, right where the band hits, is the band.
+      // The same for a start that does have a click, but is far quieter than your notes have been.
       let onHit = false;
-      if (cancelling && !r.precise) for (let j = c.f - 3; j <= c.f + 3; j++) if (yOdf[(j + H) % H] > 0.05 * echoRise) onHit = true;
+      if (cancelling) {
+        let near = false;
+        for (let j = c.f - 3; j <= c.f + 3; j++) if (yOdf[(j + H) % H] > 0.05 * echoRise) near = true;
+        const usual = loud.length >= 8 ? [...loud].sort((x, y) => x - y)[loud.length >> 1] : -Infinity;
+        onHit = near && (!r.precise || r.level < usual - 10);
+      }
       if (r.level < noiseDb + 9 || (!r.precise && c.strength < 2.0) || r.masked || onHit) {
         stats.dropped++;
         continue;
       }
       if (loud.length >= 8) {
         const top = [...loud].sort((x, y) => y - x)[Math.floor(loud.length * 0.1)];
-        if (r.level < top - 32) {
+        // Far below your loud notes it is not a note; without a click of its own, the bar is higher still.
+        if (r.level < top - (r.precise ? 26 : 18)) {
           stats.dropped++;
           continue;
         }

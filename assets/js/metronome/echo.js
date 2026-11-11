@@ -24,7 +24,7 @@
 // (In the literature: an overlap-save, constrained frequency-domain adaptive filter, with Polyak-Ruppert
 // averaging of the iterates.)
 // Pure code, no Web Audio.
-import { createFFT, nextPow2 } from "./fft.js?v=20261109e";
+import { createFFT, nextPow2 } from "./fft.js?v=20261111a";
 
 /**
  * @param {{rate:number, tail?:number, part?:number}} o

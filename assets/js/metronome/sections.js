@@ -5,8 +5,8 @@
 // their bars match, and treat the last two bars as free, because the usual difference between two A sections
 // is the ending (a turnaround the first time, a resolution the last). A section that matches but ends
 // differently gets a prime: A, A′.
-import { parseChord } from "./chords.js?v=20261109e";
-import { classOf } from "./analysis.js?v=20261109e";
+import { parseChord } from "./chords.js?v=20261111a";
+import { classOf } from "./analysis.js?v=20261111a";
 
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 /** Section lengths to try, in order. The first one whose parts repeat wins; long forms try 16 first. */

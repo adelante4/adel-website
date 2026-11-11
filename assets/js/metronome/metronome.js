@@ -4,26 +4,27 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261109e";
-import { createTransport } from "./transport.js?v=20261109e";
-import { barPlays } from "./overlay.js?v=20261109e";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261109e";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261109e";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261109e";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261109e";
-import { COMP_STYLES } from "./comping.js?v=20261109e";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits, grooveMeter } from "./groove.js?v=20261109e";
-import { BASS_STYLES, BASS_STYLE_NAMES, BASS_STYLE_NOTES } from "./bassline.js?v=20261109e";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261109e";
-import { BAND_STYLES } from "./bands.js?v=20261109e";
-import { createTuneView } from "./tune.js?v=20261109e";
-import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261109e";
-import { initRooms } from "./rooms.js?v=20261109e";
-import { initOffline, holdScreen, releaseScreen } from "./offline.js?v=20261109e";
-import { initExport } from "./export.js?v=20261109e";
-import { TOP_100 } from "./top100.js?v=20261109e";
-import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261109e";
-import { MAX_FORM_BARS } from "./share.js?v=20261109e";
+import { createAudio } from "./audio.js?v=20261111a";
+import { createTransport } from "./transport.js?v=20261111a";
+import { barPlays } from "./overlay.js?v=20261111a";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261111a";
+import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261111a";
+import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261111a";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261111a";
+import { COMP_STYLES } from "./comping.js?v=20261111a";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits, grooveMeter } from "./groove.js?v=20261111a";
+import { BASS_STYLES, BASS_STYLE_NAMES, BASS_STYLE_NOTES } from "./bassline.js?v=20261111a";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261111a";
+import { BAND_STYLES } from "./bands.js?v=20261111a";
+import { createTuneView } from "./tune.js?v=20261111a";
+import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261111a";
+import { initRooms } from "./rooms.js?v=20261111a";
+import { initOffline, holdScreen, releaseScreen } from "./offline.js?v=20261111a";
+import { initExport } from "./export.js?v=20261111a";
+import { initListen } from "./listen.js?v=20261111a";
+import { TOP_100 } from "./top100.js?v=20261111a";
+import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261111a";
+import { MAX_FORM_BARS } from "./share.js?v=20261111a";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -107,6 +108,7 @@ async function start() {
   run = audio.createRun(state.mix);
   run.setDust(state.groove.dust, state.mix.groove);
   transport.start(audio.ctx.currentTime, 0.08);
+  listen?.onStart();
   timer = setInterval(tick, 25);
   tick();
   setPlaying(true);
@@ -115,6 +117,7 @@ async function start() {
 }
 
 function stop() {
+  listen?.onStop();
   clearInterval(timer);
   timer = null;
   cancelAnimationFrame(raf);
@@ -691,6 +694,15 @@ const tuneView = createTuneView({
     notice("Loaded.");
   },
 });
+// A drill from the Listen report: a few settings laid over the current ones.
+function applyPatch(patch) {
+  for (const key of Object.keys(patch)) state[key] = { ...state[key], ...patch[key] };
+  commit("restart");
+  renderEverything();
+}
+var listen = initListen({ audio, transport, getState: () => state, applyPatch, notice });
+// For the listening bench (tools/listen-live.cjs): a way in for a simulated player. Only with ?bench in the address.
+if (new URLSearchParams(location.search).has("bench")) window.__bench = { audio, transport, listen, getState: () => state, applyPatch };
 const rooms = initRooms({ getState: () => state, commit, getTuneName: () => tuneName });
 
 // ---- wiring ----

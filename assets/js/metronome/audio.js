@@ -26,9 +26,9 @@ const SOUNDS = {
 };
 
 // Recorded hits (Versilian Community Sample Library, CC0). Each voice has three files.
-import { rhodes, bass, bassSynth, deadNote, softClip, organ, pad, juno, drone, glass, supersaw, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261109e";
-import { createSampler } from "./sampler.js?v=20261109e";
-import { KEYS, BASSES, trimOf, drumTrim, drumLevel } from "./instruments.js?v=20261109e";
+import { rhodes, bass, bassSynth, deadNote, softClip, organ, pad, juno, drone, glass, supersaw, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261111a";
+import { createSampler } from "./sampler.js?v=20261111a";
+import { KEYS, BASSES, trimOf, drumTrim, drumLevel } from "./instruments.js?v=20261111a";
 
 const SYNTH_KEYS = new Set(["rhodes", "organ", "pad", "juno", "drone", "glass", "supersaw"]);
 // Bass bus voicing; the makeup keeps the level where the per-sound trims were measured.
@@ -44,6 +44,8 @@ const SAMPLE_DIR = new URL("../../audio/clicks/", import.meta.url);
 export function createAudio(options = {}) {
   let ctx = null;
   let master = null;
+  let output = null; // the last node before the speakers: what a listener compares the microphone with
+  let recording = false;
   let reverbIn = null;
   let noise = null;
   let dustBuf = null;
@@ -72,7 +74,7 @@ export function createAudio(options = {}) {
   let keepAlive = null;
   function unlockSilentSwitch() {
     try {
-      if (navigator.audioSession) navigator.audioSession.type = "playback";
+      if (navigator.audioSession) navigator.audioSession.type = recording ? "play-and-record" : "playback";
     } catch {}
     try {
       if (!keepAlive) {
@@ -131,6 +133,7 @@ export function createAudio(options = {}) {
     master.connect(comp);
     comp.connect(limiter);
     limiter.connect(ctx.destination);
+    output = limiter;
     // A small room shared by the piano and the drums.
     reverbIn = ctx.createGain();
     const room = ctx.createConvolver();
@@ -149,6 +152,18 @@ export function createAudio(options = {}) {
     ensure,
     get ctx() {
       return ctx;
+    },
+    /** The node that feeds the speakers. */
+    get output() {
+      ensure();
+      return output;
+    },
+    /** Tell the phone the microphone is in use, so it keeps playing through the speaker while recording. */
+    setRecording(on) {
+      recording = on;
+      try {
+        if (navigator.audioSession) navigator.audioSession.type = on ? "play-and-record" : "playback";
+      } catch {}
     },
     /** Must be called from a click or key press the first time. */
     async resume() {

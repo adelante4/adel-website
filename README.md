@@ -80,3 +80,38 @@ Choosing 5/4 jazz, 5/8, 7/8 (2+2+3 or 3+2+2), 9/8, 11/8, Teental (16), Rupak (7)
 
 - **Intensity** (Drums panel): 0.5 is the groove as written. Lower drops ghost notes and subdivisions; higher adds ghost notes, louder hits and more frequent fills. **Fills** are written-out drum fills (a crescendo of snare hits, sometimes with a kick) at the end of every fourth bar, landing on the next downbeat with an open hat and kick (every second above 0.75), now also for the triplet grooves (jazz, shuffle, brushes). **Pocket feel** puts the bass about 10 ms behind the beat, chords 4 ms, snare 5 ms, ride 5 ms ahead.
 - **Scales lens** (Tune room): the scale for each chord, its arpeggio, and a random tone to land on in the Now and Next cards. A dominant that falls to a minor chord gets the altered scale, a major chord on IV gets Lydian, vi gets Aeolian, iii Phrygian.
+
+## Listen: the pocket coach
+
+Turn the microphone on in the Listen section and play along. The page finds every note you play, times it against the band, and reports when you stop. Nothing is recorded or sent; only each take's numbers are kept in the browser.
+
+**What it measures.** The measures are the ones used in research on recorded jazz solos:
+- downbeat delay and offbeat delay (how late the first and the second eighth of each beat are against the band),
+- swing ratio from every downbeat-offbeat pair,
+- spread (your consistency, apart from where you sit),
+- which beat of the bar is early or late for you, drift over the take, what happens in the gap trainer's silent bars, offbeat accents in dB, and pacing (phrases, rests, where phrases start).
+
+Every average carries its standard error. A statement is only made when the average is at least two standard errors from zero, so the report does not teach from noise. "Ahead" and "behind" are only shown once the delay through speakers or headphones has been measured.
+
+**What it compares you with.** `coach.js` keeps two kinds of source apart: measurements of what players on records do (Friberg & Sundström 2002; Nelias et al. 2022; Benadon 2006; Butterfield 2011) and what teachers ask for (click on 2 and 4, one click a bar, a click that drops out, play two bars and rest two). Each finding links its sources and may come with a drill that sets the page up in one tap. It gives no marks.
+
+**How it hears** (all pure code, tested under Node with synthetic guitars):
+- `ear.js` finds note starts from energy rising in many bands at once, then places the exact moment in the waveform, and reads the pitch (`pitch.js`).
+- `latency.js` measures the round trip through speaker, room and microphone, from a test sweep or from the band itself as it plays.
+- `echo.js` learns the room and subtracts the page's own band from the microphone when you use speakers.
+- `timefeel.js` turns notes into the numbers, `coach.js` into findings and drills, `listen.js` and `mic.js` wire the page.
+
+**Measured accuracy** (synthetic plucked guitar, known answers; `npm test` and `tools/listen-live.cjs`):
+
+| Case | Result |
+| --- | --- |
+| Note starts, clean signal | all found, within 0.5 ms |
+| Sixteenths at 200 BPM | all found |
+| Soft finger attack (6 ms fade-in) | all found, about 1 ms late |
+| Pitch, low E to high E | right note name on every note |
+| Delay through a simulated room | within 0.15 ms |
+| Speakers, band as loud as the guitar | up to 6% of notes missed, up to 5% false, placed notes within 3 ms, no bias |
+| Speakers, bare click, a note on every beat | about 1 note in 7 missed |
+| Whole page in Chromium, planted habits | downbeat delay, offbeat delay and a rushed beat 4 each recovered within 1 ms |
+
+**Not tested:** a real guitar, a real room, a phone microphone, iOS Safari. The speaker mode is the weak part; headphones or a plugged-in guitar are exact.
