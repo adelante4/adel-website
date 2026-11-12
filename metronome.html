@@ -12,8 +12,8 @@
 <meta name="apple-mobile-web-app-title" content="Metronome">
 <meta name="description" content="A practice metronome with odd meters, swing, chance, gap trainer and tempo ladder. Runs in the browser.">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
-<link rel="stylesheet" href="assets/css/site.css?v=20261112a">
-<link rel="stylesheet" href="assets/css/metronome.css?v=20261112a">
+<link rel="stylesheet" href="assets/css/site.css?v=20261112b">
+<link rel="stylesheet" href="assets/css/metronome.css?v=20261112b">
 </head>
 <body>
 <div class="moire soft" aria-hidden="true"><i></i><i></i></div>
@@ -234,15 +234,24 @@
 
     <section class="block" id="listen" aria-labelledby="h-listen">
       <h2 id="h-listen">Listen</h2>
-      <p class="lede">Turn the microphone on and play along. The page times every note against the band and, when you stop, tells you where you sit and what to practise next.</p>
-      <div class="row">
-        <button class="btn" id="listen-mic" type="button" aria-pressed="false">Turn microphone on</button>
-        <button class="btn" id="listen-measure" type="button">Measure the delay</button>
+      <p class="lede">Play along with the band. When you stop, you get your timing, your notes against the chords, and the licks that keep coming back.</p>
+      <div class="ls" id="listen-card" data-state="off">
+        <div class="ls-row">
+          <button class="btn ls-main" id="listen-mic" type="button" aria-pressed="false">Turn microphone on</button>
+        </div>
+        <ul class="ls-chips" aria-label="Listening setup">
+          <li class="ls-chip" id="chip-mic" data-ok="off"><i class="ls-dot" aria-hidden="true"></i><span id="listen-status" role="status" aria-live="polite">Microphone off</span></li>
+          <li class="ls-chip" id="chip-delay" data-ok="warn"><i class="ls-dot" aria-hidden="true"></i><span id="listen-delay">Delay not set</span><button class="ls-link" id="listen-measure" type="button" hidden>Measure</button></li>
+          <li class="ls-chip" id="chip-warn" data-ok="warn" hidden><i class="ls-dot" aria-hidden="true"></i><span>The browser is processing the sound, which can blur timing</span></li>
+        </ul>
+        <p class="ls-hint" id="listen-hint">Allow the microphone when asked. The sound stays on this device.</p>
+        <div class="ls-live" id="listen-livebox" hidden>
+          <div class="ls-lhead"><span class="ls-count"><b id="listen-n">0</b> notes</span><span class="ls-last" id="listen-live" aria-live="off">Play</span></div>
+          <div class="ls-gauge" id="listen-gauge" aria-hidden="true"><span class="ls-mid"></span></div>
+          <div class="ls-glabels" aria-hidden="true"><span>ahead</span><span>on the band</span><span>behind</span></div>
+          <label class="ls-level"><span>Level</span><progress id="listen-meter" value="0" max="1" aria-label="Microphone level"></progress></label>
+        </div>
       </div>
-      <progress id="listen-meter" value="0" max="1" aria-label="Microphone level"></progress>
-      <p class="note" id="listen-status" role="status" aria-live="polite"></p>
-      <p class="note" id="listen-delay"></p>
-      <p class="note" id="listen-live" aria-live="off"></p>
       <div class="listen-report" id="listen-report" hidden></div>
       <details class="more" id="more-listen">
         <summary>How it listens, and what it compares you with</summary>
@@ -373,6 +382,6 @@
     <button class="btn" id="tap" type="button">Tap</button>
   </div>
 </div>
-<script type="module" src="assets/js/metronome/metronome.js?v=20261112a"></script>
+<script type="module" src="assets/js/metronome/metronome.js?v=20261112b"></script>
 </body>
 </html>

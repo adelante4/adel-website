@@ -1,14 +1,14 @@
 // The Listen section: microphone on, notes timed against the band while you play, a report when you stop.
 // Browser side. The hearing is in ear.js, the numbers in timefeel.js, the reading of them in coach.js.
-import { createEar } from "./ear.js?v=20261112a";
-import { openMic } from "./mic.js?v=20261112a";
-import { probeSignal } from "./latency.js?v=20261112a";
-import { analyzeTiming, analyzePacing } from "./timefeel.js?v=20261112a";
-import { coach, coachNotes, SOURCES } from "./coach.js?v=20261112a";
-import { analyzeHarmony, inside } from "./harmonymap.js?v=20261112a";
-import { findLicks } from "./licks.js?v=20261112a";
-import { noteName } from "./analysis.js?v=20261112a";
-import { bandFeel } from "./groove.js?v=20261112a";
+import { createEar } from "./ear.js?v=20261112b";
+import { openMic } from "./mic.js?v=20261112b";
+import { probeSignal } from "./latency.js?v=20261112b";
+import { analyzeTiming, analyzePacing } from "./timefeel.js?v=20261112b";
+import { coach, coachNotes, SOURCES } from "./coach.js?v=20261112b";
+import { analyzeHarmony, inside } from "./harmonymap.js?v=20261112b";
+import { findLicks } from "./licks.js?v=20261112b";
+import { noteName } from "./analysis.js?v=20261112b";
+import { bandFeel } from "./groove.js?v=20261112b";
 
 const CAL = "adelListenDelay";
 const TAKES = "adelListenTakes";
@@ -47,14 +47,53 @@ export function initListen({ audio, transport, getState, applyPatch, notice }) {
   let lastResult = null;
 
   const ui = {
+    card: $("listen-card"),
     mic: $("listen-mic"),
     status: $("listen-status"),
+    chipMic: $("chip-mic"),
+    chipDelay: $("chip-delay"),
+    chipWarn: $("chip-warn"),
+    hint: $("listen-hint"),
     meter: $("listen-meter"),
+    livebox: $("listen-livebox"),
     live: $("listen-live"),
+    count: $("listen-n"),
+    gauge: $("listen-gauge"),
     delay: $("listen-delay"),
     measure: $("listen-measure"),
     report: $("listen-report"),
   };
+  const TRAIL = 10;
+  const trail = [];
+  for (let i = 0; i < TRAIL; i++) {
+    const d = el("i", "ls-pip");
+    d.hidden = true;
+    ui.gauge.append(d);
+    trail.push(d);
+  }
+  let trailAt = 0;
+  /** The last notes on a strip: ahead of the band to the left, behind it to the right. Newest is brightest. */
+  function pip(ms) {
+    const d = trail[trailAt % TRAIL];
+    d.hidden = false;
+    d.dataset.n = String(trailAt);
+    d.style.left = `${50 + (Math.max(-60, Math.min(60, ms)) / 120) * 100}%`;
+    d.classList.toggle("far", Math.abs(ms) > 45);
+    trailAt++;
+    for (const x of trail) if (!x.hidden) x.style.opacity = String(Math.max(0.15, 1 - (trailAt - 1 - Number(x.dataset.n)) / TRAIL));
+  }
+  function setState(state) {
+    ui.card.dataset.state = state;
+    ui.livebox.hidden = state === "off";
+    const st = ear ? ear.state : null;
+    const unset = roundTrip().source === "estimate";
+    ui.hint.textContent =
+      state === "off"
+        ? "Allow the microphone when asked. The sound stays on this device."
+        : state === "taking"
+          ? "Listening. Play along; press Stop when you are done."
+          : `Press Start and play. The report appears when you stop.${unset && !(st && st.mode === "speakers") ? " With headphones, measure the delay once first." : ""}`;
+  }
 
   function roundTrip() {
     const st = ear ? ear.state : null;
@@ -66,22 +105,30 @@ export function initListen({ audio, transport, getState, applyPatch, notice }) {
   function showDelay() {
     const rt = roundTrip();
     const ms = Math.round(rt.seconds * 1000);
-    ui.delay.textContent =
+    ui.delay.textContent = rt.source === "speakers" ? `Delay ${ms} ms` : rt.source === "measured" ? `Delay ${ms} ms` : "Delay not set";
+    ui.chipDelay.dataset.ok = rt.source === "estimate" ? "warn" : "ok";
+    ui.chipDelay.title =
       rt.source === "speakers"
-        ? `Delay ${ms} ms, measured from the band in the room as it plays.`
+        ? "Measured from the band in the room as it plays."
         : rt.source === "measured"
-          ? `Delay ${ms} ms, measured ${new Date(cal.at).toLocaleDateString()}. Measure again after changing speakers or headphones.`
-          : `Delay not measured (the browser's guess is ${ms} ms). The report will not say ahead or behind until it is.`;
+          ? `Measured ${new Date(cal.at).toLocaleDateString()}. Measure again after changing speakers or headphones.`
+          : `Without it the report cannot say ahead or behind (the browser's guess is ${ms} ms).`;
+    ui.measure.hidden = !mic;
+    ui.measure.textContent = rt.source === "estimate" ? "Measure" : "Redo";
   }
 
   function showStatus() {
+    ui.chipWarn.hidden = !(mic && mic.processed);
     if (!mic) {
-      ui.status.textContent = "Microphone off.";
+      ui.status.textContent = "Microphone off";
+      ui.chipMic.dataset.ok = "off";
+      ui.chipMic.title = "";
       return;
     }
     const st = ear.state;
-    const where = st.mode === "speakers" ? "It hears the band through the speakers and subtracts it." : st.mode === "headphones" ? "It does not hear the band: headphones or a plugged-in guitar. Best accuracy." : "Listening.";
-    ui.status.textContent = `${mic.label}. ${where}${mic.processed ? " The browser is still processing the sound, which can blur the timing." : ""}`;
+    ui.status.textContent = st.mode === "speakers" ? "Mic on, hears the band" : st.mode === "headphones" ? "Mic on, band not heard (exact)" : "Mic on";
+    ui.chipMic.dataset.ok = "ok";
+    ui.chipMic.title = `${mic.label}. ${st.mode === "speakers" ? "The page subtracts its own band from what the microphone hears." : ""}`;
   }
 
   function onBlock(b) {
@@ -113,7 +160,11 @@ export function initListen({ audio, transport, getState, applyPatch, notice }) {
       notes.push({ beat, level: n.level, midi: n.midi, precise: n.precise, t: n.t });
       const d = beat - Math.round(beat);
       const ms = (d * 60000) / transport.bpmAt(beat);
-      ui.live.textContent = Math.abs(d) <= 0.18 ? `${notes.length} notes. Last one ${ms >= 0 ? "+" : "−"}${Math.abs(Math.round(ms))} ms${rt.source === "estimate" ? " (delay not measured)" : ""}.` : `${notes.length} notes.`;
+      ui.count.textContent = String(notes.length);
+      if (Math.abs(d) <= 0.18 && rt.source !== "estimate") {
+        pip(ms);
+        ui.live.textContent = Math.abs(Math.round(ms)) < 3 ? "on the band" : `${Math.abs(Math.round(ms))} ms ${ms >= 0 ? "behind" : "ahead"}`;
+      } else if (rt.source === "estimate") ui.live.textContent = "set the delay to see ahead or behind";
     }
   }
 
@@ -124,10 +175,10 @@ export function initListen({ audio, transport, getState, applyPatch, notice }) {
       ear = createEar({ rate: ctx.sampleRate, hint: cal ? cal.ms / 1000 : null });
       mic = await openMic(ctx, audio.output, onBlock, { source: window.__benchMic || null });
       ui.mic.setAttribute("aria-pressed", "true");
-      ui.mic.textContent = "Microphone on";
-      ui.measure.disabled = false;
+      ui.mic.textContent = "Turn microphone off";
       showStatus();
       showDelay();
+      setState("ready");
     } catch (err) {
       audio.setRecording(false);
       ear = null;
@@ -144,10 +195,12 @@ export function initListen({ audio, transport, getState, applyPatch, notice }) {
     audio.setRecording(false);
     ui.mic.setAttribute("aria-pressed", "false");
     ui.mic.textContent = "Turn microphone on";
-    ui.measure.disabled = true;
     ui.meter.value = 0;
-    ui.live.textContent = "";
+    ui.live.textContent = "Play";
+    ui.count.textContent = "0";
     showStatus();
+    showDelay();
+    setState("off");
   }
 
   /** Plays a sweep and reads how long it takes to come back through the microphone. */
@@ -159,7 +212,8 @@ export function initListen({ audio, transport, getState, applyPatch, notice }) {
     }
     measuring = true;
     ui.measure.disabled = true;
-    ui.delay.textContent = "Measuring: a sweep plays twice. With headphones, hold one earcup against the microphone.";
+    ui.delay.textContent = "Measuring. Hold one earcup to the mic";
+    ui.chipDelay.dataset.ok = "busy";
     const ctx = audio.ctx;
     ear = createEar({ rate: ctx.sampleRate });
     const sig = probeSignal(ctx.sampleRate, 3.2);
@@ -186,7 +240,9 @@ export function initListen({ audio, transport, getState, applyPatch, notice }) {
       showDelay();
     } else {
       if (mic) ear = createEar({ rate: ctx.sampleRate, hint: cal ? cal.ms / 1000 : null });
-      ui.delay.textContent = "The microphone did not hear the sweep. Turn the volume up, or hold the earcup closer, and measure again.";
+      ui.delay.textContent = "Did not hear the sweep. Turn up the volume, hold closer";
+      ui.chipDelay.dataset.ok = "warn";
+      ui.measure.hidden = false;
     }
   }
 
@@ -248,9 +304,9 @@ export function initListen({ audio, transport, getState, applyPatch, notice }) {
     return cards;
   }
 
-  function drillOf(drill) {
-    const d = el("div", "lr-drill");
-    d.append(el("span", "lr-k", "Practise next"), el("b", null, drill.title), el("p", "note", drill.how));
+  function drillOf(drill, primary) {
+    const d = el("div", primary ? "lr-drill primary" : "lr-drill");
+    d.append(el("span", "lr-k", primary ? "Practise next" : "Also try"), el("b", null, drill.title), el("p", "note", drill.how));
     if (Object.keys(drill.patch).length) {
       const b = el("button", "btn small", "Set this up");
       b.type = "button";
@@ -263,28 +319,44 @@ export function initListen({ audio, transport, getState, applyPatch, notice }) {
     return d;
   }
 
-  function findingsOf(findings) {
-    const list = el("div", "lr-findings");
+  function sourcesOf(f) {
+    const src = el("p", "lr-src");
+    src.append("From: ");
+    f.sources.forEach((k, i) => {
+      const a = el("a", null, SOURCES[k].short);
+      a.href = SOURCES[k].url;
+      a.target = "_blank";
+      a.rel = "noopener";
+      a.title = SOURCES[k].cite;
+      if (i) src.append(", ");
+      src.append(a);
+    });
+    return src;
+  }
+
+  /** Findings as a list of titles that open: the report is scanned first and read second. */
+  function findingsOf(findings, heading) {
+    const wrap = el("div", "lr-findings");
+    if (heading) wrap.append(el("h4", "lr-sub", heading));
     for (const f of findings) {
-      const item = el("div", "lr-finding");
-      item.append(el("b", null, f.title), el("p", "note", f.text));
-      if (f.sources.length) {
-        const src = el("p", "lr-src");
-        src.append("From: ");
-        f.sources.forEach((k, i) => {
-          const a = el("a", null, SOURCES[k].short);
-          a.href = SOURCES[k].url;
-          a.target = "_blank";
-          a.rel = "noopener";
-          a.title = SOURCES[k].cite;
-          if (i) src.append(", ");
-          src.append(a);
-        });
-        item.append(src);
-      }
-      list.append(item);
+      const item = el("details", "lr-finding");
+      const sum = el("summary", null, f.title);
+      item.append(sum, el("p", "note", f.text));
+      if (f.sources.length) item.append(sourcesOf(f));
+      wrap.append(item);
     }
-    return list;
+    return wrap;
+  }
+
+  /** One finding laid open, for the summary. */
+  function headlineOf(f, tab) {
+    const box = el("div", "lr-top");
+    box.append(el("b", null, f.title), el("p", "note", f.text));
+    const more = el("button", "ls-link", `More in ${tab}`);
+    more.type = "button";
+    more.addEventListener("click", () => selectTab(tab));
+    box.append(more);
+    return box;
   }
 
   /** The form as a grid of bars. The darker a bar, the more of your notes there were chord tones. */
@@ -428,60 +500,35 @@ export function initListen({ audio, transport, getState, applyPatch, notice }) {
     return card;
   }
 
-  function renderNotes(box, result) {
-    const { h, L, n, bpm, beats, sound, chordsOn } = result;
-    if (!n) return;
-    box.append(el("h3", null, "Your notes against the chords"));
-    if (!chordsOn) {
-      box.append(el("p", "note", "The chords were off, so there was nothing to read your notes against. Turn Chords on in Sound and put in the tune to see this part. Your licks are below."));
-    } else if (!n.enough) {
-      box.append(el("p", "note", n.findings[0].text));
-    } else {
-      box.append(cardsOf(n.headline.filter((x) => x.label !== "Repeated")));
-      box.append(el("p", "note", `${h.notes} single notes read${h.unpitched ? `, ${h.unpitched} left out (chords, or too unclear)` : ""}${Math.abs(h.tuningCents) >= 8 ? `. Your guitar is ${Math.abs(h.tuningCents)} cents ${h.tuningCents > 0 ? "sharp" : "flat"}; that was taken out` : ""}.`));
-      if (n.drill) box.append(drillOf(n.drill));
-      const fig = el("figure", "lr-fig");
-      fig.append(el("figcaption", "label", "The form: how much of what you played in each bar was a chord tone"), heatmap(h, beats));
-      const legend = el("div", "lr-legend");
-      legend.innerHTML = '<span><i class="lr-ramp"></i>few chord tones to all chord tones</span><span><i class="lr-sw few"></i>too few notes to say</span>';
-      fig.append(legend);
-      box.append(fig);
-      box.append(kindsTable(h));
-      const lt = landingTable(h);
-      if (lt) box.append(lt);
-      box.append(findingsOf(n.findings.filter((f) => f.id !== "lick" && f.id !== "coverage")));
-    }
-    box.append(el("h3", null, "Your licks"));
-    const shown = [...L.licks.filter((l) => l.shape === "lick").slice(0, 4), ...L.licks.filter((l) => l.shape !== "lick").slice(0, 1)];
-    if (!shown.length) {
-      box.append(el("p", "note", L.notes < 12 ? "Not enough single notes yet to look for licks." : "No figure of four notes or more came back in this take or the ones before it."));
-      return;
-    }
-    const lickNotes = n.findings.filter((f) => f.id === "lick" || f.id === "coverage");
-    const lead = n.findings.find((f) => f.id === "lick" && f.drill);
-    if (lead && (!n.drill || n.drill.id !== lead.drill.id)) box.append(drillOf(lead.drill));
-    const wrap = el("div", "lr-licks");
-    for (const l of shown) wrap.append(lickCard(l, h ? h.flats : true, bpm, sound));
-    box.append(wrap);
-    if (lickNotes.length) box.append(findingsOf(lickNotes));
-    box.append(el("p", "note", "A lick here is a run of intervals you played at least twice, in any key. The notes shown are from one of the times you played it."));
+  function empty(title, text, action) {
+    const box = el("div", "lr-empty");
+    box.append(el("b", null, title), el("p", "note", text));
+    if (action) box.append(action);
+    return box;
   }
 
-  function render(result) {
-    const { t, p, c, rt, bpm, beats } = result;
-    const box = ui.report;
-    box.replaceChildren();
-    box.hidden = false;
-    box.append(el("h3", null, "Your time"));
-    if (!c.enough) {
-      box.append(el("p", "note", c.findings[0].text));
-      renderNotes(box, result);
-      return;
-    }
-    box.append(cardsOf(c.headline));
-    box.append(el("p", "note", `${t.timed} notes timed at ${bpm} BPM. ${t.other} fell between the eighths and ${t.unplaced} were too soft to place; those are left out.${rt.source === "estimate" ? "" : ` Delay used: ${Math.round(rt.seconds * 1000)} ms.`}`));
-    if (c.drill) box.append(drillOf(c.drill));
+  function measureBanner() {
+    const b = el("button", "btn small", "Measure the delay");
+    b.type = "button";
+    b.addEventListener("click", () => {
+      ui.card.scrollIntoView({ block: "start", behavior: "smooth" });
+      measure();
+    });
+    return empty("Ahead or behind needs the delay", "Sound takes time to leave the page and come back through the microphone. Measure it once and this part shows whether you sit ahead of the band or behind it.", b);
+  }
 
+  const timeCards = (c) => c.headline.filter((x) => x.value !== "?");
+
+  function timePanel(result) {
+    const { t, c, rt, bpm, beats } = result;
+    const box = el("div", "lr-panel");
+    if (!c.enough) {
+      box.append(empty("Not enough notes to read your time", c.findings[0].text));
+      return box;
+    }
+    if (rt.source === "estimate") box.append(measureBanner());
+    box.append(cardsOf(timeCards(c)));
+    box.append(el("p", "lr-fine", `${t.timed} notes timed at ${bpm} BPM. ${t.other} between the eighths and ${t.unplaced} too soft to place are left out.${rt.source === "estimate" ? "" : ` Delay used: ${Math.round(rt.seconds * 1000)} ms.`}`));
     if (rt.source !== "estimate") {
       const fig = el("figure", "lr-fig");
       const legend = el("div", "lr-legend");
@@ -489,12 +536,13 @@ export function initListen({ audio, transport, getState, applyPatch, notice }) {
       fig.append(el("figcaption", "label", "Where your notes fall in the bar"), legend, chart(t, beats));
       box.append(fig);
     }
-    box.append(findingsOf(c.findings));
-
+    box.append(findingsOf(c.findings, "What it means"));
     const takes = load(TAKES, []);
     if (takes.length > 1) {
+      const det = el("details", "lr-more");
+      det.append(el("summary", null, `Your last ${Math.min(6, takes.length)} takes`));
       const tbl = el("table", "lr-table");
-      tbl.innerHTML = "<caption>Your last takes</caption><thead><tr><th>When</th><th>BPM</th><th>Notes</th><th>Spread</th><th>Downbeats</th><th>Swing</th></tr></thead>";
+      tbl.innerHTML = "<thead><tr><th>When</th><th>BPM</th><th>Notes</th><th>Spread</th><th>Downbeats</th><th>Swing</th></tr></thead>";
       const body = el("tbody");
       for (const k of takes.slice(-6).reverse()) {
         const tr = el("tr");
@@ -508,10 +556,140 @@ export function initListen({ audio, transport, getState, applyPatch, notice }) {
         body.append(tr);
       }
       tbl.append(body);
-      box.append(tbl);
+      det.append(tbl);
+      box.append(det);
     }
-    renderNotes(box, result);
-    box.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    return box;
+  }
+
+  function chordsPanel(result) {
+    const { h, n, beats, chordsOn } = result;
+    const box = el("div", "lr-panel");
+    if (!chordsOn) {
+      box.append(empty("The chords were off", "Turn Chords on in Sound and put in the tune, then play again. Your notes are read against the chord that was sounding when you played them."));
+      return box;
+    }
+    if (!n.enough) {
+      box.append(empty("Not enough notes yet", n.findings[0].text));
+      return box;
+    }
+    box.append(cardsOf(n.headline.filter((x) => x.label !== "Repeated")));
+    box.append(el("p", "lr-fine", `${h.notes} single notes read${h.unpitched ? `, ${h.unpitched} left out (chords, or too unclear)` : ""}${Math.abs(h.tuningCents) >= 8 ? `. Your guitar is ${Math.abs(h.tuningCents)} cents ${h.tuningCents > 0 ? "sharp" : "flat"}; that was taken out` : ""}.`));
+    const fig = el("figure", "lr-fig");
+    fig.append(el("figcaption", "label", "Chord tones in each bar of the form"), heatmap(h, beats));
+    const legend = el("div", "lr-legend");
+    legend.innerHTML = '<span><i class="lr-ramp"></i>few chord tones to all</span><span><i class="lr-sw few"></i>too few notes</span>';
+    fig.append(legend);
+    box.append(fig);
+    box.append(findingsOf(n.findings.filter((f) => f.id !== "lick" && f.id !== "coverage"), "What it means"));
+    const det = el("details", "lr-more");
+    det.append(el("summary", null, "Every note, by what it is in the chord"));
+    det.append(kindsTable(h));
+    const lt = landingTable(h);
+    if (lt) det.append(lt);
+    box.append(det);
+    return box;
+  }
+
+  function licksPanel(result) {
+    const { h, L, n, bpm, sound } = result;
+    const box = el("div", "lr-panel");
+    const shown = [...L.licks.filter((l) => l.shape === "lick").slice(0, 4), ...L.licks.filter((l) => l.shape !== "lick").slice(0, 1)];
+    if (!shown.length) {
+      box.append(empty("No licks yet", L.notes < 12 ? "Not enough single notes to look for licks." : "No figure of four notes or more came back in this take or the ones before it. Licks show up once you repeat an idea, in any key."));
+      return box;
+    }
+    const wrap = el("div", "lr-licks");
+    for (const l of shown) wrap.append(lickCard(l, h ? h.flats : true, bpm, sound));
+    box.append(wrap);
+    const lickNotes = n.findings.filter((f) => f.id === "lick" || f.id === "coverage");
+    if (lickNotes.length) box.append(findingsOf(lickNotes, "What it means"));
+    box.append(el("p", "lr-fine", "A lick here is a run of intervals you played at least twice, in any key. The notes shown are from one of the times you played it."));
+    return box;
+  }
+
+  let tabs = null;
+  function selectTab(name) {
+    if (!tabs) return;
+    for (const [k, v] of Object.entries(tabs)) {
+      const on = k === name;
+      v.tab.setAttribute("aria-selected", String(on));
+      v.tab.tabIndex = on ? 0 : -1;
+      v.panel.hidden = !on;
+    }
+    tabs[name].tab.scrollIntoView({ block: "nearest" });
+  }
+
+  function summaryPanel(result) {
+    const { c, n, L, rt } = result;
+    const box = el("div", "lr-panel");
+    const tiles = [...(c.enough ? timeCards(c).slice(0, 2) : []), ...(n && n.enough && result.chordsOn ? n.headline.filter((x) => x.label !== "Repeated").slice(0, 1) : [])];
+    const lickCount = L.licks.filter((l) => l.shape === "lick").length;
+    if (lickCount) tiles.push({ label: "Licks", value: String(lickCount), note: lickCount === 1 ? "figure that came back" : "figures that came back" });
+    if (tiles.length) box.append(cardsOf(tiles));
+    const drills = [];
+    for (const d of [c.enough ? c.drill : null, n && n.enough ? n.drill : null, (n.findings.find((f) => f.id === "lick" && f.drill) || {}).drill]) if (d && !drills.some((x) => x.id === d.id)) drills.push(d);
+    if (drills.length) {
+      box.append(drillOf(drills[0], true));
+      if (drills.length > 1) {
+        const det = el("details", "lr-more");
+        det.append(el("summary", null, `${drills.length - 1} more to try`));
+        for (const d of drills.slice(1)) det.append(drillOf(d));
+        box.append(det);
+      }
+    }
+    if (c.enough && c.findings[0]) box.append(headlineOf(c.findings[0], "Time"));
+    if (n && n.enough && result.chordsOn) {
+      const f = n.findings.find((x) => x.id !== "lick" && x.id !== "coverage");
+      if (f) box.append(headlineOf(f, "Chords"));
+    }
+    if (rt.source === "estimate") box.append(measureBanner());
+    if (!c.enough && !(n && n.enough)) box.append(empty("Not enough notes to read", c.findings[0].text));
+    return box;
+  }
+
+  function render(result) {
+    const { bpm } = result;
+    const box = ui.report;
+    box.replaceChildren();
+    box.hidden = false;
+    const head = el("div", "lr-head");
+    head.append(el("h3", null, "Your take"), el("span", "lr-meta", `${result.notes.length} notes at ${bpm} BPM`));
+    box.append(head);
+    const bar = el("div", "lr-tabs");
+    bar.setAttribute("role", "tablist");
+    bar.setAttribute("aria-label", "Parts of the report");
+    const panels = el("div", "lr-panels");
+    const defs = [
+      ["Summary", summaryPanel],
+      ["Time", timePanel],
+      ["Chords", chordsPanel],
+      ["Licks", licksPanel],
+    ];
+    tabs = {};
+    for (const [name, build] of defs) {
+      const tab = el("button", "lr-tab", name);
+      tab.type = "button";
+      tab.setAttribute("role", "tab");
+      tab.addEventListener("click", () => selectTab(name));
+      tab.addEventListener("keydown", (e) => {
+        const i = defs.findIndex((d) => d[0] === name);
+        const next = e.key === "ArrowRight" ? i + 1 : e.key === "ArrowLeft" ? i - 1 : null;
+        if (next === null) return;
+        const to = defs[(next + defs.length) % defs.length][0];
+        selectTab(to);
+        tabs[to].tab.focus();
+      });
+      const panel = build(result);
+      panel.setAttribute("role", "tabpanel");
+      panel.hidden = true;
+      tabs[name] = { tab, panel };
+      bar.append(tab);
+      panels.append(panel);
+    }
+    box.append(bar, panels);
+    selectTab("Summary");
+    box.scrollIntoView({ block: "start", behavior: "smooth" });
   }
 
   function finish() {
@@ -571,9 +749,9 @@ export function initListen({ audio, transport, getState, applyPatch, notice }) {
 
   ui.mic.addEventListener("click", () => (mic ? micOff() : micOn()));
   ui.measure.addEventListener("click", measure);
-  ui.measure.disabled = true;
   showStatus();
   showDelay();
+  setState("off");
 
   return {
     get on() {
@@ -584,15 +762,18 @@ export function initListen({ audio, transport, getState, applyPatch, notice }) {
       notes = [];
       taking = mic !== null;
       if (taking) {
-        ui.live.textContent = "Listening. Play.";
+        ui.live.textContent = "Play";
+        ui.count.textContent = "0";
+        trail.forEach((x) => (x.hidden = true));
         ui.report.hidden = true;
+        setState("taking");
       }
     },
     /** The band stops (call before the transport is stopped): the take is read. */
     onStop() {
       if (!taking) return null;
       taking = false;
-      ui.live.textContent = "";
+      setState("ready");
       return finish();
     },
     /** For the bench: the last report and the ear's view of the room. */

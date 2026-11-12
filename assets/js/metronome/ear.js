@@ -15,10 +15,10 @@
 //   4. A start that the band's own signal explains (a drum hit that was not fully removed) is dropped.
 //   5. The pitch is read from the cleaned waveform just after the start (pitch.js).
 // Pure code, no Web Audio, so all of it is tested under Node with synthetic guitars and rooms.
-import { createFFT, hann } from "./fft.js?v=20261112a";
-import { createEchoModel } from "./echo.js?v=20261112a";
-import { createDelayTracker } from "./latency.js?v=20261112a";
-import { detectPitch, detectNewPitch, hzToMidi } from "./pitch.js?v=20261112a";
+import { createFFT, hann } from "./fft.js?v=20261112b";
+import { createEchoModel } from "./echo.js?v=20261112b";
+import { createDelayTracker } from "./latency.js?v=20261112b";
+import { detectPitch, detectNewPitch, hzToMidi } from "./pitch.js?v=20261112b";
 
 const db = (x) => 10 * Math.log10(Math.max(x, 1e-20));
 
