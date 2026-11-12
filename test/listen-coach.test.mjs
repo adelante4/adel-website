@@ -70,5 +70,8 @@ test("coach: every source a finding or drill names exists, and every drill patch
     if (d.patch.practice?.gap) assert.deepEqual(merged.practice.gap, d.patch.practice.gap);
   }
   for (const c of [run({}), run({ downLate: 30 }), run({ downLate: -20 }), run({ feel: 0.75, bpm: 150 })]) for (const f of c.findings) for (const s of f.sources) assert.ok(SOURCES[s], s);
-  for (const s of Object.values(SOURCES)) assert.match(s.url, /^https:\/\//);
+  for (const s of Object.values(SOURCES)) {
+    assert.match(s.url, /^https:\/\//);
+    assert.ok(s.short && s.cite);
+  }
 });

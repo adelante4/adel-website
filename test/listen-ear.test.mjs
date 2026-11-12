@@ -107,3 +107,14 @@ test("ear: a bare click with the player on every beat. The click is not counted,
   assert.ok(s.missed <= 6, `missed ${s.missed}`);
   assert.ok(Math.abs(s.mean) < 1, `bias ${s.mean.toFixed(2)}`);
 });
+
+test("ear: notes that ring on over each other are still named right, octave included", () => {
+  // Every note is left ringing for 0.8 s, so two or three sound at once, as in an arpeggio across the strings.
+  const { mic, truth } = line(40, { seed: 8, ring: true });
+  const { notes } = listen(mic, null);
+  const s = score(notes, truth);
+  assert.ok(s.missed <= 2, `missed ${s.missed}`);
+  let exact = 0;
+  for (const e of s.errs) if (e.note.midi !== null && Math.round(e.note.midi) === e.truth.midi) exact++;
+  assert.ok(exact >= s.errs.length * 0.97, `${exact} of ${s.errs.length} exact`);
+});

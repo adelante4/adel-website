@@ -15,10 +15,10 @@
 //   4. A start that the band's own signal explains (a drum hit that was not fully removed) is dropped.
 //   5. The pitch is read from the cleaned waveform just after the start (pitch.js).
 // Pure code, no Web Audio, so all of it is tested under Node with synthetic guitars and rooms.
-import { createFFT, hann } from "./fft.js?v=20261111a";
-import { createEchoModel } from "./echo.js?v=20261111a";
-import { createDelayTracker } from "./latency.js?v=20261111a";
-import { detectPitch, hzToMidi } from "./pitch.js?v=20261111a";
+import { createFFT, hann } from "./fft.js?v=20261112a";
+import { createEchoModel } from "./echo.js?v=20261112a";
+import { createDelayTracker } from "./latency.js?v=20261112a";
+import { detectPitch, detectNewPitch, hzToMidi } from "./pitch.js?v=20261112a";
 
 const db = (x) => 10 * Math.log10(Math.max(x, 1e-20));
 
@@ -44,6 +44,7 @@ export function createEar({ rate, size = 1024, hop = 256, delay = null, hint = n
   let mode = delay === null ? "unknown" : "speakers"; // "unknown" | "speakers" | "headphones"
   let lockedAt = delay === null ? null : 0;
   let quietBlocks = 0;
+  const seeded = delay !== null; // a delay given from outside is kept whatever is heard
 
   // Frequency bands for the onset detector: about a third of an octave each.
   const bands = [];
@@ -474,16 +475,40 @@ export function createEar({ rate, size = 1024, hop = 256, delay = null, hint = n
       let clarity = 0;
       if (W) {
         const buf = new Float32Array(W);
-        const reads = [];
-        for (let s = from; s + W <= until && reads.length < 4; s += 768) {
-          for (let i = 0; i < W; i++) buf[i] = clean[(s + i) & MASK];
-          const r = detectPitch(buf, rate, { fmin: W === 2048 ? 70 : 110 });
-          if (r && r.clarity >= 0.8) reads.push(r);
+        // Is something still ringing from before? Compare the level just before the note with the note itself.
+        const gap = Math.round(0.004 * rate);
+        let pre = 0;
+        let post = 0;
+        const span = Math.min(W, 1024);
+        for (let i = 0; i < span; i++) {
+          pre += clean[(p.sample - gap - span + i) & MASK] ** 2;
+          post += clean[(from + i) & MASK] ** 2;
         }
-        if (reads.length) {
-          const ms = reads.map((r) => hzToMidi(r.hz)).sort((x, y) => x - y);
-          midi = ms[ms.length >> 1];
-          clarity = Math.max(...reads.map((r) => r.clarity));
+        const ringing = p.sample - gap - W >= 0 && pre > 0.06 * post;
+        if (ringing) {
+          // Read only what is new in the sound, so the old note does not answer for the new one.
+          const before = new Float32Array(W);
+          for (let i = 0; i < W; i++) {
+            before[i] = clean[(p.sample - gap - W + i) & MASK];
+            buf[i] = clean[(from + i) & MASK];
+          }
+          const r = detectNewPitch(before, buf, rate, { fmin: W === 2048 ? 70 : 110 });
+          if (r && r.clarity >= 0.5) {
+            midi = hzToMidi(r.hz);
+            clarity = r.clarity;
+          }
+        } else {
+          const reads = [];
+          for (let s = from; s + W <= until && reads.length < 4; s += 768) {
+            for (let i = 0; i < W; i++) buf[i] = clean[(s + i) & MASK];
+            const r = detectPitch(buf, rate, { fmin: W === 2048 ? 70 : 110 });
+            if (r && r.clarity >= 0.8) reads.push(r);
+          }
+          if (reads.length) {
+            const ms = reads.map((r) => hzToMidi(r.hz)).sort((x, y) => x - y);
+            midi = ms[ms.length >> 1];
+            clarity = Math.max(...reads.map((r) => r.clarity));
+          }
         }
       }
       stats.onsets++;
@@ -506,6 +531,14 @@ export function createEar({ rate, size = 1024, hop = 256, delay = null, hint = n
       }
       mode = "speakers";
       quietBlocks = 0;
+    } else if (cancelling && seeded === false && r.blocks !== undefined && !r.locked) {
+      // The lock was lost: the band is not in the microphone after all. Stop subtracting.
+      cancelling = false;
+      roundTrip = null;
+      refShift = null;
+      mode = "headphones";
+      lockedAt = null;
+      canceller.reset();
     } else if (r.blocks !== undefined && !r.heard) {
       // The band is playing and the microphone does not hear it: headphones, or a plugged-in guitar.
       if (r.blocks !== trackDelay.last) quietBlocks++;

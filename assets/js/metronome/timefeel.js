@@ -14,7 +14,7 @@
 //
 // Every average comes with its uncertainty. A statement is only marked `sure` when the average is at least twice
 // its standard error away from zero and there are enough notes, so a report does not teach from noise.
-import { barPlays } from "./overlay.js?v=20261111a";
+import { barPlays } from "./overlay.js?v=20261112a";
 
 const mean = (a) => a.reduce((s, x) => s + x, 0) / a.length;
 const median = (a) => {

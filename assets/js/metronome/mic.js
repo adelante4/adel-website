@@ -28,7 +28,7 @@ export async function openMic(ctx, output, onBlock, { deviceId = null, source: g
 
 async function attach(ctx, output, onBlock, source, stream) {
   if (!ctx.audioWorklet) throw new Error("This browser cannot run the listener (no AudioWorklet).");
-  await ctx.audioWorklet.addModule(new URL("./tap-worklet.js?v=20261111a", import.meta.url));
+  await ctx.audioWorklet.addModule(new URL("./tap-worklet.js?v=20261112a", import.meta.url));
   const node = new AudioWorkletNode(ctx, "tap", { numberOfInputs: 2, numberOfOutputs: 1, channelCount: 1, channelCountMode: "explicit", channelInterpretation: "speakers" });
   node.port.onmessage = (e) => onBlock(e.data);
   source.connect(node, 0, 0);

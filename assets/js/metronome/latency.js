@@ -8,7 +8,7 @@
 // so a booming room or a thin speaker does not smear the peak. It runs on a slowed-down copy of the signal
 // (a quarter of the sample rate), which is plenty for a result good to a tenth of a millisecond.
 // Pure code, no Web Audio.
-import { createFFT } from "./fft.js?v=20261111a";
+import { createFFT } from "./fft.js?v=20261112a";
 
 /**
  * @param {{rate:number, maxDelay?:number, decim?:number, size?:number, near?:number|null}} o
@@ -39,6 +39,7 @@ export function createDelayTracker({ rate, maxDelay = 0.6, decim = 4, size = 163
   let blocks = 0;
   let result = { seconds: null, confidence: 0, locked: false, heard: false };
   const history = [];
+  let misses = 0;
 
   function estimate() {
     let eRef = 0;
@@ -106,19 +107,35 @@ export function createDelayTracker({ rate, maxDelay = 0.6, decim = 4, size = 163
     const d = y0 - 2 * y1 + y2;
     const shift = d < 0 ? Math.max(-0.5, Math.min(0.5, (0.5 * (y0 - y2)) / d)) : 0;
     const seconds = (best + shift) / dr;
-    const good = z > 9 && clear;
+    // A real echo gives a sharp peak that sits in the same place, to a fraction of a millisecond, block after
+    // block. A guitarist playing in time with the band also lines up with it, but loosely: that peak is low and
+    // wanders. So a lock needs a strong peak twice in the same place, or one very strong peak.
+    const good = z > 11 && clear;
     blocks++;
     history.push(good ? seconds : null);
     if (history.length > 3) history.shift();
-    const agree = history.filter((h) => h !== null && Math.abs(h - seconds) < 0.0012).length;
-    result = {
-      seconds: good ? seconds : result.locked ? result.seconds : null,
-      confidence: z,
-      locked: good && (agree >= 2 || z > 18) ? true : result.locked && history.some((h) => h !== null),
-      heard: good,
-      blocks,
-    };
-    if (result.locked && good) result.seconds = seconds;
+    const agree = history.filter((h) => h !== null && Math.abs(h - seconds) < 0.00025).length;
+    const was = result.locked;
+    let locked = was;
+    let value = was ? result.seconds : good ? seconds : null;
+    if (!was) {
+      if (good && (agree >= 2 || z > 25)) {
+        locked = true;
+        value = seconds;
+        misses = 0;
+      }
+    } else if (good && Math.abs(seconds - result.seconds) < 0.0005) {
+      value = seconds;
+      misses = 0;
+    } else if (good && agree >= 2) {
+      value = seconds; // the delay really changed: another speaker, or the phone moved
+      misses = 0;
+    } else if (++misses >= 6) {
+      // The band plays and is no longer found: the lock was wrong, or the speakers were swapped for headphones.
+      locked = false;
+      value = null;
+    }
+    result = { seconds: value, confidence: z, locked, heard: good, blocks };
   }
 
   return {

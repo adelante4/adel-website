@@ -6,12 +6,12 @@
 //
 // A smooth tempo change (retempo) moves the anchor to the first beat not yet handed out,
 // so the beat that was already queued keeps its time and the next one follows at the new tempo.
-import { compileTimeline, timeAtBeat, beatAtTime, bpmAtBeat } from "./timeline.js?v=20261111a";
-import { generateEvents } from "./pattern.js?v=20261111a";
-import { ladderMap } from "./overlay.js?v=20261111a";
-import { generateHarmony } from "./comping.js?v=20261111a";
-import { generateGroove, grooveSounds, bandFeel, swingBeat } from "./groove.js?v=20261111a";
-import { generateBass } from "./bassline.js?v=20261111a";
+import { compileTimeline, timeAtBeat, beatAtTime, bpmAtBeat } from "./timeline.js?v=20261112a";
+import { generateEvents } from "./pattern.js?v=20261112a";
+import { ladderMap } from "./overlay.js?v=20261112a";
+import { generateHarmony } from "./comping.js?v=20261112a";
+import { generateGroove, grooveSounds, bandFeel, swingBeat } from "./groove.js?v=20261112a";
+import { generateBass } from "./bassline.js?v=20261112a";
 
 /** @param {() => {pattern: import("./pattern.js").Pattern, practice: import("./overlay.js").Practice}} getConfig */
 export function createTransport(getConfig) {

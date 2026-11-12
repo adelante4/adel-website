@@ -115,3 +115,25 @@ Every average carries its standard error. A statement is only made when the aver
 | Whole page in Chromium, planted habits | downbeat delay, offbeat delay and a rushed beat 4 each recovered within 1 ms |
 
 **Not tested:** a real guitar, a real room, a phone microphone, iOS Safari. The speaker mode is the weak part; headphones or a plugged-in guitar are exact.
+
+### The harmony map and your licks
+
+The same take is also read for its notes. Single notes only: chords and double stops are left out.
+
+**The harmony map** (`harmonymap.js`) names every note against the chord under it: a 3rd or 7th, a root or 5th, a colour note of the chord's scale, a 4th held over a major or dominant chord, a chromatic approach (an outside note whose next note is a chord tone a half step away), or outside. A note just before a chord change that is held across it is read against the new chord. A guitar tuned off concert pitch is corrected first. From that the report shows:
+- the form as a grid of bars, darker where more of what you played was a chord tone, over all choruses;
+- chord tones on the beat against off the beat (the point of the bebop scales);
+- the first note you play on each new chord, by chord type;
+- how the line crosses each change: by step, into a 3rd or 7th, and whether a 7th falls to the next 3rd.
+
+**Your licks** (`licks.js`) uses the definition from the research on recorded solos: a run of intervals that occurs at least twice, so a figure is the same figure in any key. It looks through this take and the notes kept from earlier takes, grows each match to its full length, drops trills and repeated notes and fragments of longer figures, and tells scale runs and arpeggios from licks. Each lick is shown with its shape, the notes of one time you played it, a button to hear it, and where it happens: which eighth of the bar it starts on, over which chord, from which chord tone.
+
+`coachNotes` in `coach.js` reads both. Sources: Norgaard 2014 and Frieler 2014 for pattern use, Frieler et al. 2019 and the 2023 metrical-position study for where figures sit, Baker's bebop scales and Ligon's linear harmony for what teachers ask for.
+
+| Case | Result |
+| --- | --- |
+| Pitch on single-note lines, including sixteenths at 200 BPM | right note and octave on at least 99% |
+| Pitch when notes ring on over each other | right note and octave on at least 97% |
+| Whole page in Chromium, a written chorus played six times over a ii-V-I | all 120 notes read; landing notes, 7th-to-3rd resolutions and the per-bar shares all as written; the chorus found as one lick |
+
+**Not tested:** a real guitar. Bends, slides, vibrato and hammer-ons have no pluck to find and may be missed or read a little off.

@@ -329,3 +329,250 @@ export const drills = {
     sources: ["space", "backbeat"],
   }),
 };
+
+// ---- the notes: harmony and licks ----
+
+Object.assign(SOURCES, {
+  baker: {
+    kind: "teaching",
+    cite: "David Baker's bebop scales: an added passing tone keeps the chord tones on the beats (summary with references)",
+    url: "https://en.wikipedia.org/wiki/Bebop_scale",
+  },
+  ligon: {
+    kind: "teaching",
+    cite: "Bert Ligon, Connecting Chords with Linear Harmony (1996): 7ths resolve to 3rds across the chord change",
+    url: "https://learn.jazzguitarlessons.net/blog/connecting-chords-with-linear-harmony",
+  },
+  norgaard: {
+    kind: "research",
+    cite: "Norgaard (2014), How jazz musicians improvise: the central role of auditory and motor patterns. Music Perception 31(3)",
+    url: "https://scholarworks.gsu.edu/music_facpub/78",
+  },
+  frieler: {
+    kind: "research",
+    cite: "Frieler (2014), Pattern usage in monophonic jazz solos (Weimar Jazz Database, 204 solos)",
+    url: "https://jazzomat.hfm-weimar.de/_downloads/a97886b2bf0e109dea103bcda6ad5bbe/frieler_jazzomat_workshop_2014_pattern_pres.pdf",
+  },
+  anatomy: {
+    kind: "research",
+    cite: "Frieler, Höger & Pfleiderer (2019), Anatomy of a lick: structure and variants, history and transmission (Dig That Lick)",
+    url: "https://dh-abstracts.library.virginia.edu/works/9830",
+  },
+  metric: {
+    kind: "research",
+    cite: "Interval patterns are dependent on metrical position in jazz solos (2023), Weimar Jazz Database, 435 solos",
+    url: "https://scholarworks.iu.edu/dspace/items/04aea93a-b02d-4ac2-a507-b2b2413bbdc7",
+  },
+});
+
+const pct = (x) => `${Math.round(x * 100)}%`;
+const insideOf = (t) => (t.n ? (t.guide + t.chord) / t.n : 0);
+/** Whether two shares differ by more than chance: a two-proportion z test at about 95%. */
+function differ(a, na, b, nb) {
+  if (na < 8 || nb < 8) return false;
+  const p = (a * na + b * nb) / (na + nb);
+  const se = Math.sqrt(p * (1 - p) * (1 / na + 1 / nb));
+  return se > 0 && Math.abs(a - b) / se > 1.96;
+}
+const CLASS_WORD = { maj: "major", dom: "dominant", min: "minor", hdim: "half-diminished", dim: "diminished" };
+const ordinal = (n) => `${n}${["th", "st", "nd", "rd"][n % 100 > 10 && n % 100 < 14 ? 0 : Math.min(n % 10, 4) % 4]}`;
+
+/**
+ * Reads the harmony map and the licks of a take.
+ * @param {object} h  analyzeHarmony's result
+ * @param {object} L  findLicks' result
+ * @returns {{enough:boolean, headline:object[], findings:object[], drill:object|null}}
+ */
+export function coachNotes(h, L, ctx = {}) {
+  const findings = [];
+  const add = (f) => findings.push(f);
+  if (h.notes < 16) {
+    return { enough: false, headline: [], findings: [{ id: "few", weight: 0, title: "Not enough notes with a clear pitch", text: `${h.notes} single notes could be read. Chords and double stops are left out. Play a chorus of single-note lines.`, sources: [] }], drill: null };
+  }
+  const all = insideOf(h.all);
+  const on = insideOf(h.onBeat);
+  const off = insideOf(h.offBeat);
+  const outside = h.all.outside / h.all.n;
+
+  // 1. Chord tones, and where in the beat they fall.
+  if (h.onBeat.n >= 8 && h.offBeat.n >= 8) {
+    const clear = differ(on, h.onBeat.n, off, h.offBeat.n);
+    if (clear && on > off) {
+      add({ id: "beats", weight: 14, title: `Chord tones on the beat: ${pct(on)}. Off the beat: ${pct(off)}`, text: "Your chord tones sit on the beats and the other notes pass between them. That is what makes a line spell the chords without a band, and it is what the bebop scales are built to do.", sources: ["baker"] });
+    } else if (on < 0.5) {
+      add({
+        id: "beats",
+        weight: 58,
+        title: `Only ${pct(on)} of your notes on the beat are chord tones`,
+        text: `On the beat ${pct(on)} of your notes are chord tones, off the beat ${pct(off)}. The ear takes the notes on the beats for the harmony, so the line does not spell the chords. Bebop players add one passing tone to a scale so that the chord tones keep landing on the beats.`,
+        sources: ["baker"],
+        drill: noteDrills.bebop(ctx),
+      });
+    } else {
+      add({ id: "beats", weight: 10, title: `Chord tones on the beat: ${pct(on)}. Off the beat: ${pct(off)}`, text: "No clear difference between beats and offbeats in this take.", sources: ["baker"] });
+    }
+  }
+
+  // 2. The first note on each new chord.
+  const lands = h.landings;
+  if (lands.length >= 6) {
+    const roots = lands.filter((l) => l.degree === "root").length / lands.length;
+    const guides = lands.filter((l) => l.kind === "guide").length / lands.length;
+    const parts = Object.entries(h.landingBy)
+      .filter(([, c]) => c.n >= 3)
+      .map(([cls, c]) => {
+        const top = Object.entries(c.degrees).sort((a, b) => b[1] - a[1])[0];
+        return `on ${CLASS_WORD[cls]} chords the ${top[0]} (${top[1]} of ${c.n})`;
+      });
+    const detail = parts.length ? ` Most often: ${parts.join(", ")}.` : "";
+    if (roots >= 0.45) {
+      add({
+        id: "landing",
+        weight: 62,
+        title: `You land on the root ${pct(roots)} of the time`,
+        text: `Of ${lands.length} chord changes you played into, ${pct(roots)} began on the root and ${pct(guides)} on a 3rd or 7th.${detail} The bass already plays the root. In the figures mined from recorded solos, the most common starting note is the 3rd of the chord.`,
+        sources: ["anatomy", "ligon"],
+        drill: noteDrills.thirds(ctx),
+      });
+    } else {
+      add({ id: "landing", weight: guides >= 0.5 ? 12 : 30, title: `First note on a new chord: a 3rd or 7th ${pct(guides)} of the time`, text: `Of ${lands.length} chord changes you played into, ${pct(guides)} began on a 3rd or 7th and ${pct(roots)} on the root.${detail}`, sources: ["anatomy"], drill: guides < 0.3 ? noteDrills.thirds(ctx) : null });
+    }
+  }
+
+  // 3. Crossing the chord change.
+  const X = h.crossings;
+  if (X.n >= 6) {
+    const smooth = X.stepIntoGuide / X.n;
+    let text = `You played across ${X.n} chord changes without a rest. In ${pct(X.byStep / X.n)} the line moved by step, and in ${pct(smooth)} it stepped into the 3rd or 7th of the new chord.`;
+    if (X.fromSeventh >= 3) text += ` You were on a 7th before the change ${X.fromSeventh} times and let it fall to the next 3rd ${X.seventhToThird} times.`;
+    text += " A 7th falling a step to the 3rd of the next chord is the strongest way a single line can say that the chord changed.";
+    add({ id: "crossing", weight: smooth < 0.25 ? 52 : 11, title: `Across the changes: by step into a guide tone ${pct(smooth)} of the time`, text, sources: ["ligon"], drill: smooth < 0.25 ? noteDrills.guideLine(ctx) : null });
+  }
+
+  // 4. The map of the form: the bar where it comes apart, and the bars never played.
+  const cells = h.bySlot.filter((c) => c.n >= 6);
+  const choruses = Math.max(...h.bySlot.map((c) => c.choruses), 0);
+  const label = (c) => `bar ${c.slot.bar + 1}${c.slot.span < ctx.beats ? (c.slot.k ? ", second half" : ", first half") : ""} (${c.slot.chord})`;
+  if (cells.length >= 3) {
+    const worst = [...cells].sort((a, b) => insideOf(a) - insideOf(b))[0];
+    const rest = { n: h.all.n - worst.n, in: h.all.guide + h.all.chord - worst.guide - worst.chord };
+    const others = rest.n ? rest.in / rest.n : 0;
+    if (differ(insideOf(worst), worst.n, others, rest.n) && others - insideOf(worst) >= 0.2) {
+      const off = (worst.outside + worst.avoid) / worst.n;
+      if (off >= 0.25) {
+        add({
+          id: "weak-bar",
+          weight: 56,
+          title: `The line loses the chord in ${label(worst)}`,
+          text: `There ${pct(insideOf(worst))} of your notes are chord tones, against ${pct(others)} everywhere else (${worst.n} notes over ${worst.choruses} choruses), and ${pct(off)} do not fit the chord at all.`,
+          sources: [],
+          drill: noteDrills.oneChord(ctx, worst.slot),
+        });
+      } else {
+        add({
+          id: "weak-bar",
+          weight: 24,
+          title: `Fewest chord tones in ${label(worst)}`,
+          text: `There ${pct(insideOf(worst))} of your notes are chord tones, against ${pct(others)} everywhere else (${worst.n} notes over ${worst.choruses} choruses). The rest are colour notes and approaches, which fit the chord. Worth knowing if it is not on purpose.`,
+          sources: [],
+        });
+      }
+    }
+  }
+  if (choruses >= 2) {
+    const empty = h.bySlot.filter((c) => c.n === 0);
+    if (empty.length && empty.length <= h.bySlot.length / 2) {
+      add({ id: "empty", weight: 34, title: `You never played in ${empty.length === 1 ? label(empty[0]) : `${empty.length} bars of the form`}`, text: `Over ${choruses} choruses, ${empty.map(label).join(", ")} stayed empty. A rest in the same place every time is a habit, or a chord you step around.`, sources: [] });
+    }
+  }
+
+  // 5. Outside notes.
+  if (outside >= 0.2) {
+    add({ id: "outside", weight: 44, title: `${pct(outside)} of your notes are outside the chord's scale`, text: `${h.all.outside} notes were outside the scale and did not resolve by a half step. ${h.all.approach} more were chromatic approaches, which is how outside notes are made to sound right: the next note is a chord tone a half step away.`, sources: ["baker"], drill: noteDrills.approach(ctx) });
+  } else if (h.all.approach >= 3) {
+    add({ id: "approach", weight: 9, title: `${h.all.approach} chromatic approaches`, text: `You led into a chord tone from a half step away ${h.all.approach} times. ${pct(outside)} of your notes were outside the scale without resolving.`, sources: [] });
+  }
+
+  // 6. The shape of the lines.
+  const M = h.moves;
+  if (M.n >= 20) {
+    const steps = M.step / M.n;
+    const span = h.range.high - h.range.low;
+    if (steps >= 0.8) add({ id: "shape", weight: 36, title: `${pct(steps)} of your moves are steps`, text: `Your lines are almost all scale steps: ${pct(M.third / M.n)} thirds and ${pct(M.leap / M.n)} larger leaps. Lines on records mix scale runs with arpeggios and a few wide intervals.`, sources: ["frieler"], drill: noteDrills.arpeggio(ctx) });
+    else add({ id: "shape", weight: 7, title: `Steps ${pct(steps)}, thirds ${pct(M.third / M.n)}, leaps ${pct(M.leap / M.n)}`, text: `${pct(M.up / M.n)} of your moves go up and ${pct(M.down / M.n)} down. Lowest note ${h.name(h.range.low)}, highest ${h.name(h.range.high)}, ${span} semitones apart.`, sources: [] });
+    if (span < 12) add({ id: "range", weight: 28, title: `The whole take sits inside ${span} semitones`, text: `From ${h.name(h.range.low)} to ${h.name(h.range.high)}: less than an octave. One position of the neck.`, sources: [] });
+  }
+
+  // 7. Licks.
+  const real = L.licks.filter((l) => l.shape === "lick");
+  const top = real[0];
+  if (top) {
+    const bits = [];
+    if (top.startBeat) bits.push(`it starts on ${top.startBeat.value} ${pct(top.startBeat.share)} of the time`);
+    if (top.over && top.over.value) bits.push(`over the ${top.over.value} chord ${pct(top.over.share)} of the time`);
+    if (top.from) bits.push(`from the ${top.from.value} ${pct(top.from.share)} of the time`);
+    const fixed = top.count >= 4 && top.startBeat && top.startBeat.share >= 0.75;
+    add({
+      id: "lick",
+      weight: fixed || top.weight >= 0.25 ? 50 : 26,
+      title: `Your most used lick: ${top.length} notes, played ${top.count} times`,
+      text: `${top.here} times in this take${top.takes > 1 ? `, and in ${top.takes - 1} earlier take${top.takes > 2 ? "s" : ""}` : ""}${bits.length ? `; ${bits.join(", ")}` : ""}.${top.weight >= 0.25 ? ` It makes up ${pct(top.weight)} of this take.` : ""}${fixed ? " It always comes out in the same place. On records, short figures are tied to their place in the bar too; moving one is how it becomes yours to use anywhere." : ""}`,
+      sources: fixed ? ["metric", "backbeat"] : ["norgaard"],
+      drill: fixed ? noteDrills.displace(ctx, top) : null,
+    });
+  }
+  if (L.notes >= 24) {
+    add({
+      id: "coverage",
+      weight: 8,
+      title: `${pct(L.coverage)} of your notes are part of a figure you played at least twice`,
+      text: `${real.length} licks and ${L.licks.length - real.length} runs or arpeggios came back. Repeating figures is how the language works: in 48 Charlie Parker solos, 82.6% of the notes begin a five-note figure that returns somewhere in those solos. One take is a far smaller sample, so your number will be lower than that.`,
+      sources: ["norgaard", "frieler"],
+    });
+  }
+
+  findings.sort((a, b) => b.weight - a.weight);
+  const lead = findings.find((f) => f.drill);
+  const guidesLanding = lands.length >= 6 ? lands.filter((l) => l.kind === "guide").length / lands.length : null;
+  return {
+    enough: true,
+    headline: [
+      { label: "Chord tones", value: pct(all), note: `${h.notes} notes` },
+      h.onBeat.n >= 8 ? { label: "On the beat", value: pct(on), note: "are chord tones" } : null,
+      guidesLanding !== null ? { label: "New chord", value: pct(guidesLanding), note: "start on a 3rd or 7th" } : null,
+      L.notes >= 24 ? { label: "Repeated", value: pct(L.coverage), note: "of notes in a figure" } : null,
+    ].filter(Boolean),
+    findings,
+    drill: lead ? lead.drill : null,
+  };
+}
+
+/** Exercises for the notes. They need the chords: the patch turns them on. */
+export const noteDrills = {
+  bebop: () => ({ id: "bebop", title: "Chord tones on the beat", how: "Take one chord. Start on a chord tone on a beat and run down the scale in eighths. When a chord tone would fall between beats, add one chromatic passing note so the next one lands on the beat again. Then do it through the tune.", patch: { harmony: { on: true } }, sources: ["baker"] }),
+  thirds: () => ({ id: "thirds", title: "Land on the 3rd", how: "Play through the tune with one rule: the first note on every new chord is its 3rd. Anything may come before it. When that is easy, land on the 7th.", patch: { harmony: { on: true } }, sources: ["ligon", "anatomy"] }),
+  guideLine: () => ({ id: "guideline", title: "The guide-tone line", how: "Play only 3rds and 7ths, one long note per chord, moving to the nearest one each time. In a ii-V-I the 7th falls a step and becomes the next 3rd. Sing it, then decorate it.", patch: { harmony: { on: true } }, sources: ["ligon"] }),
+  oneChord: (c, slot) => ({ id: "onechord", title: `Spell ${slot.chord}`, how: `Take bar ${slot.bar + 1} on its own, slowly. Play the arpeggio of ${slot.chord} up from each of its notes in time, then one line that lands on its 3rd. Then play into it from the bar before.`, patch: { harmony: { on: true } }, sources: [] }),
+  approach: () => ({ id: "approach", title: "Resolve the outside notes", how: "Play any note outside the chord, but make the very next note a chord tone a half step away. Do it on purpose into every 3rd of the tune.", patch: { harmony: { on: true } }, sources: ["baker"] }),
+  arpeggio: () => ({ id: "arpeggio", title: "Arpeggio up, scale down", how: "On each chord, go up the arpeggio from the 3rd to the 9th, then come down the scale. It puts thirds and a leap into every bar.", patch: { harmony: { on: true } }, sources: ["frieler"] }),
+  displace: (c, lick) => ({ id: "displace", title: "Move your lick", how: `You start it on ${lick.startBeat.value}. Play the same notes starting an eighth later, then two eighths later, through the whole bar. Then start it from another note of the chord.`, patch: { harmony: { on: true } }, sources: ["metric", "backbeat"] }),
+};
+
+// Short names for the links under a finding.
+const SHORT = {
+  "friberg": "Friberg & Sundström 2002",
+  "nelias": "Nelias et al. 2022",
+  "benadon": "Benadon 2006",
+  "butterfield": "Butterfield 2011",
+  "galper": "Galper, Forward Motion",
+  "backbeat": "Jazzadvice, great time",
+  "space": "Jazzadvice, space",
+  "dropout": "A saxophonist's guide to time",
+  "baker": "Baker's bebop scales",
+  "ligon": "Ligon 1996",
+  "norgaard": "Norgaard 2014",
+  "frieler": "Frieler 2014",
+  "anatomy": "Frieler et al. 2019",
+  "metric": "Metrical position study 2023"
+};
+for (const [k, v] of Object.entries(SHORT)) SOURCES[k].short = v;

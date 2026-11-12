@@ -432,3 +432,22 @@ input.bpm:focus-visible, input.bpm-mini:focus-visible { outline: 3px solid var(-
 .lr-table { border-collapse: collapse; font-size: 12px; width: 100%; }
 .lr-table caption { text-align: left; font-weight: 700; padding-bottom: 6px; }
 .lr-table th, .lr-table td { text-align: left; padding: 4px 8px 4px 0; border-bottom: 1px solid rgba(0, 0, 0, 0.15); }
+
+/* Listen: the harmony map and the licks */
+.lr-heat { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.lr-bar { position: relative; display: flex; gap: 2px; min-width: 0; }
+.lr-barno { position: absolute; top: 2px; right: 4px; font-size: 9px; opacity: 0.6; z-index: 1; }
+.lr-cell { flex: 1; min-width: 0; border: 1.5px solid var(--ink); padding: 6px 6px 5px; display: flex; flex-direction: column; gap: 1px; background: color-mix(in srgb, var(--accent) calc(var(--heat, 0) * 100%), var(--bg)); }
+.lr-cell.few { background: repeating-linear-gradient(135deg, transparent 0 5px, rgba(0, 0, 0, 0.08) 5px 6px); }
+.lr-chord { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lr-cell b { font-size: 17px; line-height: 1.1; }
+.lr-count { font-size: 9px; }
+.lr-ramp { display: inline-block; width: 44px; height: 10px; border: 1px solid var(--ink); background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 6%, var(--bg)), color-mix(in srgb, var(--accent) 80%, var(--bg))); }
+.lr-sw.few { border-radius: 0; border: 1px solid var(--ink); background: repeating-linear-gradient(135deg, transparent 0 3px, rgba(0, 0, 0, 0.25) 3px 4px); }
+.lr-licks { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.lr-lick { border: 1.5px solid var(--ink); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.lr-lickhead { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.lr-contour { width: 100%; height: 64px; display: block; }
+.lr-line { fill: none; stroke: var(--ink); stroke-width: 2; stroke-linejoin: round; }
+.lr-dot { fill: var(--accent); stroke: var(--bg); stroke-width: 1.5; }
+.lr-names { margin: 0; font-size: 13px; letter-spacing: 0.02em; overflow-wrap: anywhere; }

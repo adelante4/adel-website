@@ -26,9 +26,9 @@ const SOUNDS = {
 };
 
 // Recorded hits (Versilian Community Sample Library, CC0). Each voice has three files.
-import { rhodes, bass, bassSynth, deadNote, softClip, organ, pad, juno, drone, glass, supersaw, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261111a";
-import { createSampler } from "./sampler.js?v=20261111a";
-import { KEYS, BASSES, trimOf, drumTrim, drumLevel } from "./instruments.js?v=20261111a";
+import { rhodes, bass, bassSynth, deadNote, softClip, organ, pad, juno, drone, glass, supersaw, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261112a";
+import { createSampler } from "./sampler.js?v=20261112a";
+import { KEYS, BASSES, trimOf, drumTrim, drumLevel } from "./instruments.js?v=20261112a";
 
 const SYNTH_KEYS = new Set(["rhodes", "organ", "pad", "juno", "drone", "glass", "supersaw"]);
 // Bass bus voicing; the makeup keeps the level where the per-sound trims were measured.
