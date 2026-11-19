@@ -1,14 +1,14 @@
 // The Listen section: microphone on, notes timed against the band while you play, a report when you stop.
 // Browser side. The hearing is in ear.js, the numbers in timefeel.js, the reading of them in coach.js.
-import { createEar } from "./ear.js?v=20261119c";
-import { openMic } from "./mic.js?v=20261119c";
-import { probeSignal } from "./latency.js?v=20261119c";
-import { analyzeTiming, analyzePacing } from "./timefeel.js?v=20261119c";
-import { coach, coachNotes, SOURCES } from "./coach.js?v=20261119c";
-import { analyzeHarmony, inside } from "./harmonymap.js?v=20261119c";
-import { findLicks } from "./licks.js?v=20261119c";
-import { noteName } from "./analysis.js?v=20261119c";
-import { bandFeel } from "./groove.js?v=20261119c";
+import { createEar } from "./ear.js?v=20261119d";
+import { openMic } from "./mic.js?v=20261119d";
+import { probeSignal } from "./latency.js?v=20261119d";
+import { analyzeTiming, analyzePacing } from "./timefeel.js?v=20261119d";
+import { coach, coachNotes, SOURCES, controlSpread } from "./coach.js?v=20261119d";
+import { analyzeHarmony, inside } from "./harmonymap.js?v=20261119d";
+import { findLicks } from "./licks.js?v=20261119d";
+import { noteName } from "./analysis.js?v=20261119d";
+import { bandFeel } from "./groove.js?v=20261119d";
 
 const CAL = "adelListenDelay";
 const TAKES = "adelListenTakes";
@@ -707,10 +707,10 @@ export function initListen({ audio, transport, getState, applyPatch, notice }) {
     };
     const t = analyzeTiming(notes, ctx);
     const p = analyzePacing(notes, { beats, countIn: state.practice.countIn, totalBeats: Math.max(last, transport.beatAt(audio.ctx.currentTime - rt.seconds)) });
-    const c = coach(t, p, { bpm, beats, calibrated: rt.source !== "estimate" });
+    const c = coach(t, p, { bpm, beats, calibrated: rt.source !== "estimate", form: state.harmony.form, countIn: state.practice.countIn });
     if (c.enough) {
       const takes = load(TAKES, []);
-      takes.push({ at: Date.now(), bpm, n: t.timed, sd: Math.round(t.down.n >= 8 ? t.down.sd : t.all.sd), down: rt.source === "estimate" ? null : Math.round(t.down.mean), swing: t.swing.enough && t.swung ? t.swing.ratio : null });
+      takes.push({ at: Date.now(), bpm, n: t.timed, sd: Math.round(controlSpread(t)), down: rt.source === "estimate" ? null : Math.round(t.down.mean), swing: t.swing.enough && t.swung ? t.swing.ratio : null });
       store(TAKES, takes.slice(-60));
     }
     // The notes: against the chords, and as figures that come back.

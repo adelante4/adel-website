@@ -5,9 +5,9 @@
 // (picked up on the next pull) or "restart" (the bar structure changed). `notice` is a line to
 // show the player. The rules that tie choices together live here, once: a new meter resets
 // accents and chances, and a groove only plays in its own meter.
-import { parseMeter } from "./meter.js?v=20261119c";
-import { defaultLevels } from "./share.js?v=20261119c";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits, grooveMeter } from "./groove.js?v=20261119c";
+import { parseMeter } from "./meter.js?v=20261119d";
+import { defaultLevels } from "./share.js?v=20261119d";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits, grooveMeter } from "./groove.js?v=20261119d";
 
 /** Puts a pattern in a new meter: accents go back to the meter's default, every chance to 1. */
 function meterTo(pattern, beats, den) {

@@ -7,7 +7,14 @@
 // A measurement is never turned into a mark out of ten. Placing downbeats late is a choice, not an error;
 // the coach says where you sit, how steady that is, and what the records and teachers say about it.
 
+import { formPosition } from "./position.js?v=20261119d";
+
 export const SOURCES = {
+  ashley: {
+    kind: "research",
+    cite: "Ashley (2002), Do[n't] change a hair for me: the art of jazz rubato. Music Perception 19(3)",
+    url: "https://doi.org/10.1525/mp.2002.19.3.311",
+  },
   friberg: {
     kind: "research",
     cite: "Friberg & Sundström (2002), Swing ratios and ensemble timing in jazz performance. Music Perception 19(3)",
@@ -51,9 +58,17 @@ export const SOURCES = {
 };
 
 const r0 = (x) => String(Math.round(x));
+const median = (a) => {
+  const v = [...a].sort((x, y) => x - y);
+  const m = v.length >> 1;
+  return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2;
+};
 const side = (ms) => (ms > 0 ? "behind" : "ahead of");
 const late = (ms) => (ms > 0 ? "late" : "early");
 const ratioText = (x) => `${x.toFixed(1)}:1`;
+
+/** The spread the coach reads: around your own line when the phrases can be followed, else around one average. */
+export const controlSpread = (t) => (t.line && t.line.enough ? t.line.control.sd : t.down.n >= 8 ? t.down.sd : t.all.sd);
 
 /** Words for the spread. A rule of thumb for this page, not a published scale. */
 export const spreadWord = (sd) => (sd < 10 ? "very tight" : sd < 16 ? "tight" : sd < 24 ? "steady" : sd < 34 ? "loose" : "scattered");
@@ -61,7 +76,8 @@ export const spreadWord = (sd) => (sd < 10 ? "very tight" : sd < 16 ? "tight" : 
 /**
  * @param {object} t  analyzeTiming's result
  * @param {object} p  analyzePacing's result
- * @param {{bpm:number, beats:number, calibrated:boolean, groove:boolean}} ctx
+ * @param {{bpm:number, beats:number, calibrated:boolean, groove:boolean, form?:string[][], countIn?:number}} ctx
+ *   form and countIn, when given, name the bars of the form where a phrase starts.
  * @returns {{headline:object[], findings:object[], drill:object|null, enough:boolean}}
  *   A finding: {id, weight, title, text, sources:[keys], drill?}. A drill: {id, title, how, patch} where patch
  *   is a partial page state ({pattern:{...}, practice:{...}}) that sets the page up for it.
@@ -80,16 +96,24 @@ export function coach(t, p, ctx) {
   }
   const beatMs = t.msPerBeat;
   const absolute = ctx.calibrated;
-  const D = t.down;
-  const U = t.up;
+  const L = t.line && t.line.enough ? t.line : null;
+  // When phrases lean and come home, where you sit is read from the notes at home, so the leans do not make you
+  // look late.
+  const shaped = L && L.leans >= 2;
+  const withPercent = (s) => ({ ...s, percent: beatMs ? (s.mean / beatMs) * 100 : 0 });
+  const D = shaped ? withPercent(L.home.down) : t.down;
+  const U = shaped ? withPercent(L.home.up) : t.up;
 
-  // 1. Spread: the one number that is about control and nothing else.
-  const sd = D.n >= 8 ? D.sd : t.all.sd;
+  // 1. Spread: the one number that is about control and nothing else. Measured around your own line, so a phrase
+  // that leans and comes back does not count as scatter.
+  const sd = controlSpread(t);
+  const plain = t.down.n >= 8 ? t.down.sd : t.all.sd;
+  const moved = L && plain > sd + 6;
   add({
     id: "spread",
     weight: sd > 24 ? 70 + sd : 10,
     title: `Spread ±${r0(sd)} ms: ${spreadWord(sd)}`,
-    text: `Two notes in three land within ${r0(sd)} ms of your own average. This is consistency. It does not depend on whether you sit ahead or behind.`,
+    text: `Two notes in three land within ${r0(sd)} ms of ${L ? "where your line is at that moment" : "your own average"}. This is consistency. It does not depend on whether you sit ahead or behind.${moved ? ` Around one fixed average it would be ±${r0(plain)} ms: the difference is your phrases moving, which is read below.` : ""}`,
     sources: [],
     drill: sd > 24 ? drills.slow(ctx) : null,
   });
@@ -142,6 +166,40 @@ export function coach(t, p, ctx) {
       text: "The delay of your speakers or headphones has not been measured, so the page cannot say whether you are ahead of or behind the band. Everything else in this report does not depend on it. Measure the delay once in Listen to see it.",
       sources: [],
     });
+  }
+
+  // 2b. The line of each phrase: leans that come home, and slides that do not.
+  if (L) {
+    const n = L.phrases.length;
+    const pos = ctx.form && ctx.form.length ? formPosition(ctx.form, ctx.beats, ctx.countIn ?? 0) : null;
+    const where = (ph) => {
+      const at = pos && pos.ofBar(ph.bar);
+      return at ? `bar ${at.formBar + 1}` : null;
+    };
+    if (L.leans >= 2 && L.leans / n >= 0.25) {
+      const back = L.leanMs > 0;
+      add({
+        id: "rubato",
+        weight: 32,
+        title: `${L.leans} of ${n} phrases lean ${back ? "back" : "forward"} and come home`,
+        text: `In the middle of those phrases your line moves about ${r0(Math.abs(L.leanMs))} ms ${back ? "behind" : "ahead of"} where you started, and by the last notes it is back. That is rubato: the line moves against a steady band and returns to it, a habit measured in recorded jazz melodies. It is a choice, not looseness, so the spread above is measured around your line, and where you sit is read from the notes at home.`,
+        sources: ["ashley"],
+      });
+    }
+    const slides = L.phrases.filter((ph) => ph.kind === "slide");
+    if (slides.length >= 2 && slides.length / n >= 0.25) {
+      const later = median(slides.map((ph) => ph.end));
+      const bars = [...new Set(slides.map(where).filter(Boolean))];
+      const list = bars.length ? ` They start at ${bars.length === 1 ? bars[0] : `${bars.slice(0, -1).join(", ")} and ${bars[bars.length - 1]}`} of the form.` : "";
+      add({
+        id: "slide",
+        weight: 55 + Math.abs(later),
+        title: `${slides.length} of ${n} phrases slide ${later > 0 ? "back" : "forward"} and stay there`,
+        text: `By their last notes those phrases are about ${r0(Math.abs(later))} ms ${later > 0 ? "behind" : "ahead of"} where they started.${list} Leaning is fine; a line that leans and comes home is rubato. A line that leaves and does not come back has lost its place against the band.`,
+        sources: ["ashley"],
+        drill: drills.land(ctx),
+      });
+    }
   }
 
   // 3. Swing ratio.
@@ -321,6 +379,13 @@ export const drills = {
       sources: ["backbeat"],
     };
   },
+  land: (c) => ({
+    id: "land",
+    title: "Lean, then land",
+    how: "Play phrases of two bars and end each one on beat 1 of the next bar, together with the bass. In the middle, lean back as far as you like. The landing is what counts: the report shows whether your phrases come home.",
+    patch: { groove: { style: "jazz" }, bass: { on: true, style: "walking" }, harmony: { on: true } },
+    sources: ["ashley", "backbeat"],
+  }),
   playRest: (c) => ({
     id: "playrest",
     title: "Play two bars, rest two",
@@ -560,6 +625,7 @@ export const noteDrills = {
 
 // Short names for the links under a finding.
 const SHORT = {
+  "ashley": "Ashley 2002",
   "friberg": "Friberg & Sundström 2002",
   "nelias": "Nelias et al. 2022",
   "benadon": "Benadon 2006",

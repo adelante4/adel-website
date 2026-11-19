@@ -14,7 +14,7 @@
 //
 // Every average comes with its uncertainty. A statement is only marked `sure` when the average is at least twice
 // its standard error away from zero and there are enough notes, so a report does not teach from noise.
-import { barPlays } from "./overlay.js?v=20261119c";
+import { barPlays } from "./overlay.js?v=20261119d";
 
 const mean = (a) => a.reduce((s, x) => s + x, 0) / a.length;
 const median = (a) => {
@@ -166,6 +166,8 @@ export function analyzeTiming(notes, ctx) {
     byTempo = [...groups.entries()].sort((a, b) => a[0] - b[0]).map(([bpm, v]) => ({ bpm, ...summarize(v, 8) }));
   }
 
+  const line = analyzeLine(rows, { sDown, sUp, sAll, beats, perBeat: typicalMs });
+
   return {
     notes: rows.length,
     timed: withBand.length,
@@ -182,7 +184,97 @@ export function analyzeTiming(notes, ctx) {
     drift,
     silence,
     byTempo,
+    line,
     points: withBand.map((r) => ({ beat: r.beat, bar: r.bar, kind: r.kind, slot: r.slot, ms: r.ms })),
+  };
+}
+
+/**
+ * The line of each phrase: where your timing goes within a phrase, apart from the scatter of single notes.
+ *
+ * A soloist may let a phrase lean behind the band and bring it home by the end. That is rubato: the melody moves
+ * against a steady rhythm section and returns to it (Ashley 2002). Around one fixed average it looks like spread,
+ * and the leans pull the average late. So each phrase is followed with a local average over about a beat and a
+ * half either side, and the timing is split three ways:
+ *   - control: how far single notes scatter around your own line;
+ *   - leans: phrases that move away from home and come back by their last notes;
+ *   - slides: phrases that move away and are still away at their end.
+ * `home` is where phrases start, and `home.down` / `home.up` are your placement with the line taken out.
+ */
+function analyzeLine(rows, { sDown, sUp, sAll, beats, perBeat, rest = 1.5, reach = 1.5, minNotes = 8 }) {
+  const none = { enough: false, phrases: [], leans: 0, slides: 0, leanMs: 0, control: summarize([]), home: { level: 0, down: summarize([]), up: summarize([]) } };
+  const sorted = [...rows].sort((a, b) => a.beat - b.beat);
+  const ref = (r) => (r.kind === "down" ? (sDown.n >= 6 ? sDown.mean : sAll.mean) : sUp.n >= 6 ? sUp.mean : sAll.mean);
+  // Phrases, split at rests as in analyzePacing; only notes timed against the band are followed.
+  const groups = [];
+  let cur = null;
+  let last = -Infinity;
+  for (const r of sorted) {
+    if (r.beat - last >= rest || !cur) groups.push((cur = []));
+    last = r.beat;
+    if (r.kind !== "other" && r.precise && r.withBand) cur.push({ r, e: r.ms - ref(r) });
+  }
+  const timed = groups.reduce((s, g) => s + g.length, 0);
+  if (timed < 24) return none;
+
+  // The line at each note: a straight-line fit to the notes within `reach` beats, so a phrase that is still
+  // leaning further does not show up as scatter. Each note's distance from it is scaled up for the note's own
+  // pull on the fit (its leverage).
+  const residuals = [];
+  for (const g of groups) {
+    const all = g.reduce((s, x) => s + x.e, 0) / (g.length || 1);
+    for (const x of g) {
+      const near = g.filter((y) => Math.abs(y.r.beat - x.r.beat) <= reach);
+      const k = near.length;
+      if (k < 4) {
+        x.line = all;
+        continue;
+      }
+      const mx = near.reduce((s, y) => s + y.r.beat, 0) / k;
+      const my = near.reduce((s, y) => s + y.e, 0) / k;
+      const sxx = near.reduce((s, y) => s + (y.r.beat - mx) ** 2, 0);
+      const b = sxx > 1e-9 ? near.reduce((s, y) => s + (y.r.beat - mx) * (y.e - my), 0) / sxx : 0;
+      const dx = x.r.beat - mx;
+      x.line = my + b * dx;
+      const h = 1 / k + (sxx > 1e-9 ? dx ** 2 / sxx : 0);
+      if (h < 0.9) residuals.push((x.e - x.line) / Math.sqrt(1 - h));
+    }
+  }
+  const control = summarize(residuals);
+  // The first or last two notes of a phrase: any wider and the edge already reaches into the lean.
+  const edgeNotes = (g, first) => (first ? g.slice(0, 2) : g.slice(-2)).map((x) => x.e);
+  const edge = (g, first) => median(edgeNotes(g, first));
+  const long = groups.filter((g) => g.length >= minNotes);
+  if (long.length < 3) return { ...none, control };
+  // A lean must stand clear of the noise in a local fit, and of a few ms that nobody hears.
+  const threshold = Math.max(15, 0.04 * perBeat, (3 * control.sd) / Math.sqrt(5));
+  const classify = (home) =>
+    long.map((g) => {
+      let peak = 0;
+      for (const x of g) if (Math.abs(x.line - home) > Math.abs(peak)) peak = x.line - home;
+      const end = edge(g, false) - home;
+      const kind = Math.abs(peak) < threshold ? "steady" : Math.abs(end) < Math.max(threshold, 0.35 * Math.abs(peak)) ? "lean" : "slide";
+      return { start: g[0].r.beat, bar: Math.floor(g[0].r.beat / beats), notes: g.length, kind, peak, end, g };
+    });
+  // Home: first from where phrases start. Then, once the phrases are read, from every note that is at home:
+  // all of a steady phrase, both ends of a lean, the start of a slide.
+  let home = median(long.map((g) => edge(g, true)));
+  for (let pass = 0; pass < 2; pass++) {
+    const at = classify(home).flatMap((p) => (p.kind === "steady" ? p.g.map((x) => x.e) : p.kind === "lean" ? [...edgeNotes(p.g, true), ...edgeNotes(p.g, false)] : edgeNotes(p.g, true)));
+    home = median(at);
+  }
+  const phrases = classify(home).map(({ g, ...p }) => p);
+  const leaning = phrases.filter((p) => p.kind === "lean");
+  const deshaped = (kind) => groups.flat().filter((x) => x.r.kind === kind).map((x) => x.r.ms - (x.line - home));
+  return {
+    enough: true,
+    phrases,
+    leans: leaning.length,
+    slides: phrases.filter((p) => p.kind === "slide").length,
+    leanMs: leaning.length ? median(leaning.map((p) => p.peak)) : 0,
+    threshold,
+    control,
+    home: { level: home, down: summarize(deshaped("down")), up: summarize(deshaped("up")) },
   };
 }
 

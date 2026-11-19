@@ -75,3 +75,47 @@ test("coach: every source a finding or drill names exists, and every drill patch
     assert.ok(s.short && s.cite);
   }
 });
+
+/** Three-bar phrases and a bar of rest; "arc" leans back and comes home, "ramp" slides and stays. */
+function runPhrased({ shape, lean = 45, spread = 8, bpm = 140, calibrated = true, seed = 3, form = null }) {
+  const r = mulberry32(seed);
+  const ms = 60000 / bpm;
+  const notes = [];
+  for (let bar = 0; bar < 48; bar++) {
+    if (bar % 4 === 3) continue;
+    for (let b = 0; b < 4; b++) {
+      for (const [k, at] of [[0, bar * 4 + b], [1, bar * 4 + b + 2 / 3]]) {
+        const x = ((bar % 4) * 4 + b + k * 0.5) / 11.5;
+        const s = shape === "arc" ? lean * Math.sin(Math.PI * x) : shape === "ramp" ? lean * x : 0;
+        notes.push({ beat: at + (s + gauss(r) * spread) / ms, level: -20 });
+      }
+    }
+  }
+  const t = analyzeTiming(notes, { beats: 4, feel: 2 / 3, msPerBeat: () => ms, practice, bpmAt: () => bpm });
+  const p = analyzePacing(notes, { beats: 4, totalBeats: 48 * 4 });
+  return coach(t, p, { bpm, beats: 4, calibrated, form });
+}
+
+test("coach: rubato is named as rubato, and the player is neither called loose nor late", () => {
+  const c = runPhrased({ shape: "arc", lean: 45 });
+  const f = c.findings.find((x) => x.id === "rubato");
+  assert.ok(f, ids(c).join());
+  assert.ok(!f.drill);
+  assert.ok(f.sources.includes("ashley"));
+  assert.notEqual(c.drill?.id, "slow");
+  assert.ok(!ids(c).includes("all-late"), ids(c).join());
+  const spread = c.findings.find((x) => x.id === "spread");
+  assert.match(spread.title, /tight/);
+  assert.equal(c.headline[0].label, "Spread");
+  assert.ok(Number(c.headline[0].value.replace(/\D/g, "")) <= 11, c.headline[0].value);
+});
+
+test("coach: phrases that slide away and stay get a drill and the bars where they start", () => {
+  const form = Array.from({ length: 12 }, () => ["C7"]);
+  const c = runPhrased({ shape: "ramp", lean: 45, form });
+  const f = c.findings.find((x) => x.id === "slide");
+  assert.ok(f, ids(c).join());
+  assert.equal(f.drill.id, "land");
+  assert.match(f.text, /bar 1\b/);
+  assert.ok(!ids(c).includes("rubato"));
+});

@@ -112,3 +112,66 @@ test("pacing: phrases, rest share and where phrases start", () => {
   assert.equal(none.count, 1);
   assert.ok(none.restShare < 0.05);
 });
+
+/**
+ * Three-bar phrases with a bar of rest. Each phrase has a shape, in ms, on top of the planted placement:
+ *   "arc": leans back to `lean` in the middle and comes home by the end (rubato);
+ *   "ramp": moves to `lean` by the end and does not come back (a slide);
+ *   "flat": no shape.
+ */
+function phrased({ shape = "flat", lean = 0, downLate = 0, upLate = 0, spread = 8, bpm = 140, bars = 48, seed = 1 }) {
+  const r = mulberry32(seed);
+  const ms = 60000 / bpm;
+  const notes = [];
+  for (let bar = 1; bar <= bars; bar++) {
+    if (bar % 4 === 0) continue;
+    for (let b = 0; b < 4; b++) {
+      for (const [k, at] of [[0, bar * 4 + b], [1, bar * 4 + b + 2 / 3]]) {
+        const x = (((bar - 1) % 4) * 4 + b + k * 0.5) / 11.5; // 0 at the first note of the phrase, 1 at its last
+        const s = shape === "arc" ? lean * Math.sin(Math.PI * x) : shape === "ramp" ? lean * x : 0;
+        notes.push({ beat: at + ((k ? upLate : downLate) + s + gauss(r) * spread) / ms, level: -20 });
+      }
+    }
+  }
+  return { notes, ctx: { beats: 4, feel: 2 / 3, msPerBeat: () => ms, practice, bpmAt: () => bpm } };
+}
+
+test("timefeel line: phrases that lean back and come home are rubato, not spread", () => {
+  const { notes, ctx } = phrased({ shape: "arc", lean: 45, spread: 8, seed: 11 });
+  const t = analyzeTiming(notes, ctx);
+  assert.ok(t.down.sd > 14, `the plain spread mixes the leans in: ${t.down.sd.toFixed(1)}`);
+  const L = t.line;
+  assert.ok(L.enough);
+  assert.ok(Math.abs(L.control.sd - 8) < 2.5, `control ${L.control.sd.toFixed(1)}`);
+  assert.ok(L.leans >= 9 && L.slides <= 1, `${L.leans} leans, ${L.slides} slides of ${L.phrases.length}`);
+  assert.ok(L.leanMs > 30 && L.leanMs < 55, `typical lean ${L.leanMs.toFixed(0)}`);
+  // Where you sit is read from the notes at home, so the leans do not make you look late.
+  assert.ok(Math.abs(L.home.down.mean) < 6, `home downbeats ${L.home.down.mean.toFixed(1)}`);
+  assert.ok(t.down.mean > 15, `the plain average is pulled late: ${t.down.mean.toFixed(1)}`);
+});
+
+test("timefeel line: a phrase that slides away and stays is a slide", () => {
+  const { notes, ctx } = phrased({ shape: "ramp", lean: 45, spread: 8, seed: 12 });
+  const L = analyzeTiming(notes, ctx).line;
+  assert.ok(L.slides >= 9 && L.leans <= 1, `${L.leans} leans, ${L.slides} slides of ${L.phrases.length}`);
+  for (const ph of L.phrases.filter((x) => x.kind === "slide")) assert.ok(ph.end > 0, "slides back, not forward");
+});
+
+test("timefeel line: a steady player, laid back or not, has steady phrases and keeps the placement", () => {
+  let wrong = 0;
+  for (let seed = 1; seed <= 20; seed++) {
+    const { notes, ctx } = phrased({ downLate: 28, upLate: 2, spread: 10, seed, bars: 32 });
+    const t = analyzeTiming(notes, ctx);
+    wrong += t.line.leans + t.line.slides;
+    assert.ok(Math.abs(t.line.control.sd - 10) < 3, `control ${t.line.control.sd.toFixed(1)}`);
+    assert.ok(Math.abs(t.line.home.down.mean - 28) < 5, `home ${t.line.home.down.mean.toFixed(1)}`);
+  }
+  // 20 takes of 8 phrases: by chance a phrase may be flagged now and then, not more.
+  assert.ok(wrong <= 8, `${wrong} phrases flagged in 160 steady ones`);
+});
+
+test("timefeel line: too few notes say nothing", () => {
+  const { notes, ctx } = phrased({ shape: "arc", lean: 60 });
+  const L = analyzeTiming(notes.slice(0, 20), ctx).line;
+  assert.equal(L.enough, false);
+});

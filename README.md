@@ -88,12 +88,13 @@ Turn the microphone on in the Listen section and play along. The page finds ever
 **What it measures.** The measures are the ones used in research on recorded jazz solos:
 - downbeat delay and offbeat delay (how late the first and the second eighth of each beat are against the band),
 - swing ratio from every downbeat-offbeat pair,
-- spread (your consistency, apart from where you sit),
+- spread (your consistency, apart from where you sit), measured around the line of each phrase,
+- the line of each phrase: a phrase that leans behind the band and comes home by its last notes is rubato (Ashley 2002), not scatter, and where you sit is read from the notes at home; a phrase that leaves and does not come back is a slide, with a drill to land it,
 - which beat of the bar is early or late for you, drift over the take, what happens in the gap trainer's silent bars, offbeat accents in dB, and pacing (phrases, rests, where phrases start).
 
 Every average carries its standard error. A statement is only made when the average is at least two standard errors from zero, so the report does not teach from noise. "Ahead" and "behind" are only shown once the delay through speakers or headphones has been measured.
 
-**What it compares you with.** `coach.js` keeps two kinds of source apart: measurements of what players on records do (Friberg & Sundström 2002; Nelias et al. 2022; Benadon 2006; Butterfield 2011) and what teachers ask for (click on 2 and 4, one click a bar, a click that drops out, play two bars and rest two). Each finding links its sources and may come with a drill that sets the page up in one tap. It gives no marks.
+**What it compares you with.** `coach.js` keeps two kinds of source apart: measurements of what players on records do (Friberg & Sundström 2002; Nelias et al. 2022; Benadon 2006; Butterfield 2011; Ashley 2002) and what teachers ask for (click on 2 and 4, one click a bar, a click that drops out, play two bars and rest two). Each finding links its sources and may come with a drill that sets the page up in one tap. It gives no marks.
 
 **How it hears** (all pure code, tested under Node with synthetic guitars):
 - `ear.js` finds note starts from energy rising in many bands at once, then places the exact moment in the waveform, and reads the pitch (`pitch.js`).

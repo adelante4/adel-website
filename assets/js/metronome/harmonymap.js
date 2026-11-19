@@ -16,10 +16,10 @@
 //     (the voice leading in Ligon's outlines);
 //   - a map of the form: how inside the playing is in each bar, over all choruses.
 // Octaves do not matter here, only note names, so an octave slip of the pitch reader changes nothing.
-import { parseChord } from "./chords.js?v=20261119c";
-import { formPosition } from "./position.js?v=20261119c";
-import { analyze, classOf, noteName } from "./analysis.js?v=20261119c";
-import { scaleFor } from "./scales.js?v=20261119c";
+import { parseChord } from "./chords.js?v=20261119d";
+import { formPosition } from "./position.js?v=20261119d";
+import { analyze, classOf, noteName } from "./analysis.js?v=20261119d";
+import { scaleFor } from "./scales.js?v=20261119d";
 
 const pc = (n) => ((n % 12) + 12) % 12;
 

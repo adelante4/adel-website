@@ -1,15 +1,15 @@
 // Export: the band as loop-ready WAV stems (for an Akai MPC, Ableton or any sampler), as a MIDI file, and the
 // drum kit as one-shots for pads. Renders with the same audio engine as playback, into memory.
-import { createAudio } from "./audio.js?v=20261119c";
-import { createTransport, routeEvents } from "./transport.js?v=20261119c";
-import { compileTimeline, timeAtBeat } from "./timeline.js?v=20261119c";
-import { encodeWav, foldTail, peakOf } from "./wav.js?v=20261119c";
-import { makeZip } from "./zip.js?v=20261119c";
-import { buildMidi } from "./midi.js?v=20261119c";
-import { DRUM_VOICES } from "./groove.js?v=20261119c";
-import { drumLevel, drumTrim } from "./instruments.js?v=20261119c";
-import { trimTail, masterProject } from "./mpcdsp.js?v=20261119c";
-import { projectName, decodeSkeleton, decodeXpj, buildPayload, encodeXpj, wavFrames } from "./mpc.js?v=20261119c";
+import { createAudio } from "./audio.js?v=20261119d";
+import { createTransport, routeEvents } from "./transport.js?v=20261119d";
+import { compileTimeline, timeAtBeat } from "./timeline.js?v=20261119d";
+import { encodeWav, foldTail, peakOf } from "./wav.js?v=20261119d";
+import { makeZip } from "./zip.js?v=20261119d";
+import { buildMidi } from "./midi.js?v=20261119d";
+import { DRUM_VOICES } from "./groove.js?v=20261119d";
+import { drumLevel, drumTrim } from "./instruments.js?v=20261119d";
+import { trimTail, masterProject } from "./mpcdsp.js?v=20261119d";
+import { projectName, decodeSkeleton, decodeXpj, buildPayload, encodeXpj, wavFrames } from "./mpc.js?v=20261119d";
 
 const RATE = 44100;
 const SKELETON_URL = new URL("../../mpc/skeleton.json.gz", import.meta.url);

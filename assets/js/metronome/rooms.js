@@ -1,8 +1,8 @@
 // The page's interface logic: one detail panel per section, chips that show state, the sentence that says
 // what is sounding. The controls themselves stay in metronome.js; this module decides what is visible and
 // what the chips say. Every control exists once in the page.
-import { describeSound } from "./sentence.js?v=20261119c";
-import { toggleDrums } from "./edits.js?v=20261119c";
+import { describeSound } from "./sentence.js?v=20261119d";
+import { toggleDrums } from "./edits.js?v=20261119d";
 
 const $ = (id) => document.getElementById(id);
 

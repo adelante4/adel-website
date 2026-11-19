@@ -15,10 +15,10 @@
 // An event has: beat, midi, dur (beats), gain, bar, slot, and `art`, how the note is played:
 //   undefined  a normal note        "dead"   a muted thud (a ghost note)
 //   "slide"    glides up into the note   "fall"   the pitch sags away at the end
-import { slotRng } from "./prng.js?v=20261119c";
-import { barPlays } from "./overlay.js?v=20261119c";
-import { chordTones, parseChord } from "./chords.js?v=20261119c";
-import { formPosition } from "./position.js?v=20261119c";
+import { slotRng } from "./prng.js?v=20261119d";
+import { barPlays } from "./overlay.js?v=20261119d";
+import { chordTones, parseChord } from "./chords.js?v=20261119d";
+import { formPosition } from "./position.js?v=20261119d";
 
 const WINDOW_LOW = 28;
 const MAX_NUDGE_BEATS = 0.03;
