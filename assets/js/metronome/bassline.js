@@ -15,10 +15,10 @@
 // An event has: beat, midi, dur (beats), gain, bar, slot, and `art`, how the note is played:
 //   undefined  a normal note        "dead"   a muted thud (a ghost note)
 //   "slide"    glides up into the note   "fall"   the pitch sags away at the end
-import { slotRng } from "./prng.js?v=20261119b";
-import { barPlays } from "./overlay.js?v=20261119b";
-import { chordTones, parseChord } from "./chords.js?v=20261119b";
-import { flattenForm } from "./comping.js?v=20261119b";
+import { slotRng } from "./prng.js?v=20261119c";
+import { barPlays } from "./overlay.js?v=20261119c";
+import { chordTones, parseChord } from "./chords.js?v=20261119c";
+import { formPosition } from "./position.js?v=20261119c";
 
 const WINDOW_LOW = 28;
 const MAX_NUDGE_BEATS = 0.03;
@@ -482,23 +482,24 @@ export function generateBass(bass, harmony, patternCfg, practice, fromBeat, toBe
   if (!bass || !harmony || harmony.form.length === 0) return out;
   const def = STYLES[bass.style] ?? STYLES.roots;
   const beats = patternCfg.beats;
-  const slots = flattenForm(harmony.form, beats);
+  const where = formPosition(harmony.form, beats, practice.countIn);
+  const slots = where.slots;
   const infos = slots.map((s) => chordTones(s.chord));
   const curs = slots.map((s) => ({ ...(parseChord(s.chord) ?? { root: 0, quality: "maj7" }), name: s.chord }));
-  const byBar = harmony.form.map((_, b) => slots.map((s, i) => [s, i]).filter(([s]) => s.bar === b));
   const firstBar = Math.max(0, Math.floor(fromBeat / beats) - 1);
   const lastBar = Math.ceil(toBeat / beats) + 1;
   for (let bar = firstBar; bar <= lastBar; bar++) {
-    const pb = bar - practice.countIn;
-    if (pb < 0 || !barPlays(practice, bar).harmony) continue;
-    const fb = pb % harmony.form.length;
+    const at = where.ofBar(bar);
+    if (!at || !barPlays(practice, bar).harmony) continue;
+    const fb = at.formBar;
     const c = {
       beats,
       bar,
       fb,
       seed: patternCfg.seed,
       r: (k) => slotRng(patternCfg.seed, bar, k, 50),
-      slots: byBar[fb].map(([s, idx]) => {
+      slots: at.slots.map((s) => {
+        const idx = s.index;
         const nx = (idx + 1) % slots.length;
         return {
           idx,

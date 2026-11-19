@@ -19,15 +19,15 @@ Personal site with a jazz practice metronome. Plain HTML, CSS and ES modules. No
 
 Every module starts with a one-line comment that says what it is. Read that first.
 
-Pure modules (no Web Audio, no DOM) run under Node and have tests: timing (`timeline`, `transport`, `pattern`, `overlay`, `meter`, `tempo`), harmony (`chords`, `analysis`, `scales`, `sections`, `voicing`, `dna`), the band (`comping`, `bassline`, `groove`, `bands`), state (`share`, `edits`, `mine`, `sentence`), export (`wav`, `midi`, `zip`, `mpc`, `mpcdsp`) and listening (`fft`, `pitch`, `ear`, `latency`, `echo`, `timefeel`, `coach`, `harmonymap`, `licks`).
+Pure modules (no Web Audio, no DOM) run under Node and have tests: timing (`timeline`, `transport`, `pattern`, `overlay`, `position`, `meter`, `tempo`), harmony (`chords`, `analysis`, `scales`, `sections`, `voicing`, `dna`), the band (`comping`, `bassline`, `groove`, `bands`), state (`share`, `edits`, `mine`, `sentence`), export (`wav`, `midi`, `zip`, `mpc`, `mpcdsp`) and listening (`fft`, `pitch`, `ear`, `latency`, `echo`, `timefeel`, `coach`, `harmonymap`, `licks`).
 
 Browser-only modules wire the page: `metronome.js` (entry point, controls to state to audio), `audio.js`, `sampler.js`, `voices.js`, `rooms.js`, `tune.js`, `listen.js`, `mic.js`, `tap-worklet.js`, `offline.js`, `export.js`.
 
-Keep new logic in pure modules and test it there. Keep browser modules thin. A choice that ties settings together (a meter change, a groove that moves the meter) belongs in `edits.js`, and the page applies it with `apply()`. Everything that sounds goes through `transport.routeEvents` (which layer, which sound, which bus) and `audio.play`, for live playback and export alike.
+Keep new logic in pure modules and test it there. Keep browser modules thin. A choice that ties settings together (a meter change, a groove that moves the meter) belongs in `edits.js`, and the page applies it with `apply()`. Everything that sounds goes through `transport.routeEvents` (which layer, which sound, which bus) and `audio.play`, for live playback and export alike. "Which chord and which bar of the form is beat B?" is answered by `position.formPosition`; never work it out from the count-in by hand.
 
 ## Rules to keep
 
-- **Cache tag.** Every import and asset link carries the same `?v=<tag>` (for example `?v=20261119b`). When you change any file under `assets/js`, `assets/css` or `metronome.html`, bump the tag everywhere at once. `test/cachetag.test.mjs` fails on mixed tags. A stale tag makes the browser load two copies of a module.
+- **Cache tag.** Every import and asset link carries the same `?v=<tag>` (for example `?v=20261119c`). When you change any file under `assets/js`, `assets/css` or `metronome.html`, bump the tag everywhere at once. `test/cachetag.test.mjs` fails on mixed tags. A stale tag makes the browser load two copies of a module.
 - **Offline manifest.** After you add, remove or change a metronome module, icon or sound, run `node tools/offline-manifest.mjs`. The tests fail if `offline-manifest.json` is out of date.
 - **Sound levels** (no test checks this). Per-sound loudness trims live in `instruments.js`. After a change to a sound, re-measure with `tools/measure-levels.html`.
 
