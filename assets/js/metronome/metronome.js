@@ -5,28 +5,28 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261119a";
-import { createTransport } from "./transport.js?v=20261119a";
-import { barPlays } from "./overlay.js?v=20261119a";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261119a";
-import { SIGNATURES, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261119a";
-import { defaultState, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261119a";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261119a";
-import { COMP_STYLES } from "./comping.js?v=20261119a";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits, grooveMeter } from "./groove.js?v=20261119a";
-import { BASS_STYLES, BASS_STYLE_NAMES, BASS_STYLE_NOTES } from "./bassline.js?v=20261119a";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261119a";
-import { BAND_STYLES } from "./bands.js?v=20261119a";
-import * as edits from "./edits.js?v=20261119a";
-import { createTuneView } from "./tune.js?v=20261119a";
-import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261119a";
-import { initRooms } from "./rooms.js?v=20261119a";
-import { initOffline, holdScreen, releaseScreen } from "./offline.js?v=20261119a";
-import { initExport } from "./export.js?v=20261119a";
-import { initListen } from "./listen.js?v=20261119a";
-import { TOP_100 } from "./top100.js?v=20261119a";
-import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261119a";
-import { MAX_FORM_BARS } from "./share.js?v=20261119a";
+import { createAudio } from "./audio.js?v=20261119b";
+import { createTransport, routeEvents, dueEvents } from "./transport.js?v=20261119b";
+import { barPlays } from "./overlay.js?v=20261119b";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261119b";
+import { SIGNATURES, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261119b";
+import { defaultState, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261119b";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261119b";
+import { COMP_STYLES } from "./comping.js?v=20261119b";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits, grooveMeter } from "./groove.js?v=20261119b";
+import { BASS_STYLES, BASS_STYLE_NAMES, BASS_STYLE_NOTES } from "./bassline.js?v=20261119b";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261119b";
+import { BAND_STYLES } from "./bands.js?v=20261119b";
+import * as edits from "./edits.js?v=20261119b";
+import { createTuneView } from "./tune.js?v=20261119b";
+import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261119b";
+import { initRooms } from "./rooms.js?v=20261119b";
+import { initOffline, holdScreen, releaseScreen } from "./offline.js?v=20261119b";
+import { initExport } from "./export.js?v=20261119b";
+import { initListen } from "./listen.js?v=20261119b";
+import { TOP_100 } from "./top100.js?v=20261119b";
+import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261119b";
+import { MAX_FORM_BARS } from "./share.js?v=20261119b";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -76,25 +76,8 @@ function tick() {
   if (!ctx || !run) return;
   if (ctx.state === "suspended") ctx.resume().catch(() => {});
   const now = ctx.currentTime;
-  const { clicks, chords, bass, drums } = transport.pullAll(now, document.hidden ? LOOKAHEAD_HIDDEN : LOOKAHEAD);
-  for (const e of clicks) {
-    if (e.time < now - 0.03) continue; // too late to be useful
-    // The count-in is always heard, even with the click turned off.
-    const counting = state.mix.click === 0 && e.bar < state.practice.countIn;
-    audio.click(run, Math.max(e.time, now), e.kind, e.gain, state.pattern.sound, counting ? run.countOut : run.out);
-  }
-  for (const e of chords) {
-    if (e.time < now - 0.03) continue;
-    audio.chord(run, Math.max(e.time, now), e.notes, e.seconds, e.gain, state.harmony.sound);
-  }
-  for (const e of bass) {
-    if (e.time < now - 0.03) continue;
-    audio.bass(run, Math.max(e.time, now), e.midi, e.seconds, e.gain, state.bass.sound, e.art);
-  }
-  for (const e of drums) {
-    if (e.time < now - 0.03) continue;
-    audio.drum(run, Math.max(e.time, now), e.voice, e.gain, state.groove.style, state.groove.kit);
-  }
+  const pulled = transport.pullAll(now, document.hidden ? LOOKAHEAD_HIDDEN : LOOKAHEAD);
+  audio.play(run, dueEvents(routeEvents(pulled, state), now));
 }
 
 async function start() {
