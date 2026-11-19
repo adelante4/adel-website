@@ -1,11 +1,12 @@
 // The page's interface logic: one detail panel per section, chips that show state, the sentence that says
 // what is sounding. The controls themselves stay in metronome.js; this module decides what is visible and
 // what the chips say. Every control exists once in the page.
-import { describeSound } from "./sentence.js?v=20261112b";
+import { describeSound } from "./sentence.js?v=20261119a";
+import { toggleDrums } from "./edits.js?v=20261119a";
 
 const $ = (id) => document.getElementById(id);
 
-export function initRooms({ getState, commit, getTuneName }) {
+export function initRooms({ getState, apply, getTuneName }) {
   let lastGroove = "lofi";
 
   // ---- chips open one panel at a time, under their own section ----
@@ -44,12 +45,9 @@ export function initRooms({ getState, commit, getTuneName }) {
 
   // ---- switches ----
   $("drums-toggle").addEventListener("click", () => {
-    const s = getState();
-    if (s.groove.style !== "off") {
-      lastGroove = s.groove.style;
-      s.groove = { ...s.groove, style: "off" };
-    } else s.groove = { ...s.groove, style: lastGroove };
-    commit();
+    const r = toggleDrums(getState(), lastGroove);
+    lastGroove = r.lastGroove;
+    apply(r);
   });
   $("pc-gap").addEventListener("click", () => $("gap-toggle").click());
   $("pc-ladder").addEventListener("click", () => $("ladder-toggle").click());

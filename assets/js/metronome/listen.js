@@ -1,14 +1,14 @@
 // The Listen section: microphone on, notes timed against the band while you play, a report when you stop.
 // Browser side. The hearing is in ear.js, the numbers in timefeel.js, the reading of them in coach.js.
-import { createEar } from "./ear.js?v=20261112b";
-import { openMic } from "./mic.js?v=20261112b";
-import { probeSignal } from "./latency.js?v=20261112b";
-import { analyzeTiming, analyzePacing } from "./timefeel.js?v=20261112b";
-import { coach, coachNotes, SOURCES } from "./coach.js?v=20261112b";
-import { analyzeHarmony, inside } from "./harmonymap.js?v=20261112b";
-import { findLicks } from "./licks.js?v=20261112b";
-import { noteName } from "./analysis.js?v=20261112b";
-import { bandFeel } from "./groove.js?v=20261112b";
+import { createEar } from "./ear.js?v=20261119a";
+import { openMic } from "./mic.js?v=20261119a";
+import { probeSignal } from "./latency.js?v=20261119a";
+import { analyzeTiming, analyzePacing } from "./timefeel.js?v=20261119a";
+import { coach, coachNotes, SOURCES } from "./coach.js?v=20261119a";
+import { analyzeHarmony, inside } from "./harmonymap.js?v=20261119a";
+import { findLicks } from "./licks.js?v=20261119a";
+import { noteName } from "./analysis.js?v=20261119a";
+import { bandFeel } from "./groove.js?v=20261119a";
 
 const CAL = "adelListenDelay";
 const TAKES = "adelListenTakes";

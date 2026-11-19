@@ -1,30 +1,32 @@
 // The metronome page: wires the controls to the state, and the state to the audio.
 //
-// Flow: a control changes `state`, commit() cleans it, saves it, redraws, and tells the
+// Flow: a control changes `state` (choices that tie settings together go through edits.js and apply()),
+// commit() cleans it, saves it, redraws, and tells the
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261112b";
-import { createTransport } from "./transport.js?v=20261112b";
-import { barPlays } from "./overlay.js?v=20261112b";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261112b";
-import { SIGNATURES, parseMeter, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261112b";
-import { defaultState, defaultLevels, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261112b";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261112b";
-import { COMP_STYLES } from "./comping.js?v=20261112b";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits, grooveMeter } from "./groove.js?v=20261112b";
-import { BASS_STYLES, BASS_STYLE_NAMES, BASS_STYLE_NOTES } from "./bassline.js?v=20261112b";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261112b";
-import { BAND_STYLES } from "./bands.js?v=20261112b";
-import { createTuneView } from "./tune.js?v=20261112b";
-import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261112b";
-import { initRooms } from "./rooms.js?v=20261112b";
-import { initOffline, holdScreen, releaseScreen } from "./offline.js?v=20261112b";
-import { initExport } from "./export.js?v=20261112b";
-import { initListen } from "./listen.js?v=20261112b";
-import { TOP_100 } from "./top100.js?v=20261112b";
-import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261112b";
-import { MAX_FORM_BARS } from "./share.js?v=20261112b";
+import { createAudio } from "./audio.js?v=20261119a";
+import { createTransport } from "./transport.js?v=20261119a";
+import { barPlays } from "./overlay.js?v=20261119a";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261119a";
+import { SIGNATURES, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261119a";
+import { defaultState, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261119a";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261119a";
+import { COMP_STYLES } from "./comping.js?v=20261119a";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits, grooveMeter } from "./groove.js?v=20261119a";
+import { BASS_STYLES, BASS_STYLE_NAMES, BASS_STYLE_NOTES } from "./bassline.js?v=20261119a";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261119a";
+import { BAND_STYLES } from "./bands.js?v=20261119a";
+import * as edits from "./edits.js?v=20261119a";
+import { createTuneView } from "./tune.js?v=20261119a";
+import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261119a";
+import { initRooms } from "./rooms.js?v=20261119a";
+import { initOffline, holdScreen, releaseScreen } from "./offline.js?v=20261119a";
+import { initExport } from "./export.js?v=20261119a";
+import { initListen } from "./listen.js?v=20261119a";
+import { TOP_100 } from "./top100.js?v=20261119a";
+import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261119a";
+import { MAX_FORM_BARS } from "./share.js?v=20261119a";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -170,24 +172,20 @@ function setBpm(bpm) {
   commit("tempo");
 }
 
+// Takes the result of an edit (edits.js): the new setup, what the transport must do, and a line to show.
+function apply(r) {
+  if (!r) return;
+  state = r.setup;
+  commit(r.kind);
+  if (r.notice) notice(r.notice, r.undo ? () => apply(r.undo(state)) : null);
+}
+
 function setMeter(sig) {
-  const m = parseMeter(sig);
-  if (!m) return;
-  const p = state.pattern;
-  p.beats = m.beats;
-  p.den = m.den;
-  p.levels = defaultLevels(m.beats, p.bars);
-  p.chances = new Array(m.beats * p.bars).fill(1);
-  commit("restart");
+  apply(edits.setMeter(state, sig));
 }
 
 function setBars(n) {
-  const p = state.pattern;
-  const slots = p.beats * n;
-  p.levels = Array.from({ length: slots }, (_, j) => p.levels[j] ?? p.levels[j % p.beats]);
-  p.chances = Array.from({ length: slots }, (_, j) => p.chances[j] ?? p.chances[j % p.beats]);
-  p.bars = n;
-  commit("restart");
+  apply(edits.setBars(state, n));
 }
 
 function setGrouping(index) {
@@ -492,22 +490,7 @@ function renderHarmony() {
   })(b.style);
   $("bass-style-note").textContent = BASS_STYLE_NOTES[b.style];
 
-  makeSeg($("groove"), GROOVE_STYLES.map((x) => [x, GROOVE_NAMES[x]]), (v) => {
-    state.groove.style = v;
-    // A groove only plays in its own meter, so choosing one moves the meter there.
-    if (v !== "off" && !grooveFits(state.pattern, v)) {
-      const [beats, den] = grooveMeter(v);
-      const p = state.pattern;
-      p.beats = beats;
-      p.den = den;
-      p.levels = defaultLevels(beats, p.bars);
-      p.chances = new Array(beats * p.bars).fill(1);
-      notice(`${GROOVE_NAMES[v]} plays in ${beats}/${den}, so the meter changed.`);
-      commit("restart");
-      return;
-    }
-    commit();
-  })(g.style);
+  makeSeg($("groove"), GROOVE_STYLES.map((x) => [x, GROOVE_NAMES[x]]), (v) => apply(edits.pickGroove(state, v)))(g.style);
   $("groove-note").textContent =
     g.style === "off" || grooveFits(state.pattern, g.style)
       ? ""
@@ -582,30 +565,7 @@ async function audition(text) {
 /** Sets every layer from a band style. */
 function applyBand(id) {
   const style = BAND_STYLES.find((x) => x.id === id);
-  if (!style) return;
-  const p = state.pattern;
-  const before = structuredClone({ pattern: state.pattern, harmony: { ...state.harmony, form: undefined }, bass: state.bass, groove: state.groove });
-  const [beats, den] = style.meter;
-  if (p.beats !== beats || p.den !== den) {
-    p.beats = beats;
-    p.den = den;
-    p.levels = defaultLevels(beats, p.bars);
-    p.chances = new Array(beats * p.bars).fill(1);
-  }
-  p.bpm = style.bpm;
-  state.groove = { ...style.groove };
-  state.bass = { on: true, ...style.bass };
-  state.harmony.on = true;
-  state.harmony.sound = style.keys.sound;
-  state.harmony.comp = style.keys.comp;
-  commit("restart");
-  notice(`${style.name}: ${style.bpm} BPM (was ${before.pattern.bpm}).`, () => {
-    state.pattern = before.pattern;
-    state.harmony = { ...state.harmony, on: before.harmony.on, sound: before.harmony.sound, comp: before.harmony.comp };
-    state.bass = before.bass;
-    state.groove = before.groove;
-    commit("restart");
-  });
+  if (style) apply(edits.applyBand(state, style));
 }
 
 function setPlaying(on) {
@@ -696,14 +656,12 @@ const tuneView = createTuneView({
 });
 // A drill from the Listen report: a few settings laid over the current ones.
 function applyPatch(patch) {
-  for (const key of Object.keys(patch)) state[key] = { ...state[key], ...patch[key] };
-  commit("restart");
-  renderEverything();
+  apply(edits.applyDrill(state, patch));
 }
 var listen = initListen({ audio, transport, getState: () => state, applyPatch, notice });
 // For the listening bench (tools/listen-live.cjs): a way in for a simulated player. Only with ?bench in the address.
 if (new URLSearchParams(location.search).has("bench")) window.__bench = { audio, transport, listen, getState: () => state, applyPatch };
-const rooms = initRooms({ getState: () => state, commit, getTuneName: () => tuneName });
+const rooms = initRooms({ getState: () => state, apply, getTuneName: () => tuneName });
 
 // ---- wiring ----
 $("start").addEventListener("click", toggle);
@@ -842,7 +800,6 @@ fillSelect($("chord-quality"), QUALITIES.map((q) => q.id), (id) => QUALITIES.fin
     if (!p) return;
     tuneName = p.name;
     currentMine = p.mine ? p.id : null;
-    state.harmony.form = p.form.map((bar) => [...bar]);
     sel.bar = 0;
     sel.k = 0;
     $("preset-note").textContent = p.mine
@@ -850,17 +807,7 @@ fillSelect($("chord-quality"), QUALITIES.map((q) => q.id), (id) => QUALITIES.fin
       : STANDARDS.includes(p) || MY_STANDARDS.includes(p) || TOP_100.includes(p)
         ? `${p.name}: typical changes, ${p.form.length} bars. Check them against your own chart.`
         : "";
-    // A chart written in 3/4 plays in 3/4.
-    if (p.beats && (state.pattern.beats !== p.beats || state.pattern.den !== 4)) {
-      const q = state.pattern;
-      q.beats = p.beats;
-      q.den = 4;
-      q.levels = defaultLevels(q.beats, q.bars);
-      q.chances = new Array(q.beats * q.bars).fill(1);
-      commit("restart");
-      return;
-    }
-    commit();
+    apply(edits.loadChart(state, p));
   });
 }
 $("band-style").replaceChildren(

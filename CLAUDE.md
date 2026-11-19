@@ -19,11 +19,11 @@ Personal site with a jazz practice metronome. Plain HTML, CSS and ES modules. No
 
 Every module starts with a one-line comment that says what it is. Read that first.
 
-Pure modules (no Web Audio, no DOM) run under Node and have tests: timing (`timeline`, `transport`, `pattern`, `overlay`, `meter`, `tempo`), harmony (`chords`, `analysis`, `scales`, `sections`, `voicing`, `dna`), the band (`comping`, `bassline`, `groove`, `bands`), state (`share`, `mine`, `sentence`), export (`wav`, `midi`, `zip`, `mpc`, `mpcdsp`) and listening (`fft`, `pitch`, `ear`, `latency`, `echo`, `timefeel`, `coach`, `harmonymap`, `licks`).
+Pure modules (no Web Audio, no DOM) run under Node and have tests: timing (`timeline`, `transport`, `pattern`, `overlay`, `meter`, `tempo`), harmony (`chords`, `analysis`, `scales`, `sections`, `voicing`, `dna`), the band (`comping`, `bassline`, `groove`, `bands`), state (`share`, `edits`, `mine`, `sentence`), export (`wav`, `midi`, `zip`, `mpc`, `mpcdsp`) and listening (`fft`, `pitch`, `ear`, `latency`, `echo`, `timefeel`, `coach`, `harmonymap`, `licks`).
 
 Browser-only modules wire the page: `metronome.js` (entry point, controls to state to audio), `audio.js`, `sampler.js`, `voices.js`, `rooms.js`, `tune.js`, `listen.js`, `mic.js`, `tap-worklet.js`, `offline.js`, `export.js`.
 
-Keep new logic in pure modules and test it there. Keep browser modules thin.
+Keep new logic in pure modules and test it there. Keep browser modules thin. A choice that ties settings together (a meter change, a groove that moves the meter) belongs in `edits.js`, and the page applies it with `apply()`.
 
 ## Rules to keep
 
