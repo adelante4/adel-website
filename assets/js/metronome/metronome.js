@@ -5,28 +5,29 @@
 // transport. Most changes are read by the click generator on its next pull, so they take
 // effect within a fraction of a second. A tempo change calls retempo() so the beat does not
 // jump; a change to the bar structure restarts the run so the bar count stays honest.
-import { createAudio } from "./audio.js?v=20261119b";
-import { createTransport, routeEvents, dueEvents } from "./transport.js?v=20261119b";
-import { barPlays } from "./overlay.js?v=20261119b";
-import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261119b";
-import { SIGNATURES, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261119b";
-import { defaultState, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261119b";
-import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261119b";
-import { COMP_STYLES } from "./comping.js?v=20261119b";
-import { GROOVE_STYLES, GROOVE_NAMES, grooveFits, grooveMeter } from "./groove.js?v=20261119b";
-import { BASS_STYLES, BASS_STYLE_NAMES, BASS_STYLE_NOTES } from "./bassline.js?v=20261119b";
-import { KEYS, BASSES, KITS } from "./instruments.js?v=20261119b";
-import { BAND_STYLES } from "./bands.js?v=20261119b";
-import * as edits from "./edits.js?v=20261119b";
-import { createTuneView } from "./tune.js?v=20261119b";
-import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261119b";
-import { initRooms } from "./rooms.js?v=20261119b";
-import { initOffline, holdScreen, releaseScreen } from "./offline.js?v=20261119b";
-import { initExport } from "./export.js?v=20261119b";
-import { initListen } from "./listen.js?v=20261119b";
-import { TOP_100 } from "./top100.js?v=20261119b";
-import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261119b";
-import { MAX_FORM_BARS } from "./share.js?v=20261119b";
+import { createAudio } from "./audio.js?v=20261119c";
+import { createTransport, routeEvents, dueEvents } from "./transport.js?v=20261119c";
+import { barPlays } from "./overlay.js?v=20261119c";
+import { clampBpm, tempoWord, createTapTempo } from "./tempo.js?v=20261119c";
+import { SIGNATURES, groupingOptions, groupingLabel, accentsFromGrouping, matchGrouping } from "./meter.js?v=20261119c";
+import { defaultState, normalizeState, encodeShare, decodeShare } from "./share.js?v=20261119c";
+import { ROOTS, QUALITIES, PRESETS, parseChord, formatChord, transposeChord, voiceChord } from "./chords.js?v=20261119c";
+import { COMP_STYLES } from "./comping.js?v=20261119c";
+import { GROOVE_STYLES, GROOVE_NAMES, grooveFits, grooveMeter } from "./groove.js?v=20261119c";
+import { BASS_STYLES, BASS_STYLE_NAMES, BASS_STYLE_NOTES } from "./bassline.js?v=20261119c";
+import { KEYS, BASSES, KITS } from "./instruments.js?v=20261119c";
+import { BAND_STYLES } from "./bands.js?v=20261119c";
+import * as edits from "./edits.js?v=20261119c";
+import { formPosition, ladderStep } from "./position.js?v=20261119c";
+import { createTuneView } from "./tune.js?v=20261119c";
+import { formToText, textToForm, loadMine, storeMine, withSaved } from "./mine.js?v=20261119c";
+import { initRooms } from "./rooms.js?v=20261119c";
+import { initOffline, holdScreen, releaseScreen } from "./offline.js?v=20261119c";
+import { initExport } from "./export.js?v=20261119c";
+import { initListen } from "./listen.js?v=20261119c";
+import { TOP_100 } from "./top100.js?v=20261119c";
+import { STANDARDS, MY_STANDARDS } from "./standards.js?v=20261119c";
+import { MAX_FORM_BARS } from "./share.js?v=20261119c";
 
 const $ = (id) => document.getElementById(id);
 const STORE = "adelMetronome";
@@ -517,18 +518,15 @@ function renderHarmony() {
 }
 
 /** Marks the chord that is sounding now, and tells the Now/Next strip. */
-function markChord(bar, inBar) {
-  const h = state.harmony;
-  const pb = bar - state.practice.countIn;
-  if (pb < 0) {
+function markChord(beat) {
+  const at = formPosition(state.harmony.form, state.pattern.beats, state.practice.countIn).at(beat);
+  if (!at) {
     for (const c of els.form.querySelectorAll(".chord.on")) c.classList.remove("on");
     return;
   }
-  const fb = pb % h.form.length;
-  const k = h.form[fb].length === 2 && inBar >= Math.ceil(state.pattern.beats / 2) ? 1 : 0;
-  const want = `${fb}:${k}`;
+  const want = `${at.formBar}:${at.slot.k}`;
   for (const c of els.form.querySelectorAll(".chord")) c.classList.toggle("on", `${c.dataset.bar}:${c.dataset.k}` === want);
-  tuneView.follow({ bar: fb, k }, k === 1 ? inBar - Math.ceil(state.pattern.beats / 2) : inBar);
+  tuneView.follow({ bar: at.formBar, k: at.slot.k }, at.beatInSlot);
 }
 
 async function audition(text) {
@@ -584,12 +582,12 @@ function frame() {
     showBpm(bpm);
     $("tempo-word").textContent = tempoWord(bpm);
     const bar = Math.floor(beat / p.beats);
-    markChord(bar, beat - bar * p.beats);
+    markChord(beat);
     const parts = [];
     if (bar < pr.countIn) parts.push(`Count-in, bar ${bar + 1} of ${pr.countIn}`);
     else parts.push(`Bar ${bar - pr.countIn + 1}`);
     if (pr.gap && bar >= pr.countIn) parts.push(barPlays(pr, bar).click ? "metronome on" : "metronome off");
-    if (pr.ladder && bar >= pr.countIn) parts.push(`step ${Math.min(pr.ladder.rungs, Math.floor((bar - pr.countIn) / pr.ladder.everyBars) + 1)} of ${pr.ladder.rungs}`);
+    if (pr.ladder && bar >= pr.countIn) parts.push(`step ${ladderStep(pr, bar)} of ${pr.ladder.rungs}`);
     $("status").textContent = parts.join(", ");
   }
   raf = requestAnimationFrame(frame);

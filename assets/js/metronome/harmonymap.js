@@ -16,10 +16,10 @@
 //     (the voice leading in Ligon's outlines);
 //   - a map of the form: how inside the playing is in each bar, over all choruses.
 // Octaves do not matter here, only note names, so an octave slip of the pitch reader changes nothing.
-import { parseChord } from "./chords.js?v=20261119b";
-import { flattenForm } from "./comping.js?v=20261119b";
-import { analyze, classOf, noteName } from "./analysis.js?v=20261119b";
-import { scaleFor } from "./scales.js?v=20261119b";
+import { parseChord } from "./chords.js?v=20261119c";
+import { formPosition } from "./position.js?v=20261119c";
+import { analyze, classOf, noteName } from "./analysis.js?v=20261119c";
+import { scaleFor } from "./scales.js?v=20261119c";
 
 const pc = (n) => ((n % 12) + 12) % 12;
 
@@ -56,7 +56,8 @@ export const inside = (t) => (t.n ? (t.guide + t.chord) / t.n : 0);
 
 /** The slot of the form sounding at a beat, counted after the count-in. */
 function slotter(form, beats, countIn) {
-  const slots = flattenForm(form, beats);
+  const where = formPosition(form, beats, countIn);
+  const slots = where.slots;
   const an = analyze(form);
   const info = slots.map((s, i) => {
     const c = parseChord(s.chord) ?? { root: 0, quality: "maj7" };
@@ -66,21 +67,13 @@ function slotter(form, beats, countIn) {
     const [guides, others] = TONES[c.quality] ?? TONES.maj7;
     return { ...s, index: i, root: c.root, quality: c.quality, cls: classOf(c.quality), numeral: a.numeral ?? "", role: a.pos ?? null, guides, others, scale: scale ? scale.semis : [0, 2, 4, 5, 7, 9, 11] };
   });
-  const byBar = new Map();
-  for (const s of info) {
-    if (!byBar.has(s.bar)) byBar.set(s.bar, []);
-    byBar.get(s.bar).push(s);
-  }
   const at = (beat) => {
     // A first note a little ahead of the bar line belongs to the first bar, not to the count-in.
-    let b = beat - countIn * beats;
-    if (b < -0.5) return null;
-    if (b < 0) b = 0;
-    const bar = Math.floor(b / beats);
-    const inBar = b - bar * beats;
-    const list = byBar.get(bar % form.length);
-    const slot = list.length === 2 && inBar >= list[1].start ? list[1] : list[0];
-    return { slot, chorus: Math.floor(bar / form.length), starts: (bar * beats + slot.start) + countIn * beats, ends: bar * beats + slot.start + slot.span + countIn * beats };
+    const p = where.at(beat, 0.5);
+    if (!p) return null;
+    const slot = info[p.slot.index];
+    const starts = p.bar * beats + slot.start;
+    return { slot, chorus: p.chorus, starts, ends: starts + slot.span };
   };
   return { info, at, flats: an.flats, key: an.key };
 }

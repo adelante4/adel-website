@@ -3,10 +3,13 @@
 // generateHarmony(harmony, pattern, practice, fromBeat, toBeat) returns the events whose
 // position falls in [fromBeat, toBeat). Like the click generator it works in beats and is
 // repeatable: the same range gives the same events, and splitting a range changes nothing.
-import { slotRng } from "./prng.js?v=20261119b";
-import { barPlays } from "./overlay.js?v=20261119b";
-import { voiceChords, parseChord } from "./chords.js?v=20261119b";
-import { classOf } from "./analysis.js?v=20261119b";
+import { slotRng } from "./prng.js?v=20261119c";
+import { barPlays } from "./overlay.js?v=20261119c";
+import { voiceChords, parseChord } from "./chords.js?v=20261119c";
+import { classOf } from "./analysis.js?v=20261119c";
+import { flattenForm, formPosition } from "./position.js?v=20261119c";
+
+export { flattenForm };
 
 export const COMP_STYLES = [
   "sustain", "on1", "charleston", "push", "twofeel", "bossa", "arp",
@@ -219,21 +222,6 @@ export function resolveStyle(comp, { seed = 1, bar = 0, pb = 0, slot = 0, chord 
   return { style: comp, xform: same };
 }
 
-/** The chords of a form in playing order, with where each one starts in its bar. */
-export function flattenForm(form, beats) {
-  const half = Math.ceil(beats / 2);
-  const slots = [];
-  form.forEach((bar, b) => {
-    if (bar.length === 2) {
-      slots.push({ bar: b, k: 0, chord: bar[0], start: 0, span: half });
-      slots.push({ bar: b, k: 1, chord: bar[1], start: half, span: beats - half });
-    } else {
-      slots.push({ bar: b, k: 0, chord: bar[0], start: 0, span: beats });
-    }
-  });
-  return slots;
-}
-
 const voicingCache = new Map();
 function voicingsFor(slots) {
   const key = slots.map((s) => s.chord).join(",");
@@ -254,16 +242,16 @@ export function generateHarmony(harmony, pattern, practice, fromBeat, toBeat) {
   const out = [];
   if (!harmony || harmony.form.length === 0) return out;
   const beats = pattern.beats;
-  const slots = flattenForm(harmony.form, beats);
-  const voices = voicingsFor(slots);
-  const byBar = harmony.form.map((_, b) => slots.map((s, i) => [s, i]).filter(([s]) => s.bar === b));
+  const where = formPosition(harmony.form, beats, practice.countIn);
+  const voices = voicingsFor(where.slots);
   const firstBar = Math.max(0, Math.floor(fromBeat / beats) - 1);
   const lastBar = Math.ceil(toBeat / beats) + 1;
   for (let bar = firstBar; bar <= lastBar; bar++) {
-    const pb = bar - practice.countIn;
-    if (pb < 0 || !barPlays(practice, bar).harmony) continue;
-    const fb = pb % harmony.form.length;
-    for (const [s, idx] of byBar[fb]) {
+    const at = where.ofBar(bar);
+    if (!at || !barPlays(practice, bar).harmony) continue;
+    const { playBar: pb, formBar: fb } = at;
+    for (const s of at.slots) {
+      const idx = s.index;
       const base = bar * beats + s.start;
       const { style, xform } = resolveStyle(harmony.comp, { seed: pattern.seed, bar, pb, slot: idx, chord: s.chord });
       xform(styleHits(style, s.span, pb, beats, s.start), s.span).forEach((h, n) => {
