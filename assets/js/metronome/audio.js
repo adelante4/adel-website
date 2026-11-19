@@ -26,9 +26,9 @@ const SOUNDS = {
 };
 
 // Recorded hits (Versilian Community Sample Library, CC0). Each voice has three files.
-import { rhodes, bass, bassSynth, deadNote, softClip, organ, pad, juno, drone, glass, supersaw, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261119a";
-import { createSampler } from "./sampler.js?v=20261119a";
-import { KEYS, BASSES, trimOf, drumTrim, drumLevel } from "./instruments.js?v=20261119a";
+import { rhodes, bass, bassSynth, deadNote, softClip, organ, pad, juno, drone, glass, supersaw, drum, makeNoise, makeImpulse, makeDust } from "./voices.js?v=20261119b";
+import { createSampler } from "./sampler.js?v=20261119b";
+import { KEYS, BASSES, trimOf, drumTrim, drumLevel } from "./instruments.js?v=20261119b";
 
 const SYNTH_KEYS = new Set(["rhodes", "organ", "pad", "juno", "drone", "glass", "supersaw"]);
 // Bass bus voicing; the makeup keeps the level where the per-sound trims were measured.
@@ -363,6 +363,15 @@ export function createAudio(options = {}) {
       const out = via(run, "groove", drumTrim(kit, style));
       if (kit !== "synth" && sampler.drum(kit, out, when, voice, gain, drumLevel(kit, voice))) return;
       drum(ctx, out, noise, when, voice, gain, kit === "synth" ? style : "");
+    },
+    /** Schedule routed events (transport.routeEvents) on a run. Live playback and export both come through here. */
+    play(run, events) {
+      for (const e of events) {
+        if (e.part === "click") this.click(run, e.time, e.kind, e.gain, e.sound, e.bus === "count" ? run.countOut : run.out);
+        else if (e.part === "chords") this.chord(run, e.time, e.notes, e.seconds, e.gain, e.sound);
+        else if (e.part === "bass") this.bass(run, e.time, e.midi, e.seconds, e.gain, e.sound, e.art);
+        else if (e.part === "groove") this.drum(run, e.time, e.voice, e.gain, e.style, e.kit);
+      }
     },
     /** Schedule one click at an audio-clock time. kind is "accent", "beat" or "sub". */
     click(run, when, kind, gain, sound, dest = run.out) {

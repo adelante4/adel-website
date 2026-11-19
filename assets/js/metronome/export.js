@@ -1,15 +1,15 @@
 // Export: the band as loop-ready WAV stems (for an Akai MPC, Ableton or any sampler), as a MIDI file, and the
 // drum kit as one-shots for pads. Renders with the same audio engine as playback, into memory.
-import { createAudio } from "./audio.js?v=20261119a";
-import { createTransport } from "./transport.js?v=20261119a";
-import { compileTimeline, timeAtBeat } from "./timeline.js?v=20261119a";
-import { encodeWav, foldTail, peakOf } from "./wav.js?v=20261119a";
-import { makeZip } from "./zip.js?v=20261119a";
-import { buildMidi } from "./midi.js?v=20261119a";
-import { DRUM_VOICES } from "./groove.js?v=20261119a";
-import { drumLevel, drumTrim } from "./instruments.js?v=20261119a";
-import { trimTail, masterProject } from "./mpcdsp.js?v=20261119a";
-import { projectName, decodeSkeleton, decodeXpj, buildPayload, encodeXpj, wavFrames } from "./mpc.js?v=20261119a";
+import { createAudio } from "./audio.js?v=20261119b";
+import { createTransport, routeEvents } from "./transport.js?v=20261119b";
+import { compileTimeline, timeAtBeat } from "./timeline.js?v=20261119b";
+import { encodeWav, foldTail, peakOf } from "./wav.js?v=20261119b";
+import { makeZip } from "./zip.js?v=20261119b";
+import { buildMidi } from "./midi.js?v=20261119b";
+import { DRUM_VOICES } from "./groove.js?v=20261119b";
+import { drumLevel, drumTrim } from "./instruments.js?v=20261119b";
+import { trimTail, masterProject } from "./mpcdsp.js?v=20261119b";
+import { projectName, decodeSkeleton, decodeXpj, buildPayload, encodeXpj, wavFrames } from "./mpc.js?v=20261119b";
 
 const RATE = 44100;
 const SKELETON_URL = new URL("../../mpc/skeleton.json.gz", import.meta.url);
@@ -59,10 +59,8 @@ async function renderStem(cfg, events, seconds, mix) {
     kit: g && g.style !== "off" && mix.groove > 0 ? g.kit : undefined,
   });
   const run = audio.createRun(mix);
-  if (mix.click > 0) for (const e of events.clicks) audio.click(run, e.time, e.kind, e.gain, cfg.pattern.sound);
-  if (mix.chords > 0) for (const e of events.chords) audio.chord(run, e.time, e.notes, e.seconds, e.gain, h.sound);
-  if (mix.bass > 0) for (const e of events.bass) audio.bass(run, e.time, e.midi, e.seconds, e.gain, b.sound, e.art);
-  if (mix.groove > 0) for (const e of events.drums) audio.drum(run, e.time, e.voice, e.gain, g.style, g.kit);
+  // A stem plays only its own layers: the ones its mix turns up.
+  audio.play(run, routeEvents(events, cfg).filter((e) => mix[e.part] > 0));
   const buf = await ctx.startRendering();
   return foldTail([buf.getChannelData(0), buf.getChannelData(1)], Math.round(seconds * RATE));
 }

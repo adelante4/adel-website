@@ -6,12 +6,34 @@
 //
 // A smooth tempo change (retempo) moves the anchor to the first beat not yet handed out,
 // so the beat that was already queued keeps its time and the next one follows at the new tempo.
-import { compileTimeline, timeAtBeat, beatAtTime, bpmAtBeat } from "./timeline.js?v=20261119a";
-import { generateEvents } from "./pattern.js?v=20261119a";
-import { ladderMap } from "./overlay.js?v=20261119a";
-import { generateHarmony } from "./comping.js?v=20261119a";
-import { generateGroove, grooveSounds, bandFeel, swingBeat } from "./groove.js?v=20261119a";
-import { generateBass } from "./bassline.js?v=20261119a";
+import { compileTimeline, timeAtBeat, beatAtTime, bpmAtBeat } from "./timeline.js?v=20261119b";
+import { generateEvents } from "./pattern.js?v=20261119b";
+import { ladderMap } from "./overlay.js?v=20261119b";
+import { generateHarmony } from "./comping.js?v=20261119b";
+import { generateGroove, grooveSounds, bandFeel, swingBeat } from "./groove.js?v=20261119b";
+import { generateBass } from "./bassline.js?v=20261119b";
+
+/**
+ * What the transport pulled, made ready to play: one list in which every event names its layer
+ * (`part`: "click", "chords", "bass" or "groove", the same keys as the mix) and its sound. A click
+ * also names its bus: "count" for a count-in bar while the click is off (the count-in is always
+ * heard), "main" otherwise. Live playback and export both play this list.
+ */
+export function routeEvents(pulled, setup) {
+  const { pattern, practice, harmony, bass, groove, mix } = setup;
+  const clickOff = mix?.click === 0;
+  return [
+    ...pulled.clicks.map((e) => ({ ...e, part: "click", sound: pattern.sound, bus: clickOff && e.bar < practice.countIn ? "count" : "main" })),
+    ...pulled.chords.map((e) => ({ ...e, part: "chords", sound: harmony.sound })),
+    ...pulled.bass.map((e) => ({ ...e, part: "bass", sound: bass.sound })),
+    ...pulled.drums.map((e) => ({ ...e, part: "groove", style: groove.style, kit: groove.kit })),
+  ];
+}
+
+/** Events worth scheduling at audio time `now`: one more than `late` seconds old is dropped, one just late plays now. */
+export function dueEvents(events, now, late = 0.03) {
+  return events.filter((e) => e.time >= now - late).map((e) => (e.time < now ? { ...e, time: now } : e));
+}
 
 /** @param {() => {pattern: import("./pattern.js").Pattern, practice: import("./overlay.js").Practice}} getConfig */
 export function createTransport(getConfig) {
